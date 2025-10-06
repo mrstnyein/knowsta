@@ -16,10 +16,12 @@
     <h2>Knowsta Chat 💬</h2>
 
     <div id="auth">
+      <h3>Sign Up</h3>
       <input id="signup-email" placeholder="Email" /><br/>
       <input id="signup-password" type="password" placeholder="Password" /><br/>
       <button onclick="signUp()">Sign Up</button>
       <hr/>
+      <h3>Log In</h3>
       <input id="login-email" placeholder="Email" /><br/>
       <input id="login-password" type="password" placeholder="Password" /><br/>
       <button onclick="signIn()">Log In</button>
@@ -42,17 +44,27 @@
     async function signUp() {
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
+      if (!email || !password) { alert('Please enter email and password'); return; }
+
       const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) alert(error.message);
-      else alert('Check your email to confirm signup!');
+
+      if (error) {
+        alert('Error: ' + error.message);
+      } else {
+        alert('Signup successful! Please check your email for confirmation.');
+      }
     }
 
     async function signIn() {
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
+      if (!email || !password) { alert('Please enter email and password'); return; }
+
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) alert(error.message);
-      else {
+
+      if (error) {
+        alert('Error: ' + error.message);
+      } else {
         user = data.user;
         document.getElementById('auth').style.display = 'none';
         document.getElementById('chat-section').style.display = 'block';
@@ -79,6 +91,16 @@
       document.getElementById('msg').value = '';
       loadMessages();
     }
+
+    // Keep user logged in on page refresh
+    supabase.auth.onAuthStateChange((event, session) => {
+      if(session?.user) {
+        user = session.user;
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('chat-section').style.display = 'block';
+        loadMessages();
+      }
+    });
 
     setInterval(() => { if(user) loadMessages(); }, 2000);
   </script>

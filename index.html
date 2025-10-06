@@ -4,18 +4,166 @@
     <title>Knowsta Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; padding-top: 30px; }
-        #chat { width: 400px; height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: white; margin-bottom: 10px; }
-        input { padding: 5px; margin: 2px 0; width: 95%; }
-        button { padding: 5px 10px; margin: 2px 0; }
-        #auth { margin-bottom: 10px; }
-        .message { margin-bottom: 5px; }
-        .message-content { font-weight: bold; }
-        .message-email { font-size: 0.8em; color: #555; }
+        :root {
+            --primary-color: #5b21b6; /* Purple */
+            --primary-color-light: #7c3aed;
+            --background-color: #f3f4f6; /* Light gray */
+            --container-bg-color: #ffffff; /* White */
+            --border-color: #e5e7eb; /* Gray-200 */
+            --text-color: #1f2937; /* Gray-900 */
+            --text-color-light: #6b7280; /* Gray-500 */
+            --input-bg-color: #f9fafb; /* Gray-50 */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 50px;
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--container-bg-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        #chat {
+            height: 350px;
+            overflow-y: scroll;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            background: var(--input-bg-color);
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-container {
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.4;
+        }
+
+        .message-email {
+            font-size: 0.8rem;
+            color: var(--text-color-light);
+            margin-bottom: 2px;
+            font-weight: 500;
+        }
+
+        .message-content {
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 16px;
+            word-wrap: break-word;
+            max-width: 85%;
+            align-self: flex-start;
+        }
+
+        /* Styling for sent messages */
+        .message-sent .message-content {
+            background-color: var(--primary-color-light);
+            align-self: flex-end;
+        }
+        
+        .message-sent .message-email {
+            align-self: flex-end;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        #msg {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--container-bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: var(--primary-color-light);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #auth {
+            text-align: center;
+            padding-bottom: 20px;
+        }
+
+        #auth h3 {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+        }
+
+        #auth input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: var(--input-bg-color);
+            color: var(--text-color);
+        }
+
+        #auth button {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        #logout-btn {
+            width: 100%;
+            margin-bottom: 16px;
+            background-color: #ef4444; /* Red */
+        }
+        #logout-btn:hover {
+            background-color: #dc2626; /* Darker Red */
+        }
     </style>
 </head>
 <body>
-    <div>
+    <div class="chat-container">
         <h2>Knowsta Chat 💬</h2>
 
         <div id="auth">
@@ -28,19 +176,23 @@
             <input id="login-email" placeholder="Email" /><br/>
             <input id="login-password" type="password" placeholder="Password" /><br/>
             <button id="login-btn">Log In</button>
+            <hr/>
+            <h3>Login as Guest</h3>
+            <button id="guest-btn">Enter Chat</button>
         </div>
 
         <div id="chat-section" style="display:none;">
             <button id="logout-btn">Logout</button>
             <div id="chat"></div>
-            <input id="msg" placeholder="Type message" />
-            <button id="send-btn">Send</button>
+            <div class="input-group">
+                <input id="msg" placeholder="Type message" />
+                <button id="send-btn">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            // ✅ Supabase Client Initialization
             const supabaseUrl = 'https://nreviyisnhwckepaiglq.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
             const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
@@ -49,7 +201,6 @@
             const chatElement = document.getElementById('chat');
 
             // --- UI State Management ---
-
             function showAuthSection() {
                 document.getElementById('auth').style.display = 'block';
                 document.getElementById('chat-section').style.display = 'none';
@@ -64,7 +215,6 @@
             }
 
             // --- Authentication Event Listeners ---
-
             document.getElementById('signup-btn').addEventListener('click', async () => {
                 const email = document.getElementById('signup-email').value;
                 const password = document.getElementById('signup-password').value;
@@ -86,6 +236,17 @@
                 }
             });
 
+            document.getElementById('guest-btn').addEventListener('click', async () => {
+                const { data, error } = await supabaseClient.auth.signInAnonymously();
+                if (error) {
+                    console.error('Error signing in as guest:', error.message);
+                    alert(error.message);
+                } else {
+                    user = data.user;
+                    showChatSection();
+                }
+            });
+
             document.getElementById('logout-btn').addEventListener('click', async () => {
                 await supabaseClient.auth.signOut();
                 user = null;
@@ -93,7 +254,6 @@
             });
 
             // --- Message Handling and Real-time Logic ---
-
             document.getElementById('send-btn').addEventListener('click', async () => {
                 const msg = document.getElementById('msg').value;
                 if (!msg || !user) return;
@@ -106,22 +266,32 @@
 
             // Function to render a single message
             function renderMessage(message) {
-                const p = document.createElement('p');
-                p.className = 'message';
-                p.innerHTML = `<span class="message-email">${message.email}:</span> <span class="message-content">${message.content}</span>`;
-                chatElement.appendChild(p);
-                chatElement.scrollTop = chatElement.scrollHeight; // Auto-scroll
+                const messageContainer = document.createElement('div');
+                messageContainer.className = 'message-container';
+                
+                // Determine if the message was sent by the current user
+                if (user && message.user_id === user.id) {
+                    messageContainer.classList.add('message-sent');
+                }
+
+                messageContainer.innerHTML = `
+                    <span class="message-email">${message.email || 'Guest'}</span>
+                    <span class="message-content">${message.content}</span>
+                `;
+                chatElement.appendChild(messageContainer);
+                chatElement.scrollTop = chatElement.scrollHeight;
             }
 
             // Function to load all messages on start
             async function loadMessages() {
-                chatElement.innerHTML = ''; // Clear existing messages
+                chatElement.innerHTML = '';
                 
                 const { data, error } = await supabaseClient
                     .from('messages')
                     .select(`
                         content, 
                         created_at,
+                        user_id,
                         profiles:user_id ( email )
                     `)
                     .order('created_at', { ascending: true });
@@ -132,18 +302,16 @@
                 }
                 
                 data.forEach(message => {
-                    if (message.profiles) { // Check if user data exists
-                        renderMessage({
-                            content: message.content,
-                            email: message.profiles.email,
-                        });
-                    }
+                    renderMessage({
+                        content: message.content,
+                        email: message.profiles ? message.profiles.email : 'Guest',
+                        user_id: message.user_id
+                    });
                 });
             }
 
             // Function to subscribe to new messages in real-time
             function subscribeToMessages() {
-                // Remove previous subscriptions to avoid duplicates
                 supabaseClient.removeAllChannels();
 
                 supabaseClient
@@ -154,15 +322,11 @@
                             .select('email')
                             .eq('id', payload.new.user_id)
                             .single();
-
-                        if (profile_error) {
-                            console.error('Error fetching profile for new message:', profile_error.message);
-                            return;
-                        }
-
+                        
                         renderMessage({
                             content: payload.new.content,
-                            email: profile_data.email
+                            email: profile_data ? profile_data.email : 'Guest',
+                            user_id: payload.new.user_id
                         });
                     })
                     .subscribe();

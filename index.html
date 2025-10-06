@@ -2,9 +2,9 @@
 <html>
 <head>
   <title>Knowsta Chat</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js" defer></script>
   <style>
-    body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; }
+    body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; padding-top: 30px; }
     #chat { width: 400px; height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: white; margin-bottom: 10px; }
     input { padding: 5px; margin: 2px 0; width: 95%; }
     button { padding: 5px 10px; margin: 2px 0; }
@@ -44,29 +44,20 @@
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
     let user = null;
 
-    // 2️⃣ Add event listeners
-    document.getElementById('signup-btn').addEventListener('click', signUp);
-    document.getElementById('login-btn').addEventListener('click', signIn);
-    document.getElementById('logout-btn').addEventListener('click', logout);
-    document.getElementById('send-btn').addEventListener('click', sendMessage);
-
-    // 3️⃣ Sign Up
-    async function signUp() {
+    // 2️⃣ Event listeners
+    document.getElementById('signup-btn').addEventListener('click', async () => {
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
-      if (!email || !password) { alert('Enter email & password'); return; }
-
+      if (!email || !password) return alert('Enter email & password');
       const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) alert('Signup error: ' + error.message);
       else alert('Signup successful! Check your email for confirmation.');
-    }
+    });
 
-    // 4️⃣ Sign In
-    async function signIn() {
+    document.getElementById('login-btn').addEventListener('click', async () => {
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
-      if (!email || !password) { alert('Enter email & password'); return; }
-
+      if (!email || !password) return alert('Enter email & password');
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) alert('Login error: ' + error.message);
       else {
@@ -75,32 +66,30 @@
         document.getElementById('chat-section').style.display = 'block';
         loadMessages();
       }
-    }
+    });
 
-    // 5️⃣ Logout
-    async function logout() {
+    document.getElementById('logout-btn').addEventListener('click', async () => {
       await supabase.auth.signOut();
       user = null;
       document.getElementById('auth').style.display = 'block';
       document.getElementById('chat-section').style.display = 'none';
-    }
+    });
 
-    // 6️⃣ Load messages
-    async function loadMessages() {
-      const { data } = await supabase.from('messages').select('id, content, user_id, created_at').order('created_at', { ascending: true });
-      document.getElementById('chat').innerHTML = data.map(m => `<p>${m.content}</p>`).join('');
-    }
-
-    // 7️⃣ Send message
-    async function sendMessage() {
+    document.getElementById('send-btn').addEventListener('click', async () => {
       const msg = document.getElementById('msg').value;
       if (!msg || !user) return;
       await supabase.from('messages').insert([{ content: msg, user_id: user.id }]);
       document.getElementById('msg').value = '';
       loadMessages();
+    });
+
+    // 3️⃣ Load messages
+    async function loadMessages() {
+      const { data } = await supabase.from('messages').select('id, content, user_id, created_at').order('created_at', { ascending: true });
+      document.getElementById('chat').innerHTML = data.map(m => `<p>${m.content}</p>`).join('');
     }
 
-    // 8️⃣ Keep user logged in after refresh
+    // 4️⃣ Keep user logged in after refresh
     supabase.auth.onAuthStateChange((event, session) => {
       if(session?.user) {
         user = session.user;
@@ -110,7 +99,7 @@
       }
     });
 
-    // 9️⃣ Refresh messages every 2s
+    // 5️⃣ Refresh messages every 2s
     setInterval(() => { if(user) loadMessages(); }, 2000);
   </script>
 </body>

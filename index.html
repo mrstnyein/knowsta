@@ -236,12 +236,12 @@
                     alert(error.message);
                 } else {
                     user = data.user;
-                    // Check if profile exists; if not, create one with the phone number
-                    const { error: insertError } = await supabaseClient.from('profiles').insert([
-                        { id: user.id, phone: user.phone }
-                    ]).maybeSingle();
-                    if (insertError) {
-                        console.error('Error creating phone user profile:', insertError.message);
+                    // Use upsert to create or update the profile
+                    const { error: upsertError } = await supabaseClient
+                        .from('profiles')
+                        .upsert({ id: user.id, phone: user.phone });
+                    if (upsertError) {
+                        console.error('Error upserting phone user profile:', upsertError.message);
                     }
                     showChatSection();
                 }
@@ -255,12 +255,12 @@
                     alert(error.message);
                 } else {
                     user = data.user;
-                    // Ensure a profile is created for the guest user
-                    const { error: insertError } = await supabaseClient.from('profiles').insert([
-                        { id: user.id }
-                    ]).maybeSingle();
-                    if (insertError) {
-                        console.error('Error creating guest profile:', insertError.message);
+                    // Use upsert to create or update the profile
+                    const { error: upsertError } = await supabaseClient
+                        .from('profiles')
+                        .upsert({ id: user.id });
+                    if (upsertError) {
+                        console.error('Error upserting guest profile:', upsertError.message);
                     }
                     showChatSection();
                 }
@@ -291,9 +291,14 @@
                 if (user && message.user_id === user.id) {
                     messageContainer.classList.add('message-sent');
                 }
+                
+                // Get display name, prioritizing email, then phone, then 'Guest'
+                const displayName = message.profiles && message.profiles.email ? message.profiles.email :
+                                    message.profiles && message.profiles.phone ? message.profiles.phone :
+                                    'Guest';
 
                 messageContainer.innerHTML = `
-                    <span class="message-email">${message.email || message.phone || 'Guest'}</span>
+                    <span class="message-email">${displayName}</span>
                     <span class="message-content">${message.content}</span>
                 `;
                 chatElement.appendChild(messageContainer);
@@ -322,8 +327,7 @@
                 data.forEach(message => {
                     renderMessage({
                         content: message.content,
-                        email: message.profiles ? message.profiles.email : null,
-                        phone: message.profiles ? message.profiles.phone : null,
+                        profiles: message.profiles,
                         user_id: message.user_id
                     });
                 });
@@ -344,8 +348,7 @@
                         
                         renderMessage({
                             content: payload.new.content,
-                            email: profile_data ? profile_data.email : null,
-                            phone: profile_data ? profile_data.phone : null,
+                            profiles: profile_data,
                             user_id: payload.new.user_id
                         });
                     })

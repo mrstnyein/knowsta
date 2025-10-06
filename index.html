@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Knowsta Chat</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
   <style>
     body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; padding-top: 30px; }
     #chat { width: 400px; height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: white; margin-bottom: 10px; }
@@ -15,7 +15,6 @@
   <div>
     <h2>Knowsta Chat 💬</h2>
 
-    <!-- Authentication -->
     <div id="auth">
       <h3>Sign Up</h3>
       <input id="signup-email" placeholder="Email" /><br/>
@@ -28,7 +27,6 @@
       <button id="login-btn">Log In</button>
     </div>
 
-    <!-- Chat Section -->
     <div id="chat-section" style="display:none;">
       <button id="logout-btn">Logout</button>
       <div id="chat"></div>
@@ -38,19 +36,19 @@
   </div>
 
   <script>
-    // 1️⃣ Initialize Supabase client (rename variable to avoid conflict)
+    // ✅ Initialize Supabase client after library is fully loaded
     const supabaseUrl = 'https://nreviyisnhwckepaiglq.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
     let user = null;
 
-    // 2️⃣ Event listeners
     document.getElementById('signup-btn').addEventListener('click', async () => {
       const email = document.getElementById('signup-email').value;
       const password = document.getElementById('signup-password').value;
       if (!email || !password) return alert('Enter email & password');
       const { data, error } = await supabaseClient.auth.signUp({ email, password });
-      if (error) alert('Signup error: ' + error.message);
+      if (error) alert(error.message);
       else alert('Signup successful! Check your email for confirmation.');
     });
 
@@ -59,7 +57,7 @@
       const password = document.getElementById('login-password').value;
       if (!email || !password) return alert('Enter email & password');
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) alert('Login error: ' + error.message);
+      if (error) alert(error.message);
       else {
         user = data.user;
         document.getElementById('auth').style.display = 'none';
@@ -83,13 +81,11 @@
       loadMessages();
     });
 
-    // 3️⃣ Load messages
     async function loadMessages() {
-      const { data } = await supabaseClient.from('messages').select('id, content, user_id, created_at').order('created_at', { ascending: true });
+      const { data } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
       document.getElementById('chat').innerHTML = data.map(m => `<p>${m.content}</p>`).join('');
     }
 
-    // 4️⃣ Keep user logged in after refresh
     supabaseClient.auth.onAuthStateChange((event, session) => {
       if(session?.user) {
         user = session.user;
@@ -99,7 +95,6 @@
       }
     });
 
-    // 5️⃣ Refresh messages every 2s
     setInterval(() => { if(user) loadMessages(); }, 2000);
   </script>
 </body>

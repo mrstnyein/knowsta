@@ -167,15 +167,12 @@
         <h2>Knowsta Chat 💬</h2>
 
         <div id="auth">
-            <h3>Sign Up</h3>
-            <input id="signup-email" placeholder="Email" /><br/>
-            <input id="signup-password" type="password" placeholder="Password" /><br/>
-            <button id="signup-btn">Sign Up</button>
-            <hr/>
-            <h3>Log In</h3>
-            <input id="login-email" placeholder="Email" /><br/>
-            <input id="login-password" type="password" placeholder="Password" /><br/>
-            <button id="login-btn">Log In</button>
+            <h3>Login with Phone Number</h3>
+            <input id="phone-input" placeholder="+1234567890" /><br/>
+            <button id="send-otp-btn">Send OTP</button>
+            <br/><br/>
+            <input id="otp-input" placeholder="Enter OTP" type="number" style="display:none;" /><br/>
+            <button id="verify-otp-btn" style="display:none;">Verify OTP</button>
             <hr/>
             <h3>Login as Guest</h3>
             <button id="guest-btn">Enter Chat</button>
@@ -214,28 +211,43 @@
                 subscribeToMessages();
             }
 
-            // --- Authentication Event Listeners ---
-            document.getElementById('signup-btn').addEventListener('click', async () => {
-                const email = document.getElementById('signup-email').value;
-                const password = document.getElementById('signup-password').value;
-                if (!email || !password) return alert('Enter email & password');
-                const { error } = await supabaseClient.auth.signUp({ email, password });
-                if (error) alert(error.message);
-                else alert('Signup successful! Check your email for confirmation.');
+            // --- Phone Number and OTP Authentication ---
+            document.getElementById('send-otp-btn').addEventListener('click', async () => {
+                const phone = document.getElementById('phone-input').value;
+                if (!phone) return alert('Enter a phone number');
+            
+                const { error } = await supabaseClient.auth.signInWithOtp({ phone });
+                if (error) {
+                    alert(error.message);
+                } else {
+                    alert('OTP sent! Please check your phone.');
+                    document.getElementById('send-otp-btn').style.display = 'none';
+                    document.getElementById('otp-input').style.display = 'block';
+                    document.getElementById('verify-otp-btn').style.display = 'block';
+                }
             });
-
-            document.getElementById('login-btn').addEventListener('click', async () => {
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                if (!email || !password) return alert('Enter email & password');
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) alert(error.message);
-                else {
+            
+            document.getElementById('verify-otp-btn').addEventListener('click', async () => {
+                const phone = document.getElementById('phone-input').value;
+                const token = document.getElementById('otp-input').value;
+            
+                const { data, error } = await supabaseClient.auth.verifyOtp({ phone, token, type: 'sms' });
+                if (error) {
+                    alert(error.message);
+                } else {
                     user = data.user;
+                    // Check if profile exists; if not, create one with the phone number
+                    const { error: insertError } = await supabaseClient.from('profiles').insert([
+                        { id: user.id, phone: user.phone }
+                    ]).maybeSingle();
+                    if (insertError) {
+                        console.error('Error creating phone user profile:', insertError.message);
+                    }
                     showChatSection();
                 }
             });
 
+            // --- Guest User Authentication ---
             document.getElementById('guest-btn').addEventListener('click', async () => {
                 const { data, error } = await supabaseClient.auth.signInAnonymously();
                 if (error) {
@@ -243,6 +255,13 @@
                     alert(error.message);
                 } else {
                     user = data.user;
+                    // Ensure a profile is created for the guest user
+                    const { error: insertError } = await supabaseClient.from('profiles').insert([
+                        { id: user.id }
+                    ]).maybeSingle();
+                    if (insertError) {
+                        console.error('Error creating guest profile:', insertError.message);
+                    }
                     showChatSection();
                 }
             });
@@ -269,13 +288,12 @@
                 const messageContainer = document.createElement('div');
                 messageContainer.className = 'message-container';
                 
-                // Determine if the message was sent by the current user
                 if (user && message.user_id === user.id) {
                     messageContainer.classList.add('message-sent');
                 }
 
                 messageContainer.innerHTML = `
-                    <span class="message-email">${message.email || 'Guest'}</span>
+                    <span class="message-email">${message.email || message.phone || 'Guest'}</span>
                     <span class="message-content">${message.content}</span>
                 `;
                 chatElement.appendChild(messageContainer);
@@ -292,7 +310,7 @@
                         content, 
                         created_at,
                         user_id,
-                        profiles:user_id ( email )
+                        profiles:user_id ( email, phone )
                     `)
                     .order('created_at', { ascending: true });
                 
@@ -304,7 +322,8 @@
                 data.forEach(message => {
                     renderMessage({
                         content: message.content,
-                        email: message.profiles ? message.profiles.email : 'Guest',
+                        email: message.profiles ? message.profiles.email : null,
+                        phone: message.profiles ? message.profiles.phone : null,
                         user_id: message.user_id
                     });
                 });
@@ -317,15 +336,16 @@
                 supabaseClient
                     .channel('public:messages')
                     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
-                        const { data: profile_data, error: profile_error } = await supabaseClient
+                        const { data: profile_data } = await supabaseClient
                             .from('profiles')
-                            .select('email')
+                            .select('email, phone')
                             .eq('id', payload.new.user_id)
                             .single();
                         
                         renderMessage({
                             content: payload.new.content,
-                            email: profile_data ? profile_data.email : 'Guest',
+                            email: profile_data ? profile_data.email : null,
+                            phone: profile_data ? profile_data.phone : null,
                             user_id: payload.new.user_id
                         });
                     })

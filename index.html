@@ -3,32 +3,84 @@
 <head>
   <title>Knowsta Chat</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; display: flex; justify-content: center; }
+    #chat { width: 400px; height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; background: white; margin-bottom: 10px; }
+    input { padding: 5px; margin: 2px 0; }
+    button { padding: 5px 10px; margin: 2px 0; }
+    #auth { margin-bottom: 10px; }
+  </style>
 </head>
 <body>
-  <h1>Knowsta Chat</h1>
-  <input id="msg" placeholder="Type message" />
-  <button onclick="sendMessage()">Send</button>
-  <div id="chat"></div>
+  <div>
+    <h2>Knowsta Chat 💬</h2>
+
+    <div id="auth">
+      <input id="signup-email" placeholder="Email" /><br/>
+      <input id="signup-password" type="password" placeholder="Password" /><br/>
+      <button onclick="signUp()">Sign Up</button>
+      <hr/>
+      <input id="login-email" placeholder="Email" /><br/>
+      <input id="login-password" type="password" placeholder="Password" /><br/>
+      <button onclick="signIn()">Log In</button>
+    </div>
+
+    <div id="chat-section" style="display:none;">
+      <button onclick="logout()">Logout</button>
+      <div id="chat"></div>
+      <input id="msg" placeholder="Type message" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
 
   <script>
     const supabaseUrl = 'https://nreviyisnhwckepaiglq.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    let user = null;
+
+    async function signUp() {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) alert(error.message);
+      else alert('Check your email to confirm signup!');
+    }
+
+    async function signIn() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) alert(error.message);
+      else {
+        user = data.user;
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('chat-section').style.display = 'block';
+        loadMessages();
+      }
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      user = null;
+      document.getElementById('auth').style.display = 'block';
+      document.getElementById('chat-section').style.display = 'none';
+    }
 
     async function loadMessages() {
-      const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+      const { data } = await supabase.from('messages').select('id, content, user_id, created_at').order('created_at', { ascending: true });
       document.getElementById('chat').innerHTML = data.map(m => `<p>${m.content}</p>`).join('');
     }
 
     async function sendMessage() {
       const msg = document.getElementById('msg').value;
-      await supabase.from('messages').insert([{ content: msg }]);
+      if (!msg || !user) return;
+      await supabase.from('messages').insert([{ content: msg, user_id: user.id }]);
       document.getElementById('msg').value = '';
       loadMessages();
     }
 
-    loadMessages();
-    setInterval(loadMessages, 2000); // refresh every 2 seconds
+    setInterval(() => { if(user) loadMessages(); }, 2000);
   </script>
 </body>
 </html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Knowsta Chat</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+  <h1>Knowsta Chat</h1>
+  <input id="msg" placeholder="Type message" />
+  <button onclick="sendMessage()">Send</button>
+  <div id="chat"></div>
+
+  <script>
+    const supabaseUrl = 'https://nreviyisnhwckepaiglq.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function loadMessages() {
+      const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+      document.getElementById('chat').innerHTML = data.map(m => `<p>${m.content}</p>`).join('');
+    }
+
+    async function sendMessage() {
+      const msg = document.getElementById('msg').value;
+      await supabase.from('messages').insert([{ content: msg }]);
+      document.getElementById('msg').value = '';
+      loadMessages();
+    }
+
+    loadMessages();
+    setInterval(loadMessages, 2000); // refresh every 2 seconds
+  </script>
+</body>
+</html>

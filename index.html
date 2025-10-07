@@ -12,7 +12,7 @@
     <meta property="og:title" content="Knowsta AI Assistant"/>
     <meta property="og:description" content="The fast, modern, and multilingual AI chat app powered by Google Gemini."/>
     <meta property="og:type" content="website"/>
-    <meta property="og:image" content="https://placehold.co/1200x630/4f46e5/ffffff?text=Knowsta+AI"/>
+    <meta property="og:image" content="https://placehold.co/1200x630/004aad/ffffff?text=Knowsta+AI"/>
     <meta property="og:url" content="[Your App URL]"/> 
 
     <!-- Tone.js for synthesized sound effects (no external files needed) -->
@@ -99,12 +99,12 @@
             box-shadow: 0 0 0 1px #004aad, 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(0, 74, 173, 0.3);
         }
         
-        /* --- PRELOADER STYLES --- */
+        /* --- PRELOADER STYLES (FIXED COLORING) --- */
         #preloader {
-            background-color: #f0f2f5;
+            background-color: #f0f2f5; /* Light mode default */
         }
         .dark #preloader {
-            background-color: #1c1c1e;
+            background-color: #1c1c1e; /* Dark mode background */
         }
         .dark #preloader .loading-dots span {
             background-color: #004aad; /* Darkened primary color */
@@ -188,9 +188,9 @@
         <div class="flex flex-col items-center">
             <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-12 h-12 mb-4 animate-bounce rounded-full">
             <div class="loading-dots flex justify-center space-x-1">
-                <span class="w-3 h-3 bg-indigo-600 rounded-full"></span>
-                <span class="w-3 h-3 bg-indigo-600 rounded-full"></span>
-                <span class="w-3 h-3 bg-indigo-600 rounded-full"></span>
+                <span class="w-3 h-3 bg-[#004aad] rounded-full"></span>
+                <span class="w-3 h-3 bg-[#004aad] rounded-full"></span>
+                <span class="w-3 h-3 bg-[#004aad] rounded-full"></span>
             </div>
             <p id="preloader-text" class="mt-4 text-gray-700 dark:text-gray-300">Loading Knowsta...</p>
         </div>
@@ -854,10 +854,10 @@
                 <!-- TOPICS / GUIDED PROMPTS -->
                 <div class="mt-6 space-y-2 px-2 sm:px-0">
                     <div class="text-center flex flex-wrap justify-center gap-2">
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Make a recipe for spicy noodles.')">Make Recipe</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Suggest me a fun weekend activity.')">Suggest Idea</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Draft an email to a new client.')">Draft Email</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain the basics of quantum computing.')">Explain Tech</button>
+                        <!-- UPDATED TOPICS (3 MEDIUM-LONG) -->
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Draft a detailed project proposal for a sustainable city development plan.')">Draft Project Proposal</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain the core principles of the blockchain trilemma and give real-world examples.')">Explain Blockchain Trilemma</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Write a short, engaging story about a time-traveling musician searching for a lost chord.')">Write Creative Story</button>
                     </div>
                 </div>
             </div>`;

@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="./favicon.ico" />
     <!-- Tone.js for synthesized sound effects (no external files needed) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/tone.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         /* Base Styles and Layout (Dual Panel) */
@@ -126,7 +126,7 @@
             <!-- Logo and App Title -->
             <div class="flex items-center mb-6">
                 <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-7 h-7 mr-3 rounded-full">
-                <h2 class="text-lg font-bold text-gray-800 dark:text-white">Knowsta AI</h2>
+                <h2 class="text-lg font-bold text-gray-800 dark:text-white">Knowsta</h2>
             </div>
 
             <!-- New Chat Button -->
@@ -306,7 +306,7 @@
     <!-- About Modal -->
     <div id="about-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transition duration-300 transform scale-100 dark:text-white">
-            <h2 class="text-2xl font-bold mb-4 text-center text-indigo-600">Knowsta AI</h2>
+            <h2 class="text-2xl font-bold mb-4 text-center text-indigo-600">Knowsta</h2>
             <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
                 Knowsta is an intelligent conversational AI assistant designed for seamless, contextual interaction. It is powered by the advanced **Gemini 2.5 Flash** model, ensuring fast, relevant, and well-structured answers.
             </p>
@@ -457,8 +457,9 @@
                 'btn_signout': 'Sign Out', 'head_conversation': 'Conversation',
                 'head_settings': 'App Settings', 'theme_label': 'Current Theme:', 'theme_toggle': 'Toggle Light/Dark',
                 'lang_label': 'Response Language', 'tone_label': 'AI Personality Tone', 'close': 'Close', 'submit': 'Submit',
-                'user_name_default': 'User Name', 'profile_signin': 'User Profile / Sign In', 'welcome_head': 'Welcome to Knowsta',
-                'welcome_sub': 'New conversation started.', 'welcome_text': 'Ask me anything! Your conversation history is kept for context.',
+                'user_name_default': 'User Name', 'profile_signin': 'User Profile / Sign In', 'welcome_head': 'How can I help you?', // UPDATED
+                'welcome_sub': 'I\'m ready to assist you.', // UPDATED
+                'welcome_text': 'Start by asking a factual question, requesting code, or a creative prompt.', // UPDATED
                 'placeholder': 'Say something...'
             },
             'Spanish': {
@@ -468,8 +469,9 @@
                 'head_settings': 'Configuración de la Aplicación', 'theme_label': 'Tema Actual:', 'theme_toggle': 'Alternar Tema',
                 'lang_label': 'Idioma de Respuesta', 'tone_label': 'Tono de Personalidad IA', 'close': 'Cerrar', 'submit': 'Enviar',
                 'user_name_default': 'Nombre de Usuario', 'profile_signin': 'Perfil de Usuario / Iniciar Sesión',
-                'welcome_head': 'Bienvenido a Knowsta', 'welcome_sub': 'Nueva conversación iniciada.',
-                'welcome_text': '¡Pregúntame lo que quieras! Tu historial de conversación se mantiene para el contexto.',
+                'welcome_head': '¿Cómo puedo ayudarte?', // UPDATED
+                'welcome_sub': 'Estoy listo para asistirte.', // UPDATED
+                'welcome_text': 'Comienza haciendo una pregunta, solicitando código o una sugerencia creativa.',
                 'placeholder': 'Di algo...'
             },
              'French': {
@@ -479,8 +481,9 @@
                 'head_settings': 'Paramètres de l\'Appli', 'theme_label': 'Thème Actuel :', 'theme_toggle': 'Basculer Thème',
                 'lang_label': 'Langue de Réponse', 'tone_label': 'Ton de Personnalité IA', 'close': 'Fermer', 'submit': 'Soumettre',
                 'user_name_default': 'Nom d\'utilisateur', 'profile_signin': 'Profil Utilisateur / Connexion',
-                'welcome_head': 'Bienvenue sur Knowsta', 'welcome_sub': 'Nouvelle conversation démarrée.',
-                'welcome_text': 'Posez-moi n\'importe quelle question ! Votre historique de conversation est conservé pour le contexte.',
+                'welcome_head': 'Comment puis-je vous aider ?', // UPDATED
+                'welcome_sub': 'Je suis prêt à vous assister.', // UPDATED
+                'welcome_text': 'Commencez par poser une question, demander du code ou une invite créative.',
                 'placeholder': 'Dites quelque chose...'
             },
         };
@@ -706,9 +709,9 @@
                 <!-- TOPICS / GUIDED PROMPTS -->
                 <div class="mt-6 space-y-2 px-2 sm:px-0">
                     <div class="text-center flex flex-wrap justify-center gap-2">
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Summarize the latest trends in renewable energy.')">Latest Energy Trends</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Give me a simple recipe for a quick dinner.')">Quick Dinner Idea</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain how quantum computing works in simple terms.')">Quantum Computing Basics</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Generate a professional email requesting a project extension.')">Draft a Professional Email</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Design a minimal, responsive landing page using Tailwind.')">Design a Website Layout</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Write a short, thrilling scene about a hidden ancient artifact.')">Creative Story Prompt</button>
                     </div>
                 </div>
             </div>`;
@@ -729,7 +732,7 @@
                 return;
             }
 
-            let exportText = `# Knowsta AI Chat Log\n\nDate: ${new Date().toLocaleString()}\n---\n\n`;
+            let exportText = `# Knowsta Chat Log\n\nDate: ${new Date().toLocaleString()}\n---\n\n`;
             
             for (const el of chatElements) {
                 const bubble = el.querySelector('.chat-bubble-user, .chat-bubble-ai');
@@ -1296,7 +1299,7 @@
         loadTheme();
         loadLanguage(); // FIX 1: Calls translateUI
         loadTone();
-        // FIX 3: Removed startNewChat() call from initialization. Screen starts empty.
+        startNewChat(); // FIX: Show welcome screen immediately on load
         validateInput();
     </script>
 </body>

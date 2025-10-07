@@ -16,178 +16,33 @@
       --border: #e5e7eb;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      background: var(--bg);
-      font-family: "Inter", "Segoe UI", sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    .chat-app {
-      width: 100%;
-      max-width: 420px;
-      height: 85vh;
-      display: flex;
-      flex-direction: column;
-      background: var(--white);
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-    }
-
-    header {
-      background: var(--primary);
-      color: var(--white);
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header h2 {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-
-    header button {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-
-    header button:hover {
-      background: rgba(255, 255, 255, 0.35);
-    }
-
-    #chat {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      background: var(--secondary);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .msg {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 10px;
-    }
-
-    .msg .meta {
-      font-size: 0.75rem;
-      color: var(--text-light);
-      margin-bottom: 2px;
-    }
-
-    .msg .bubble {
-      padding: 10px 14px;
-      border-radius: 20px;
-      font-size: 0.95rem;
-      line-height: 1.4;
-      max-width: 75%;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .msg.sent {
-      align-items: flex-end;
-    }
-
-    .msg.sent .bubble {
-      background: var(--primary-light);
-      color: white;
-      border-bottom-right-radius: 6px;
-    }
-
-    .msg.received {
-      align-items: flex-start;
-    }
-
-    .msg.received .bubble {
-      background: var(--white);
-      color: var(--text-dark);
-      border-bottom-left-radius: 6px;
-    }
-
-    .input-area {
-      display: flex;
-      border-top: 1px solid var(--border);
-      padding: 10px;
-      background: var(--white);
-    }
-
-    .input-area input {
-      flex: 1;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font-size: 1rem;
-      outline: none;
-    }
-
-    .input-area button {
-      background: var(--primary);
-      border: none;
-      color: white;
-      font-weight: 600;
-      padding: 10px 16px;
-      border-radius: 10px;
-      margin-left: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .input-area button:hover {
-      background: var(--primary-light);
-    }
-
-    /* Auth Section */
-    #auth {
-      text-align: center;
-      padding: 24px;
-    }
-
-    #auth input {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    #auth button {
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    #auth button:hover {
-      background: var(--primary-light);
-    }
-
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; background: var(--bg); font-family: "Inter", "Segoe UI", sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    .chat-app { width: 100%; max-width: 420px; height: 85vh; display: flex; flex-direction: column; background: var(--white); border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+    header { background: var(--primary); color: var(--white); padding: 16px; display: flex; justify-content: space-between; align-items: center; }
+    header h2 { margin: 0; font-size: 1.2rem; }
+    header button { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+    header button:hover { background: rgba(255,255,255,0.35); }
+    #chat { flex: 1; overflow-y: auto; padding: 16px; background: var(--secondary); display: flex; flex-direction: column; }
+    .msg { display: flex; flex-direction: column; margin-bottom: 10px; }
+    .msg .meta { font-size: 0.75rem; color: var(--text-light); margin-bottom: 2px; }
+    .msg .bubble { padding: 10px 14px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; max-width: 75%; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .msg.sent { align-items: flex-end; }
+    .msg.sent .bubble { background: var(--primary-light); color: white; border-bottom-right-radius: 6px; }
+    .msg.received { align-items: flex-start; }
+    .msg.received .bubble { background: var(--white); color: var(--text-dark); border-bottom-left-radius: 6px; }
+    .input-area { display: flex; border-top: 1px solid var(--border); padding: 10px; background: var(--white); }
+    .input-area input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 1rem; outline: none; }
+    .input-area button { background: var(--primary); border: none; color: white; font-weight: 600; padding: 10px 16px; border-radius: 10px; margin-left: 8px; cursor: pointer; transition: background 0.2s; }
+    .input-area button:hover { background: var(--primary-light); }
+    #auth { text-align: center; padding: 24px; }
+    #auth input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--border); }
+    #auth button { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+    #auth button:hover { background: var(--primary-light); }
   </style>
 </head>
 <body>
   <div class="chat-app">
-
     <header id="chat-header" style="display:none;">
       <h2>Knowsta Chat 💬</h2>
       <button id="logout-btn">Logout</button>
@@ -207,7 +62,6 @@
 
     <div id="chat-section" style="display:none;">
       <div id="chat"></div>
-
       <div class="input-area">
         <input id="msg" placeholder="Type a message..." />
         <button id="send-btn">Send</button>
@@ -228,107 +82,96 @@
       const msgInput = document.getElementById('msg');
       let user = null;
 
-      function showChat() {
-        authDiv.style.display = 'none';
-        chatSection.style.display = 'flex';
-        chatHeader.style.display = 'flex';
-        loadMessages();
-        subscribeToMessages();
-      }
+      function showChat() { authDiv.style.display='none'; chatSection.style.display='flex'; chatHeader.style.display='flex'; loadMessages(); subscribeToMessages(); }
+      function showAuth() { authDiv.style.display='block'; chatSection.style.display='none'; chatHeader.style.display='none'; chatBox.innerHTML=''; }
 
-      function showAuth() {
-        authDiv.style.display = 'block';
-        chatSection.style.display = 'none';
-        chatHeader.style.display = 'none';
-        chatBox.innerHTML = '';
-      }
-
-      async function renderMessage(m) {
-        const msgDiv = document.createElement('div');
-        msgDiv.classList.add('msg');
-        msgDiv.classList.add(m.user_id === user?.id ? 'sent' : 'received');
-        msgDiv.innerHTML = `
-          <div class="meta">${m.profiles?.phone || m.profiles?.email || 'Guest'} · ${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-          <div class="bubble">${m.content}</div>
-        `;
+      async function renderMessage(m){
+        const msgDiv=document.createElement('div');
+        msgDiv.classList.add('msg', m.user_id===user?.id?'sent':'received');
+        msgDiv.innerHTML=`<div class="meta">${m.profiles?.phone||m.profiles?.email||'Guest'} · ${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                          <div class="bubble">${m.content}</div>`;
         chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
+        chatBox.scrollTop=chatBox.scrollHeight;
       }
 
-      async function loadMessages() {
-        chatBox.innerHTML = '';
+      async function loadMessages(){
+        chatBox.innerHTML='';
         const { data, error } = await supabaseClient
           .from('messages')
           .select('content, created_at, user_id, profiles:user_id(email, phone)')
-          .order('created_at', { ascending: true });
-        if (!error && data) data.forEach(renderMessage);
+          .order('created_at',{ascending:true});
+        if(!error && data) data.forEach(renderMessage);
       }
 
-      function subscribeToMessages() {
+      function subscribeToMessages(){
         supabaseClient.removeAllChannels();
         supabaseClient
           .channel('realtime:messages')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async payload => {
+          .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, async payload=>{
             const { data: profile } = await supabaseClient.from('profiles').select('email, phone').eq('id', payload.new.user_id).single();
-            renderMessage({ ...payload.new, profiles: profile });
+            renderMessage({...payload.new, profiles: profile});
           })
           .subscribe();
       }
 
-      // Send message
-      document.getElementById('send-btn').addEventListener('click', async () => {
+      document.getElementById('send-btn').addEventListener('click', async ()=>{
         const msg = msgInput.value.trim();
-        if (!msg || !user) return;
-        await supabaseClient.from('messages').insert([{ content: msg, user_id: user.id }]);
-        msgInput.value = '';
+        if(!msg||!user) return;
+        await supabaseClient.from('messages').insert([{content:msg, user_id:user.id}]);
+        msgInput.value='';
       });
 
-      // Logout
-      document.getElementById('logout-btn').addEventListener('click', async () => {
+      document.getElementById('logout-btn').addEventListener('click', async ()=>{
         await supabaseClient.auth.signOut();
-        user = null;
+        user=null;
         showAuth();
       });
 
       // Guest login
-      document.getElementById('guest-btn').addEventListener('click', async () => {
+      document.getElementById('guest-btn').addEventListener('click', async ()=>{
         const { data, error } = await supabaseClient.auth.signInAnonymously();
-        if (error) return alert(error.message);
-        user = data.user;
-        await supabaseClient.from('profiles').upsert({ id: user.id });
+        if(error) return alert(error.message);
+        user=data.user;
+
+        const { error: upsertError } = await supabaseClient
+          .from('profiles')
+          .upsert({ id: user.id }, { onConflict: 'id' });
+        if(upsertError) console.error('Profile upsert failed:', upsertError.message);
+
         showChat();
       });
 
-      // Phone OTP
-      document.getElementById('send-otp-btn').addEventListener('click', async () => {
-        const phone = document.getElementById('phone-input').value;
-        if (!phone) return alert('Enter phone number');
+      // Phone OTP login
+      document.getElementById('send-otp-btn').addEventListener('click', async ()=>{
+        const phone=document.getElementById('phone-input').value;
+        if(!phone) return alert('Enter phone number');
         const { error } = await supabaseClient.auth.signInWithOtp({ phone });
-        if (error) return alert(error.message);
+        if(error) return alert(error.message);
         alert('OTP sent!');
-        document.getElementById('send-otp-btn').style.display = 'none';
-        document.getElementById('otp-input').style.display = 'block';
-        document.getElementById('verify-otp-btn').style.display = 'block';
+        document.getElementById('send-otp-btn').style.display='none';
+        document.getElementById('otp-input').style.display='block';
+        document.getElementById('verify-otp-btn').style.display='block';
       });
 
-      document.getElementById('verify-otp-btn').addEventListener('click', async () => {
-        const phone = document.getElementById('phone-input').value;
-        const token = document.getElementById('otp-input').value;
-        const { data, error } = await supabaseClient.auth.verifyOtp({ phone, token, type: 'sms' });
-        if (error) return alert(error.message);
-        user = data.user;
-        await supabaseClient.from('profiles').upsert({ id: user.id, phone: user.phone });
+      document.getElementById('verify-otp-btn').addEventListener('click', async ()=>{
+        const phone=document.getElementById('phone-input').value;
+        const token=document.getElementById('otp-input').value;
+        const { data, error } = await supabaseClient.auth.verifyOtp({ phone, token, type:'sms' });
+        if(error) return alert(error.message);
+        user=data.user;
+
+        const { error: upsertError } = await supabaseClient
+          .from('profiles')
+          .upsert({ id:user.id, phone:user.phone }, { onConflict:'id' });
+        if(upsertError) console.error('Profile upsert failed:', upsertError.message);
+
         showChat();
       });
 
-      // Check existing session
-      supabaseClient.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          user = session.user;
-          showChat();
-        } else {
-          showAuth();
-        }
+      // Check session on load
+      supabaseClient.auth.getSession().then(({ data:{session} })=>{
+        if(session?.user){ user=session.user; showChat(); }
+        else showAuth();
       });
     });
   </script>

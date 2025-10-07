@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Knowsta Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="./favicon.ico" />
     <!-- Supabase Client -->
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -394,9 +395,8 @@
                         ({ data, error } = await window.supabase.auth.signUp({ email, password }));
                         
                         if (!error && data.user) {
-                             // Successful sign-up & immediate sign-in (if confirmation is off)
-                             authMessage.textContent = `Success! Welcome, ${email}.`;
-                             authMessage.classList.remove('hidden');
+                             // Successful sign-up & immediate sign-in (Session created, listener will fire)
+                             // FIX: Remove redundant success message that interferes with navigation
                         } else if (!error && data.session === null) {
                              // Successful sign-up, requires email confirmation
                              authMessage.textContent = `Sign Up successful! Check your email to confirm your account and sign in.`;
@@ -404,13 +404,12 @@
                         }
                         
                     } else if (error) {
-                        // 3. Other Sign In error (e.g., network, rate limit, password too weak, etc.)
+                        // 3. Other Sign In error
                         authMessage.textContent = `Auth Error: ${error.message}`;
                         authMessage.classList.remove('hidden');
                     } else if (data.user) {
-                        // 4. Successful Sign In
-                        authMessage.textContent = `Welcome back, ${email}!`;
-                        authMessage.classList.remove('hidden');
+                        // 4. Successful Sign In (Session created, listener will fire)
+                        // FIX: Remove redundant success message that interferes with navigation
                     }
                     
                     setAuthButtonLoading('email', false);

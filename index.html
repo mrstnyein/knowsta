@@ -133,7 +133,7 @@
             <button id="new-chat-button" onclick="startNewChat()" class="w-full py-2 px-3 text-base rounded-xl bg-indigo-600 text-white transition duration-150 hover:bg-indigo-700 animated-button shadow-md mb-6">
                 <div class="flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                    New Chat
+                    <span id="label-new-chat">New Chat</span>
                 </div>
             </button>
 
@@ -144,13 +144,13 @@
                 <!-- Settings Button (New Centralized Control) -->
                 <button id="settings-button" onclick="showSettingsModal()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.942 3.31.82 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.942 1.543-.82 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.942-3.31-.82-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.942-1.543.82-3.31 2.37-2.37h.001c.43.723 1.055 1.096 1.761 1.096z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    Settings
+                    <span id="label-settings">Settings</span>
                 </button>
                 
                 <!-- Export Button -->
                 <button id="export-button" onclick="exportChat()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    Export Conversation (.txt)
+                    <span id="label-export">Export Conversation (.txt)</span>
                 </button>
             </div>
 
@@ -160,9 +160,9 @@
                     <img id="user-avatar-sidebar" src="https://placehold.co/32x32/cccccc/ffffff?text=U" alt="User" class="w-8 h-8 rounded-full mr-3">
                     <span id="sidebar-username">Sign In / Profile</span>
                 </button>
-                <button onclick="showAboutModal()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
+                <button id="about-btn" onclick="showAboutModal()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    About Knowsta
+                    <span id="label-about">About Knowsta</span>
                 </button>
             </div>
         </div>
@@ -173,7 +173,7 @@
             <!-- Header (Mobile/Web) -->
             <header class="p-4 border-b border-gray-100 shadow-sm sticky top-0 z-10 flex items-center justify-between transition duration-300">
                 <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-gray-800 transition duration-300">Conversation</h1>
+                    <h1 id="header-conversation-title" class="text-xl font-bold text-gray-800 transition duration-300">Conversation</h1>
                 </div>
                 <!-- Mobile/Web Auth/Profile button -->
                 <div class="flex items-center space-x-3">
@@ -190,26 +190,9 @@
             </header>
 
             <!-- Chat Window -->
+            <!-- FIX 3: Removed initial-message block from HTML. It will only be added by startNewChat(). -->
             <div id="chat-window" class="flex-grow p-4 space-y-4 overflow-y-auto">
-                <div id="initial-message" class="flex justify-center mt-20">
-                    <div class="text-center max-w-xs text-gray-500 transition duration-300">
-                        <!-- NEW HEADLINE -->
-                        <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Welcome to Knowsta</h3>
-                        <!-- END NEW HEADLINE -->
-                        <p class="text-lg font-semibold mb-2">New conversation started.</p>
-                        <p class="text-sm">Ask me anything! Your conversation history is kept for context.</p>
-                        
-                        <!-- TOPICS / GUIDED PROMPTS -->
-                        <div class="mt-6 space-y-2 px-2 sm:px-0">
-                            <div class="text-center flex flex-wrap justify-center gap-2">
-                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Summarize the latest trends in renewable energy.')">Latest Energy Trends</button>
-                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Give me a simple recipe for a quick dinner.')">Quick Dinner Idea</button>
-                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain how quantum computing works in simple terms.')">Quantum Computing Basics</button>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
+                <!-- Content will be injected here -->
             </div>
 
             <!-- Input Area -->
@@ -285,10 +268,19 @@
             <div class="mb-6 pb-4 border-b dark:border-gray-700">
                 <p class="text-lg font-semibold mb-2">Response Language</p>
                 <select id="modal-lang-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="updateLanguageFromModal()">
-                    <option value="English">English</option><option value="Spanish">Spanish</option><option value="French">French</option>
-                    <option value="German">German</option><option value="Japanese">Japanese</option><option value="Chinese">Chinese (ZH)</option>
-                    <option value="Korean">Korean (KO)</option><option value="Russian">Russian (RU)</option><option value="Arabic">Arabic (AR)</option>
-                    <option value="Vietnamese">Vietnamese (VI)</option>
+                    <option value="English">English</option>
+                    <option value="Spanish">Español (ES)</option>
+                    <option value="French">Français (FR)</option>
+                    <option value="German">Deutsch (DE)</option>
+                    <option value="Japanese">日本語 (JP)</option>
+                    <option value="Chinese">中文 (ZH)</option>
+                    <option value="Korean">한국어 (KO)</option>
+                    <option value="Russian">Русский (RU)</option>
+                    <option value="Arabic">العربية (AR)</option>
+                    <option value="Vietnamese">Tiếng Việt (VI)</option>
+                    <option value="Italian">Italiano (IT)</option>
+                    <option value="Portuguese">Português (PT)</option>
+                    <option value="Hindi">हिन्दी (HI)</option>
                 </select>
             </div>
 
@@ -413,14 +405,19 @@
         const modalLangSelector = document.getElementById('modal-lang-selector'); // NEW REFERENCE
         const modalToneSelector = document.getElementById('modal-tone-selector'); // NEW REFERENCE
         const micButton = document.getElementById('mic-button');
-        // Removed: const langSelector = document.getElementById('lang-selector'); // This was the null element!
-        // Removed: const toneSelector = document.getElementById('tone-selector'); // This was also causing issues!
         const profileModal = document.getElementById('profile-modal');
         const profileAvatarImg = document.getElementById('profile-avatar-img');
         const profileNameText = document.getElementById('profile-name-text');
         const profileIdText = document.getElementById('profile-id-text');
         const sidebarUsername = document.getElementById('sidebar-username');
         const userAvatarSidebar = document.getElementById('user-avatar-sidebar');
+        // NEW REFERENCES FOR TRANSLATABLE ELEMENTS
+        const labelNewChat = document.getElementById('label-new-chat');
+        const labelSettings = document.getElementById('label-settings');
+        const labelExport = document.getElementById('label-export');
+        const labelAbout = document.getElementById('label-about');
+        const headerConversationTitle = document.getElementById('header-conversation-title'); // NEW ID FOR MAIN HEADER
+        // END NEW REFERENCES
 
 
         // --- SOUND MANAGER (Tone.js) ---
@@ -449,6 +446,99 @@
             window.playReceiveSound = () => { receiveSynth.triggerAttackRelease(["C4", "E4", "G4"], "8n"); };
         } else {
             console.warn("Tone.js not loaded. Sound effects disabled.");
+        }
+
+
+        // --- LOCALIZATION DATA (FIX 1) ---
+        const localizationData = {
+            'English': { 
+                'sidebar_username': 'Sign In / Profile', 'btn_new_chat': 'New Chat', 'btn_settings': 'Settings', 
+                'btn_export': 'Export Conversation (.txt)', 'btn_about': 'About Knowsta', 'btn_signin': 'Sign In',
+                'btn_signout': 'Sign Out', 'head_conversation': 'Conversation',
+                'head_settings': 'App Settings', 'theme_label': 'Current Theme:', 'theme_toggle': 'Toggle Light/Dark',
+                'lang_label': 'Response Language', 'tone_label': 'AI Personality Tone', 'close': 'Close', 'submit': 'Submit',
+                'user_name_default': 'User Name', 'profile_signin': 'User Profile / Sign In', 'welcome_head': 'Welcome to Knowsta',
+                'welcome_sub': 'New conversation started.', 'welcome_text': 'Ask me anything! Your conversation history is kept for context.',
+                'placeholder': 'Say something...'
+            },
+            'Spanish': {
+                'sidebar_username': 'Iniciar Sesión / Perfil', 'btn_new_chat': 'Nuevo Chat', 'btn_settings': 'Ajustes',
+                'btn_export': 'Exportar Conversación (.txt)', 'btn_about': 'Acerca de Knowsta', 'btn_signin': 'Iniciar Sesión',
+                'btn_signout': 'Cerrar Sesión', 'head_conversation': 'Conversación',
+                'head_settings': 'Configuración de la Aplicación', 'theme_label': 'Tema Actual:', 'theme_toggle': 'Alternar Tema',
+                'lang_label': 'Idioma de Respuesta', 'tone_label': 'Tono de Personalidad IA', 'close': 'Cerrar', 'submit': 'Enviar',
+                'user_name_default': 'Nombre de Usuario', 'profile_signin': 'Perfil de Usuario / Iniciar Sesión',
+                'welcome_head': 'Bienvenido a Knowsta', 'welcome_sub': 'Nueva conversación iniciada.',
+                'welcome_text': '¡Pregúntame lo que quieras! Tu historial de conversación se mantiene para el contexto.',
+                'placeholder': 'Di algo...'
+            },
+             'French': {
+                'sidebar_username': 'Connexion / Profil', 'btn_new_chat': 'Nouveau Chat', 'btn_settings': 'Paramètres',
+                'btn_export': 'Exporter la conversation (.txt)', 'btn_about': 'À propos de Knowsta', 'btn_signin': 'Se Connecter',
+                'btn_signout': 'Déconnexion', 'head_conversation': 'Conversation',
+                'head_settings': 'Paramètres de l\'Appli', 'theme_label': 'Thème Actuel :', 'theme_toggle': 'Basculer Thème',
+                'lang_label': 'Langue de Réponse', 'tone_label': 'Ton de Personnalité IA', 'close': 'Fermer', 'submit': 'Soumettre',
+                'user_name_default': 'Nom d\'utilisateur', 'profile_signin': 'Profil Utilisateur / Connexion',
+                'welcome_head': 'Bienvenue sur Knowsta', 'welcome_sub': 'Nouvelle conversation démarrée.',
+                'welcome_text': 'Posez-moi n\'importe quelle question ! Votre historique de conversation est conservé pour le contexte.',
+                'placeholder': 'Dites quelque chose...'
+            },
+        };
+
+        function getLocalizedText(key) {
+            const lang = localStorage.getItem(LANG_KEY) || 'English';
+            return (localizationData[lang] && localizationData[lang][key]) || localizationData['English'][key];
+        }
+
+        function translateUI(lang) {
+            // Main Header & Auth
+            const conversationHeader = document.querySelector('.main-chat-panel header h1');
+            if (conversationHeader) { 
+                conversationHeader.textContent = getLocalizedText('head_conversation');
+            }
+            const authBtnText = supabase?.auth.currentUser ? getLocalizedText('btn_signout') : getLocalizedText('btn_signin');
+            authButton.textContent = authBtnText;
+            
+            // Sidebar (FIX: Use direct references to new label spans)
+            sidebarUsername.textContent = getLocalizedText('sidebar_username');
+            if (labelNewChat) labelNewChat.textContent = getLocalizedText('btn_new_chat');
+            if (labelSettings) labelSettings.textContent = getLocalizedText('btn_settings');
+            if (labelExport) labelExport.textContent = getLocalizedText('btn_export');
+            if (labelAbout) labelAbout.textContent = getLocalizedText('btn_about');
+            
+            // Settings Modal (FIX: Added null checks for modal elements)
+            if (settingsModal) {
+                const h2 = settingsModal.querySelector('h2');
+                if (h2) h2.textContent = getLocalizedText('head_settings');
+                
+                const pElements = settingsModal.querySelectorAll('.mb-6 p');
+                if (pElements[0]) pElements[0].textContent = 'Appearance'; // Static text
+                if (pElements[1]) pElements[1].textContent = getLocalizedText('lang_label');
+                if (pElements[2]) pElements[2].textContent = getLocalizedText('tone_label');
+
+                const toggleBtn = settingsModal.querySelector('[onclick="toggleTheme()"]');
+                if (toggleBtn) toggleBtn.textContent = getLocalizedText('theme_toggle');
+
+                const closeBtn = settingsModal.querySelector('.mt-6 button');
+                if (closeBtn) closeBtn.textContent = getLocalizedText('close');
+            }
+            
+            // Profile Modal
+            if (profileModal) {
+                const h2 = profileModal.querySelector('h2');
+                if (h2) h2.textContent = getLocalizedText('profile_signin');
+                
+                const profileAuthButton = document.getElementById('profile-auth-button');
+                if (profileAuthButton) profileAuthButton.textContent = supabase?.auth.currentUser ? getLocalizedText('btn_signout') : getLocalizedText('btn_signin');
+                
+                const closeBtn = profileModal.querySelector('.mt-4 button');
+                if (closeBtn) closeBtn.textContent = getLocalizedText('close');
+            }
+            
+            // Input Placeholder
+            if (userInput) {
+                 userInput.placeholder = getLocalizedText('placeholder');
+            }
         }
 
 
@@ -502,7 +592,7 @@
         // --- Multilingual Support ---
         window.updateLanguage = (selectedLang) => {
             localStorage.setItem(LANG_KEY, selectedLang);
-            // Removed: langSelector.value = selectedLang;
+            translateUI(selectedLang); // FIX 1: Update UI language
         };
 
         window.updateLanguageFromModal = () => {
@@ -522,7 +612,6 @@
         window.updateTone = (selectedTone) => {
             responseTone = selectedTone;
             localStorage.setItem(TONE_KEY, responseTone);
-            // Removed: toneSelector.value = selectedTone;
         };
 
         window.updateToneFromModal = () => {
@@ -586,7 +675,7 @@
             const authFormContainer = document.getElementById('auth-form-container');
             
             // If we are in this function, the user is AUTHENTICATED
-            profileAuthButton.textContent = 'Sign Out';
+            profileAuthButton.textContent = getLocalizedText('btn_signout');
             profileAuthButton.classList.replace('bg-indigo-600', 'bg-red-600');
             profileAuthButton.onclick = handleAuthClick;
             authFormContainer.classList.add('hidden');
@@ -604,14 +693,16 @@
             chatHistory = [];
             chatWindow.innerHTML = '';
             
+            // FIX 3: Re-add the welcome message structure upon clicking New Chat
             const messageDiv = document.createElement('div');
             messageDiv.id = 'initial-message';
             messageDiv.className = 'flex justify-center mt-20';
-            // Only show the welcome message
+            
+            // Generate content using localized strings
             messageDiv.innerHTML = `<div class="text-center max-w-xs text-gray-500 transition duration-300">
-                <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Welcome to Knowsta</h3>
-                <p class="text-lg font-semibold mb-2">New conversation started.</p>
-                <p class="text-sm">Ask me anything! Your conversation history is kept for context.</p>
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">${getLocalizedText('welcome_head')}</h3>
+                <p class="text-lg font-semibold mb-2">${getLocalizedText('welcome_sub')}</p>
+                <p class="text-sm">${getLocalizedText('welcome_text')}</p>
                 <!-- TOPICS / GUIDED PROMPTS -->
                 <div class="mt-6 space-y-2 px-2 sm:px-0">
                     <div class="text-center flex flex-wrap justify-center gap-2">
@@ -630,7 +721,7 @@
             sendMessage();
         };
 
-        // --- EXPORT CHAT LOGIC ---
+        // --- EXPORT CHAT LOGIC (Unchanged) ---
         window.exportChat = () => {
             const chatElements = chatWindow.children;
             if (chatElements.length === 0 || chatElements[0].id === 'initial-message') {
@@ -682,7 +773,7 @@
                 const avatarUrl = user.user_metadata.avatar_url;
 
                 // Main Header
-                authButton.textContent = 'Sign Out';
+                authButton.textContent = getLocalizedText('btn_signout');
                 authButton.className = 'py-1 px-3 border border-gray-300 text-gray-700 text-sm rounded-full transition duration-150 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 animated-button';
                 userAvatar.src = avatarUrl || `https://placehold.co/32x32/4f46e5/ffffff?text=${displayName[0]}`;
                 userAvatar.classList.remove('hidden');
@@ -695,12 +786,12 @@
                 sendButton.disabled = false;
             } else {
                 // Main Header
-                authButton.textContent = 'Sign In';
+                authButton.textContent = getLocalizedText('btn_signin');
                 authButton.className = 'py-1 px-3 bg-indigo-600 text-white text-sm rounded-full transition duration-150 hover:bg-indigo-700 animated-button';
                 userAvatar.classList.add('hidden');
                 
                 // Sidebar
-                sidebarUsername.textContent = 'Sign In / Profile';
+                sidebarUsername.textContent = getLocalizedText('sidebar_username');
                 userAvatarSidebar.src = 'https://placehold.co/32x32/cccccc/ffffff?text=U';
                 
                 userId = 'guest';
@@ -794,6 +885,7 @@
         supabase.auth.onAuthStateChange((event, session) => {
             const user = session?.user;
             updateAuthUI(user);
+            translateUI(localStorage.getItem(LANG_KEY) || 'English'); // Always translate on auth change
             if (event === 'SIGNED_IN') {
                 startNewChat(); 
                 addMessage('system', `Welcome, ${user.user_metadata.full_name || 'User'}! I am ready to assist you.`);
@@ -879,7 +971,7 @@
         window.validateInput = () => {
             const hasInput = userInput.value.trim() !== '';
             sendButton.disabled = !hasInput;
-            userInput.placeholder = hasInput ? "Message Knowsta..." : "Say something...";
+            userInput.placeholder = hasInput ? getLocalizedText('placeholder') : getLocalizedText('placeholder');
         };
 
         /** Adds a message bubble to the chat window. */
@@ -1090,8 +1182,8 @@
             // 2. Prepare payload (use ONLY the current message and selected language/tone)
             const responseLanguage = localStorage.getItem(LANG_KEY) || 'English';
             
-            // IMPROVED SYSTEM INSTRUCTION FOR FASTER, RELEVANT ANSWERS
-            const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. Answer only the current question. Respond in the language: ${responseLanguage}. Adopt a **${responseTone}** tone and personality. Keep your responses short and well-structured using Markdown. Do not include unnecessary conversational filler or preamble.`;
+            // IMPROVED SYSTEM INSTRUCTION FOR FASTER, RELEVANT ANSWERS AND AUTO LANGUAGE DETECTION
+            const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${responseTone}** tone and personality. Keep your responses short and well-structured using Markdown. Do not include unnecessary conversational filler or preamble.`;
 
 
             const payload = {
@@ -1202,9 +1294,9 @@
         // --- INITIALIZATION ---
         
         loadTheme();
-        loadLanguage();
+        loadLanguage(); // FIX 1: Calls translateUI
         loadTone();
-        startNewChat(); // Start fresh, no history loaded
+        // FIX 3: Removed startNewChat() call from initialization. Screen starts empty.
         validateInput();
     </script>
 </body>

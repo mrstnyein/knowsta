@@ -80,98 +80,159 @@
       const chatHeader = document.getElementById('chat-header');
       const chatBox = document.getElementById('chat');
       const msgInput = document.getElementById('msg');
+      
+      const phoneInput = document.getElementById('phone-input');
+      const otpInput = document.getElementById('otp-input');
+      const sendOtpBtn = document.getElementById('send-otp-btn');
+      const verifyOtpBtn = document.getElementById('verify-otp-btn');
+      const guestBtn = document.getElementById('guest-btn');
+      
       let user = null;
 
-      function showChat() { authDiv.style.display='none'; chatSection.style.display='flex'; chatHeader.style.display='flex'; loadMessages(); subscribeToMessages(); }
-      function showAuth() { authDiv.style.display='block'; chatSection.style.display='none'; chatHeader.style.display='none'; chatBox.innerHTML=''; }
+      // Function to get the current user and show the correct UI
+      async function handleAuthChange(session) {
+        if (session && session.user) {
+          user = session.user;
+          showChat();
+        } else {
+          user = null;
+          showAuth();
+        }
+      }
+
+      function showChat() { 
+        authDiv.style.display = 'none'; 
+        chatSection.style.display = 'flex'; 
+        chatHeader.style.display = 'flex'; 
+        loadMessages(); 
+        subscribeToMessages(); 
+      }
+
+      function showAuth() { 
+        authDiv.style.display = 'block'; 
+        chatSection.style.display = 'none'; 
+        chatHeader.style.display = 'none'; 
+        chatBox.innerHTML = '';
+        // Reset the auth form state
+        phoneInput.value = '';
+        otpInput.value = '';
+        otpInput.style.display = 'none';
+        verifyOtpBtn.style.display = 'none';
+        sendOtpBtn.style.display = 'block';
+      }
 
       async function renderMessage(m){
-        const msgDiv=document.createElement('div');
-        msgDiv.classList.add('msg', m.user_id===user?.id?'sent':'received');
-        msgDiv.innerHTML=`<div class="meta">${m.profiles?.phone||m.profiles?.email||'Guest'} · ${new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                          <div class="bubble">${m.content}</div>`;
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('msg', m.user_id === user?.id ? 'sent' : 'received');
+        const userName = m.profiles?.phone || m.profiles?.email || 'Guest';
+        const timestamp = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        msgDiv.innerHTML = `<div class="meta">${userName} · ${timestamp}</div>
+                           <div class="bubble">${m.content}</div>`;
         chatBox.appendChild(msgDiv);
-        chatBox.scrollTop=chatBox.scrollHeight;
+        chatBox.scrollTop = chatBox.scrollHeight;
       }
 
       async function loadMessages(){
-        chatBox.innerHTML='';
+        chatBox.innerHTML = '';
         const { data, error } = await supabaseClient
           .from('messages')
           .select('content, created_at, user_id, profiles:user_id(email, phone)')
-          .order('created_at',{ascending:true});
-        if(!error && data) data.forEach(renderMessage);
+          .order('created_at',{ ascending: true });
+        if (!error && data) {
+          data.forEach(renderMessage);
+        }
       }
 
       function subscribeToMessages(){
         supabaseClient.removeAllChannels();
         supabaseClient
           .channel('realtime:messages')
-          .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, async payload=>{
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async payload => {
             const { data: profile } = await supabaseClient.from('profiles').select('email, phone').eq('id', payload.new.user_id).single();
             renderMessage({...payload.new, profiles: profile});
           })
           .subscribe();
       }
 
-      document.getElementById('send-btn').addEventListener('click', async ()=>{
+      // Event Listeners
+      document.getElementById('send-btn').addEventListener('click', async () => {
         const msg = msgInput.value.trim();
-        if(!msg||!user) return;
-        await supabaseClient.from('messages').insert([{content:msg, user_id:user.id}]);
-        msgInput.value='';
+        if (!msg || !user) return;
+        await supabaseClient.from('messages').insert([{ content: msg, user_id: user.id }]);
+        msgInput.value = '';
       });
 
-      document.getElementById('logout-btn').addEventListener('click', async ()=>{
+      document.getElementById('logout-btn').addEventListener('click', async () => {
         await supabaseClient.auth.signOut();
-        user=null;
         showAuth();
       });
 
       // Guest login
-      document.getElementById('guest-btn').addEventListener('click', async ()=>{
+      guestBtn.addEventListener('click', async () => {
         const { data, error } = await supabaseClient.auth.signInAnonymously();
-        if(error) return alert(error.message);
-        user=data.user;
-
-        const { error: upsertError } = await supabaseClient
-          .from('profiles')
-          .upsert({ id: user.id }, { onConflict: 'id' });
-        if(upsertError) console.error('Profile upsert failed:', upsertError.message);
-
+        if (error) {
+          return alert(error.message);
+        }
+        await upsertProfile(data.user);
+        user = data.user;
         showChat();
       });
 
       // Phone OTP login
-      document.getElementById('send-otp-btn').addEventListener('click', async ()=>{
-        const phone=document.getElementById('phone-input').value;
-        if(!phone) return alert('Enter phone number');
+      sendOtpBtn.addEventListener('click', async () => {
+        const phone = phoneInput.value;
+        if (!phone) return alert('Enter a phone number');
+
         const { error } = await supabaseClient.auth.signInWithOtp({ phone });
-        if(error) return alert(error.message);
-        alert('OTP sent!');
-        document.getElementById('send-otp-btn').style.display='none';
-        document.getElementById('otp-input').style.display='block';
-        document.getElementById('verify-otp-btn').style.display='block';
+        
+        if (error) {
+          return alert(error.message);
+        }
+        
+        alert('OTP sent! Please check your phone.');
+        sendOtpBtn.style.display = 'none';
+        otpInput.style.display = 'block';
+        verifyOtpBtn.style.display = 'block';
       });
 
-      document.getElementById('verify-otp-btn').addEventListener('click', async ()=>{
-        const phone=document.getElementById('phone-input').value;
-        const token=document.getElementById('otp-input').value;
-        const { data, error } = await supabaseClient.auth.verifyOtp({ phone, token, type:'sms' });
-        if(error) return alert(error.message);
-        user=data.user;
+      verifyOtpBtn.addEventListener('click', async () => {
+        const phone = phoneInput.value;
+        const token = otpInput.value;
+        
+        if (!phone || !token) {
+          return alert('Please enter both phone number and OTP.');
+        }
 
-        const { error: upsertError } = await supabaseClient
-          .from('profiles')
-          .upsert({ id:user.id, phone:user.phone }, { onConflict:'id' });
-        if(upsertError) console.error('Profile upsert failed:', upsertError.message);
-
+        const { data, error } = await supabaseClient.auth.verifyOtp({ phone, token, type: 'sms' });
+        
+        if (error) {
+          return alert(error.message);
+        }
+        
+        await upsertProfile(data.user);
+        user = data.user;
         showChat();
       });
 
-      // Check session on load
-      supabaseClient.auth.getSession().then(({ data:{session} })=>{
-        if(session?.user){ user=session.user; showChat(); }
-        else showAuth();
+      async function upsertProfile(userData) {
+        if (!userData) return;
+        const { error: upsertError } = await supabaseClient
+          .from('profiles')
+          .upsert({ id: userData.id, phone: userData.phone }, { onConflict: 'id' });
+        if (upsertError) {
+          console.error('Profile upsert failed:', upsertError.message);
+        }
+      }
+
+      // Supabase Auth Listener
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        console.log("Auth State Change:", event);
+        handleAuthChange(session);
+      });
+
+      // Initial check on page load
+      supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        handleAuthChange(session);
       });
     });
   </script>

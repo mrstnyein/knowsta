@@ -1,197 +1,791 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Knowsta Chat</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-  :root{--primary:#007aff;--primary-light:#0a84ff;--bg:#f2f2f7;--white:#fff;--text-dark:#1c1c1e;--text-light:#8e8e93;--border:#d1d1d6;}
-  *{box-sizing:border-box;}
-  body{margin:0;padding:0;font-family:'Inter',sans-serif;background:var(--bg);display:flex;justify-content:center;align-items:center;height:100vh;}
-  .chat-app{width:100%;max-width:420px;height:85vh;display:flex;flex-direction:column;background:var(--white);border-radius:24px;box-shadow:0 20px 40px rgba(0,0,0,0.1);overflow:hidden;}
-  header{background:var(--white);border-bottom:1px solid var(--border);padding:16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
-  header h2{margin:0;font-size:1.4rem;color:var(--text-dark);}
-  header button{background:var(--primary);color:var(--white);border:none;padding:6px 14px;border-radius:12px;font-weight:600;cursor:pointer;transition:all 0.2s ease;}
-  header button:hover{background:var(--primary-light);}
-  #chat{flex:1;padding:16px;display:flex;flex-direction:column;overflow-y:auto;background:var(--bg);}
-  .msg{display:flex;flex-direction:column;margin-bottom:14px;animation:fadeIn 0.2s ease;}
-  .msg .meta{font-size:0.7rem;color:var(--text-light);margin-bottom:4px;display:flex;align-items:center;gap:6px;}
-  .msg .meta img{width:20px;height:20px;border-radius:50%;}
-  .msg .bubble{padding:12px 18px;font-size:0.95rem;max-width:75%;border-radius:20px;line-height:1.4;box-shadow:0 4px 8px rgba(0,0,0,0.05);word-break:break-word;}
-  .msg.sent{align-items:flex-end;}
-  .msg.sent .bubble{background:var(--primary);color:var(--white);border-bottom-right-radius:6px;border-top-right-radius:20px;}
-  .msg.received{align-items:flex-start;}
-  .msg.received .bubble{background:var(--white);color:var(--text-dark);border-bottom-left-radius:6px;border-top-left-radius:20px;}
-  .input-area{display:flex;padding:12px;border-top:1px solid var(--border);background:var(--white);}
-  .input-area input{flex:1;padding:12px 16px;border:1px solid var(--border);border-radius:20px;font-size:1rem;outline:none;transition:all 0.2s ease;}
-  .input-area input:focus{border-color:var(--primary);box-shadow:0 0 5px rgba(0,122,255,0.2);}
-  .input-area button{background:var(--primary);color:var(--white);font-weight:600;padding:12px 18px;border-radius:20px;margin-left:8px;border:none;cursor:pointer;transition:all 0.2s ease;}
-  .input-area button:hover{background:var(--primary-light);}
-  #auth{text-align:center;padding:40px 24px;display:flex;flex-direction:column;justify-content:center;flex:1;}
-  #auth h2{font-size:1.8rem;color:var(--text-dark);margin-bottom:20px;}
-  #auth input{width:100%;padding:14px;margin:10px 0;border-radius:20px;border:1px solid var(--border);font-size:1rem;outline:none;transition:all 0.2s ease;}
-  #auth input:focus{border-color:var(--primary);box-shadow:0 0 8px rgba(0,122,255,0.2);}
-  #auth button{width:100%;padding:14px;margin-top:12px;border-radius:24px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s ease;}
-  #auth button:hover{opacity:0.9;}
-  #google-btn{background:#4285f4;margin-top:16px;color:#fff;}
-  #google-btn:hover{background:#357ae8;}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-</style>
-</head>
-<body>
-
-<div class="chat-app">
-  <header id="chat-header" style="display:none;">
-    <h2>Knowsta Chat 💬</h2>
-    <button id="logout-btn">Logout</button>
-  </header>
-
-  <div id="auth">
-    <h2>Welcome</h2>
-    <input id="phone-input" placeholder="+1234567890"/>
-    <button id="send-otp-btn">Send OTP</button>
-    <input id="otp-input" placeholder="Enter OTP" type="number" style="display:none;"/>
-    <button id="verify-otp-btn" style="display:none;">Verify OTP</button>
-    <button id="google-btn">Login with Google</button>
-  </div>
-
-  <div id="chat-section" style="display:none;">
-    <div id="chat"></div>
-    <div class="input-area">
-      <input id="msg" placeholder="Type a message..." />
-      <button id="send-btn">Send</button>
-    </div>
-  </div>
-</div>
-
-<script>
-const supabaseUrl = 'https://nreviyisnhwckepaiglq.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg'; // Replace with your anon key
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-document.addEventListener('DOMContentLoaded', () => {
-  const authDiv = document.getElementById('auth');
-  const chatSection = document.getElementById('chat-section');
-  const chatHeader = document.getElementById('chat-header');
-  const chatBox = document.getElementById('chat');
-  const msgInput = document.getElementById('msg');
-  const phoneInput = document.getElementById('phone-input');
-  const otpInput = document.getElementById('otp-input');
-  const sendOtpBtn = document.getElementById('send-otp-btn');
-  const verifyOtpBtn = document.getElementById('verify-otp-btn');
-  const googleBtn = document.getElementById('google-btn');
-
-  let user = null;
-  let profileCache = {};
-
-  function showChat(){
-    authDiv.style.display='none';
-    chatSection.style.display='flex';
-    chatHeader.style.display='flex';
-    loadMessages();
-    subscribeToMessages();
-  }
-
-  function showAuth(){
-    authDiv.style.display='flex';
-    chatSection.style.display='none';
-    chatHeader.style.display='none';
-    chatBox.innerHTML='';
-    phoneInput.value=''; otpInput.value='';
-    otpInput.style.display='none';
-    verifyOtpBtn.style.display='none';
-    sendOtpBtn.style.display='block';
-  }
-
-  async function renderMessage(m){
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('msg', m.user_id===user?.id?'sent':'received');
-    let profile = profileCache[m.user_id];
-    if(!profile && m.profiles){ profile = m.profiles; profileCache[m.user_id]=profile; }
-    const userName = profile?.email || profile?.phone || 'User';
-    const avatar = profile?.avatar_url || 'https://i.pravatar.cc/40';
-    const timestamp = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    msgDiv.innerHTML = `<div class="meta"><img src="${avatar}" /> ${userName} · ${timestamp}</div>
-                        <div class="bubble">${m.content}</div>`;
-    chatBox.appendChild(msgDiv);
-    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
-  }
-
-  async function loadMessages(){
-    const {data,error} = await supabaseClient.from('messages')
-      .select('content,created_at,user_id,profiles:user_id(email,phone,avatar_url)')
-      .order('created_at',{ascending:true});
-    if(!error && data) data.forEach(renderMessage);
-  }
-
-  function subscribeToMessages(){
-    supabaseClient.removeAllChannels();
-    supabaseClient.channel('realtime:messages')
-      .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, async payload=>{
-        let profile = profileCache[payload.new.user_id];
-        if(!profile){
-          const {data} = await supabaseClient.from('profiles').select('email,phone,avatar_url').eq('id', payload.new.user_id).single();
-          profile = data;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowsta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for synthesized sound effects (no external files needed) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apple-inspired styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Soft light background */
+            transition: background-color 0.3s;
         }
-        renderMessage({...payload.new, profiles:profile});
-      }).subscribe();
-  }
+        .app-container {
+            max-width: 600px;
+            height: 95vh;
+            margin: 2.5vh auto;
+            border-radius: 24px; /* Apple-style rounded corners */
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05), 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        @media (max-width: 640px) {
+            .app-container {
+                height: 100vh;
+                margin: 0;
+                border-radius: 0;
+            }
+        }
+        
+        /* Light Mode Chat Bubbles */
+        .chat-bubble-user {
+            background-color: #007aff; /* Apple Blue */
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-bubble-ai {
+            background-color: #e5e5ea; /* Apple light gray */
+            color: #1c1c1e;
+            border-bottom-left-radius: 4px;
+        }
 
-  async function sendMessage(){
-    const msg = msgInput.value.trim();
-    if(!msg || !user) return;
-    await supabaseClient.from('messages').insert([{content:msg, user_id:user.id}]);
-    msgInput.value='';
-  }
+        /* --- DARK MODE STYLES --- */
+        .dark body {
+            background-color: #1c1c1e;
+        }
+        .dark .app-container {
+            background-color: #2c2c2e;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .dark header {
+            background-color: #2c2c2e;
+            border-color: #3a3a3c;
+        }
+        .dark h1, .dark .text-gray-800 {
+            color: white;
+        }
+        .dark .text-gray-500, .dark .text-gray-300 {
+            color: #a2a2a7;
+        }
+        .dark .chat-bubble-ai {
+            background-color: #48484a; /* Darker grey bubble */
+            color: white;
+        }
+        .dark #user-input {
+            background-color: #3a3a3c;
+            border-color: #48484a;
+            color: white;
+        }
+        .dark #chat-window::-webkit-scrollbar-thumb {
+            background: #48484a;
+        }
+        .dark #chat-window::-webkit-scrollbar-track {
+            background: #2c2c2e;
+        }
 
-  document.getElementById('send-btn').addEventListener('click', sendMessage);
-  msgInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
+        /* Custom scrollbar for cleanliness */
+        #chat-window::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chat-window::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+        #chat-window::-webkit-scrollbar-track {
+             background: #f0f2f5;
+        }
 
-  document.getElementById('logout-btn').addEventListener('click', async ()=>{
-    await supabaseClient.auth.signOut();
-    user = null;
-    showAuth();
-  });
+        /* Loading Dots Animation */
+        .loading-dots span {
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0s; }
 
-  sendOtpBtn.addEventListener('click', async ()=>{
-    const phone = phoneInput.value;
-    if(!phone) return alert('Enter phone number');
-    const {error} = await supabaseClient.auth.signInWithOtp({phone});
-    if(error) return alert(error.message);
-    alert('OTP sent!');
-    sendOtpBtn.style.display='none';
-    otpInput.style.display='block';
-    verifyOtpBtn.style.display='block';
-  });
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
 
-  verifyOtpBtn.addEventListener('click', async ()=>{
-    const phone = phoneInput.value;
-    const token = otpInput.value;
-    if(!phone || !token) return alert('Enter phone and OTP');
-    const {data,error} = await supabaseClient.auth.verifyOtp({phone, token, type:'sms'});
-    if(error) return alert(error.message);
-    await upsertProfile(data.user);
-    user = data.user;
-    showChat();
-  });
+        /* Message Controls (Edit/Regenerate) */
+        .user-message-wrapper:hover .message-controls {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="p-0 sm:p-4">
+    <div id="app" class="app-container">
+        <!-- Header with Google Login/Profile -->
+        <header class="p-4 border-b border-gray-100 shadow-sm bg-white sticky top-0 z-10 flex items-center justify-between transition duration-300">
+            <div class="flex items-center">
+                <!-- LOGO IMAGE -->
+                <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-8 h-8 mr-2 rounded-full">
+                <h1 class="text-xl font-bold text-gray-800 transition duration-300">Knowsta AI</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                 <!-- NEW CHAT BUTTON -->
+                 <button id="new-chat-button" onclick="startNewChat()" class="py-1 px-3 text-sm rounded-full bg-indigo-600 text-white transition duration-150 hover:bg-indigo-700">
+                    New Chat
+                </button>
+                 <!-- Language Selector -->
+                 <select id="lang-selector" class="text-sm p-1 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-white" onchange="updateLanguage()">
+                    <option value="English">EN</option>
+                    <option value="Spanish">ES</option>
+                    <option value="French">FR</option>
+                    <option value="German">DE</option>
+                    <option value="Japanese">JP</option>
+                </select>
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" onclick="toggleTheme()" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 transition duration-150">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+                <!-- About Button -->
+                <button id="header-about-button" onclick="showAboutModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 transition duration-150">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+                <!-- Authentication Button (Sign In/Sign Out) -->
+                <button id="auth-button" onclick="handleAuthClick()" class="py-1 px-3 text-sm rounded-full transition duration-150">
+                    Initializing...
+                </button>
+                <!-- User Avatar (Placeholder for Profile) -->
+                <img 
+                    id="user-avatar" 
+                    src="https://placehold.co/32x32/cccccc/ffffff?text=U" 
+                    alt="User Avatar" 
+                    class="w-8 h-8 rounded-full hidden cursor-pointer border-2 border-indigo-500 shadow-md" 
+                    onclick="showProfileModal()">
+            </div>
+        </header>
 
-  googleBtn.addEventListener('click', async ()=>{
-    await supabaseClient.auth.signInWithOAuth({provider:'google', options:{redirectTo:window.location.href}});
-  });
+        <!-- Chat Window -->
+        <div id="chat-window" class="flex-grow p-4 space-y-4 overflow-y-auto">
+            <div id="initial-message" class="flex justify-center mt-20">
+                <div class="text-center max-w-xs text-gray-500 transition duration-300">
+                    <p class="text-lg font-semibold mb-2">Welcome to Knowsta.</p>
+                    <p class="text-sm">Ask me anything! Your conversation history is kept for context.</p>
+                </div>
+            </div>
+        </div>
 
-  async function upsertProfile(userData){
-    if(!userData) return;
-    await supabaseClient.from('profiles')
-      .upsert({id:userData.id,email:userData.email,phone:userData.phone,avatar_url:userData.user_metadata?.avatar_url || null},{onConflict:'id'});
-  }
+        <!-- Input Area -->
+        <div class="p-4 border-t border-gray-100 bg-white transition duration-300">
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="hidden text-center text-sm text-indigo-600 mb-2">
+                <div class="loading-dots flex justify-center space-x-1">
+                    <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                    <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                    <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                </div>
+                <p class="mt-1">Knowsta is thinking...</p>
+            </div>
+            
+            <div class="flex gap-2">
+                <!-- Voice Input Button -->
+                <button
+                    id="mic-button"
+                    onclick="toggleVoiceInput()"
+                    class="w-12 h-12 bg-gray-200 text-gray-700 rounded-xl flex items-center justify-center shadow-md hover:bg-gray-300 transition duration-150 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                    title="Start Voice Input"
+                >
+                    <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7v0a7 7 0 01-7-7v0M12 19v3M12 4v12M12 4a3 3 0 00-3 3v5a3 3 0 006 0V7a3 3 0 00-3-3z" />
+                    </svg>
+                </button>
 
-  supabaseClient.auth.onAuthStateChange((event, session)=>{
-    if(session?.user){ user=session.user; showChat(); } else showAuth();
-  });
+                <textarea
+                    id="user-input"
+                    rows="1"
+                    placeholder="Say something..."
+                    class="flex-grow p-3 border border-gray-300 rounded-xl resize-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    oninput="autoExpand(this); validateInput()"
+                    onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+                ></textarea>
+                
+                <!-- Send Button -->
+                <button
+                    id="send-button"
+                    onclick="sendMessage()"
+                    class="w-12 h-12 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg hover:bg-indigo-700 transition duration-150 disabled:opacity-50 disabled:shadow-none"
+                    disabled
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
 
-  supabaseClient.auth.getSession().then(({data:{session}})=>{ if(session?.user){ user=session.user; showChat(); } else showAuth(); });
-});
-</script>
+    <!-- About Modal -->
+    <div id="about-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transition duration-300 transform scale-100 dark:text-white">
+            <h2 class="text-2xl font-bold mb-4 text-center text-indigo-600">Knowsta AI</h2>
+            <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                Knowsta is an intelligent conversational AI assistant designed for seamless, contextual interaction. It is powered by the advanced **Gemini 2.5 Flash** model, ensuring fast, relevant, and well-structured answers.
+            </p>
+            
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
+                <p class="text-sm text-gray-700 dark:text-gray-300">
+                    <strong>Developed by:</strong> <a href="https://github.com/MrSTNyein" target="_blank" class="text-indigo-600 hover:text-indigo-400">Sithu Nyein</a>
+                </p>
+                <p class="text-sm text-gray-700 dark:text-gray-300">
+                    <strong>Authentication provided by:</strong> Supabase
+                </p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 pt-2">
+                    Core AI is powered by Gemini 2.5 Flash.
+                </p>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="hideAboutModal()" class="py-2 px-6 bg-indigo-600 text-white rounded-xl shadow-md hover:bg-indigo-700 transition duration-150">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transition duration-300 transform scale-100 dark:text-white">
+            <h2 class="text-2xl font-bold mb-4 text-center text-indigo-600">User Profile</h2>
+            
+            <div id="profile-content" class="flex flex-col items-center space-y-4">
+                <img id="profile-avatar-img" src="https://placehold.co/80x80/cccccc/ffffff?text=U" alt="Profile Avatar" class="w-20 h-20 rounded-full border-4 border-indigo-500">
+                <p id="profile-name-text" class="text-lg font-semibold dark:text-white">User Name</p>
+                <p id="profile-id-text" class="text-xs text-gray-500 dark:text-gray-400 break-all">ID: </p>
+                
+                <button 
+                    onclick="handleAuthClick(); hideProfileModal();" 
+                    class="w-full py-2 px-4 bg-red-600 text-white rounded-xl shadow-md hover:bg-red-700 transition duration-150"
+                >
+                    Sign Out
+                </button>
+            </div>
+            
+            <button onclick="hideProfileModal()" class="w-full py-2 px-6 bg-indigo-600 text-white rounded-xl shadow-md hover:bg-indigo-700 transition duration-150 mt-4">Close</button>
+        </div>
+    </div>
+
+
+    <!-- Supabase & App Script -->
+    <script type="module">
+        // Import Supabase Client
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        // --- GLOBAL CONFIGURATION ---
+        const SUPABASE_URL = 'https://nreviyisnhwckepaiglq.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
+        
+        const FLASH_MODEL = 'gemini-2.5-flash-preview-05-20';
+        const API_KEY = "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4"; 
+
+        const THEME_KEY = 'knowsta_theme';
+        const LANG_KEY = 'knowsta_lang';
+
+        let chatHistory = [];
+        let userId = 'guest';
+        let supabase;
+        let speechRecognition;
+
+
+        // --- UI REFERENCES ---
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const authButton = document.getElementById('auth-button');
+        const userAvatar = document.getElementById('user-avatar');
+        const initialMessage = document.getElementById('initial-message');
+        const themeIcon = document.getElementById('theme-icon');
+        const aboutModal = document.getElementById('about-modal');
+        const micButton = document.getElementById('mic-button');
+        const langSelector = document.getElementById('lang-selector');
+        const profileModal = document.getElementById('profile-modal');
+        const profileAvatarImg = document.getElementById('profile-avatar-img');
+        const profileNameText = document.getElementById('profile-name-text');
+        const profileIdText = document.getElementById('profile-id-text');
+
+
+        // --- SOUND MANAGER (Tone.js) ---
+
+        let playSendSound = () => {};
+        let playReceiveSound = () => {};
+
+        if (window.Tone) {
+            const sendSynth = new Tone.Synth({
+                oscillator: { type: "square" },
+                envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
+            }).toDestination();
+
+            const receiveSynth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.05, decay: 0.2, sustain: 0.1, release: 0.5 }
+            }).toDestination();
+            
+            document.addEventListener('click', () => {
+                if (Tone.context.state !== 'running') {
+                    Tone.start().then(() => console.log("AudioContext started."));
+                }
+            }, { once: true });
+
+            window.playSendSound = () => { sendSynth.triggerAttackRelease("C5", "16n"); };
+            window.playReceiveSound = () => { receiveSynth.triggerAttackRelease(["C4", "E4", "G4"], "8n"); };
+        } else {
+            console.warn("Tone.js not loaded. Sound effects disabled.");
+        }
+
+
+        // --- UI UTILITIES (Theme, Language, Modals) ---
+
+        /** Sets the theme class and updates the icon. */
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.body.classList.add('dark');
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.remove('dark');
+                themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />`;
+            }
+        }
+
+        window.toggleTheme = () => {
+            const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            localStorage.setItem(THEME_KEY, newTheme);
+            applyTheme(newTheme);
+        };
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem(THEME_KEY);
+            let initialTheme = 'light';
+            if (savedTheme === 'dark') { initialTheme = 'dark'; }
+            applyTheme(initialTheme);
+        }
+        
+        // --- Multilingual Support ---
+        window.updateLanguage = () => {
+            const selectedLang = langSelector.value;
+            localStorage.setItem(LANG_KEY, selectedLang);
+            addMessage('system', `Response language set to ${selectedLang}.`);
+        };
+
+        function loadLanguage() {
+            const savedLang = localStorage.getItem(LANG_KEY) || 'English';
+            langSelector.value = savedLang;
+        }
+
+        // --- Modal Handlers ---
+        window.showAboutModal = () => { aboutModal.classList.remove('hidden'); aboutModal.classList.add('flex'); };
+        window.hideAboutModal = () => { aboutModal.classList.add('hidden'); aboutModal.classList.remove('flex'); };
+        
+        window.showProfileModal = () => { 
+            const user = supabase?.auth.currentUser;
+            const displayName = user?.user_metadata.full_name || user?.email || 'Guest User';
+            const avatarUrl = user?.user_metadata.avatar_url;
+            const uid = user?.id || 'N/A';
+
+            profileNameText.textContent = displayName;
+            profileIdText.textContent = `ID: ${uid}`;
+            profileAvatarImg.src = avatarUrl || userAvatar.src; // Use current header avatar as fallback
+
+            profileModal.classList.remove('hidden'); 
+            profileModal.classList.add('flex'); 
+        };
+        window.hideProfileModal = () => { profileModal.classList.add('hidden'); profileModal.classList.remove('flex'); };
+
+
+        // --- HISTORY LOGIC (Simpler, no localStorage) ---
+
+        /** Clears UI and history state to start a new conversation. */
+        window.startNewChat = () => {
+            chatHistory = [];
+            chatWindow.innerHTML = '';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'initial-message';
+            messageDiv.className = 'flex justify-center mt-20';
+            messageDiv.innerHTML = `<div class="text-center max-w-xs text-gray-500 transition duration-300"><p class="text-lg font-semibold mb-2">New conversation started.</p><p class="text-sm">Ask me anything! Your conversation history is kept for context.</p></div>`;
+            chatWindow.appendChild(messageDiv);
+        };
+
+        // --- SUPABASE INITIALIZATION & AUTH ---
+        if (SUPABASE_URL.startsWith('YOUR_') || SUPABASE_ANON_KEY.startsWith('YOUR_')) {
+            console.warn("Supabase credentials missing. Sign-in features are disabled. Running as Guest.");
+            authButton.textContent = 'Guest Mode';
+            authButton.className = 'py-1 px-3 bg-gray-300 text-gray-700 text-sm rounded-full';
+            sendButton.disabled = false;
+        } else {
+            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            
+            const updateAuthUI = (user) => {
+                if (user) {
+                    const displayName = user.user_metadata.full_name || user.email || 'User';
+                    const avatarUrl = user.user_metadata.avatar_url;
+
+                    authButton.textContent = 'Sign Out';
+                    authButton.className = 'py-1 px-3 border border-gray-300 text-gray-700 text-sm rounded-full transition duration-150 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700';
+                    userAvatar.src = avatarUrl || `https://placehold.co/32x32/4f46e5/ffffff?text=${displayName[0]}`;
+                    userAvatar.classList.remove('hidden');
+                    
+                    userId = user.id;
+                    sendButton.disabled = false;
+                } else {
+                    authButton.textContent = 'Sign In with Google';
+                    authButton.className = 'py-1 px-3 bg-indigo-600 text-white text-sm rounded-full transition duration-150 hover:bg-indigo-700';
+                    userAvatar.classList.add('hidden');
+                    userId = 'guest';
+                    sendButton.disabled = false;
+                }
+            };
+            
+            window.handleAuthClick = async () => {
+                playSendSound();
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    try {
+                        await supabase.auth.signOut();
+                        startNewChat(); 
+                        addMessage('system', 'You have been signed out. Start a new chat.');
+                        playReceiveSound();
+                    } catch (error) {
+                        console.error("Supabase Sign out error:", error);
+                        addMessage('system', `Error signing out: ${error.message}. Please try again.`);
+                    }
+                } else {
+                    try {
+                        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', });
+                        if (error) throw error;
+                    } catch (error) {
+                        console.error("Supabase Google sign in error:", error);
+                        addMessage('system', `Error signing in with Google: ${error.message}. Please check your browser settings or try again.`);
+                    }
+                }
+            };
+
+            supabase.auth.onAuthStateChange((event, session) => {
+                const user = session?.user;
+                updateAuthUI(user);
+                if (event === 'SIGNED_IN') {
+                    startNewChat(); 
+                    addMessage('system', `Welcome, ${user.user_metadata.full_name || 'User'}! I am ready to assist you.`);
+                }
+            });
+
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                updateAuthUI(session?.user);
+            });
+        }
+
+
+        // --- SPEECH RECOGNITION (Voice Input) ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let isListening = false;
+        
+        if (SpeechRecognition) {
+            speechRecognition = new SpeechRecognition();
+            speechRecognition.continuous = false;
+            speechRecognition.interimResults = true;
+            speechRecognition.lang = 'en-US'; // Can be updated based on user preference
+
+            speechRecognition.onstart = () => {
+                isListening = true;
+                micButton.title = "Listening...";
+                micButton.classList.replace('bg-gray-200', 'bg-red-500');
+                micButton.classList.replace('text-gray-700', 'text-white');
+                userInput.focus();
+            };
+
+            speechRecognition.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                    .map(result => result[0])
+                    .map(result => result.transcript)
+                    .join('');
+                
+                userInput.value = transcript;
+                autoExpand(userInput);
+                validateInput();
+            };
+
+            speechRecognition.onend = () => {
+                isListening = false;
+                micButton.title = "Start Voice Input";
+                micButton.classList.replace('bg-red-500', 'bg-gray-200');
+                micButton.classList.replace('text-white', 'text-gray-700');
+                if (userInput.value.trim() !== '') {
+                    sendMessage(); // Auto-send if content exists
+                }
+            };
+
+            speechRecognition.onerror = (event) => {
+                console.error('Speech recognition error', event);
+                addMessage('system', `Voice input failed: ${event.error}. Ensure microphone access is allowed.`);
+                isListening = false;
+                micButton.title = "Start Voice Input";
+                micButton.classList.replace('bg-red-500', 'bg-gray-200');
+                micButton.classList.replace('text-white', 'text-gray-700');
+            };
+        } else {
+            micButton.disabled = true;
+            micButton.title = "Voice Input not supported by your browser.";
+            micButton.classList.replace('bg-gray-200', 'bg-gray-400');
+        }
+
+        window.toggleVoiceInput = () => {
+            if (!speechRecognition) return;
+
+            if (isListening) {
+                speechRecognition.stop();
+            } else {
+                speechRecognition.start();
+            }
+        };
+
+
+        // --- UI UTILITIES ---
+
+        window.autoExpand = (element) => {
+            element.style.height = 'auto';
+            element.style.height = element.scrollHeight + 'px';
+        };
+
+        window.validateInput = () => {
+            const hasInput = userInput.value.trim() !== '';
+            sendButton.disabled = !hasInput;
+            userInput.placeholder = hasInput ? "Message Knowsta..." : "Say something...";
+        };
+
+        /** Adds a message bubble to the chat window. */
+        function addMessage(role, text) {
+            if (initialMessage) { initialMessage.remove(); }
+            
+            const isUser = role === 'user';
+
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+
+            const bubble = document.createElement('div');
+            const isSystem = role === 'system';
+            
+            let bubbleClass = 'max-w-[85%] px-4 py-2 rounded-xl text-sm transition duration-300';
+            
+            if (isUser) {
+                 bubbleClass += ' chat-bubble-user ml-auto';
+            } else if (role === 'model') {
+                 bubbleClass += ' chat-bubble-ai mr-auto';
+            } else if (isSystem) {
+                 bubbleClass = 'max-w-full text-center px-4 py-1 text-xs text-gray-500 transition duration-300';
+            }
+
+            bubble.className = bubbleClass;
+            
+            // Handle Text Content (applies to all roles)
+            if (text) {
+                let formattedText = text;
+                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                formattedText = formattedText.replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>');
+                formattedText = formattedText.replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>');
+                formattedText = formattedText.replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
+                
+                if (formattedText.includes('<li>')) {
+                    formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
+                }
+
+                const textNode = document.createElement('div');
+                textNode.innerHTML = formattedText;
+                bubble.appendChild(textNode);
+            }
+            
+            if (!isSystem) {
+                messageContainer.appendChild(bubble);
+            } else {
+                messageContainer.innerHTML = bubble.innerHTML;
+            }
+
+            chatWindow.appendChild(messageContainer);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        
+        /**
+         * Generic LLM API caller with exponential backoff.
+         */
+        async function fetchWithRetry(url, payload, maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        return await response.json();
+                    }
+
+                    if (response.status >= 500 || response.status === 429) {
+                        throw new Error(`Server error or rate limited: Status ${response.status}`);
+                    } else {
+                        const errorBody = await response.json();
+                        throw new Error(`API call failed: ${response.status} - ${JSON.stringify(errorBody)}`);
+                    }
+
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error.message);
+                    if (i === maxRetries - 1) {
+                        throw error;
+                    }
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 500;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        // --- MAIN CHAT LOGIC (Includes Streaming Simulation) ---
+
+        window.sendMessage = async function() {
+            const userText = userInput.value.trim();
+            
+            if (!userText) return;
+
+            // 1. Update UI and history for user message
+            
+            const userMessageParts = [{ text: userText }];
+            addMessage('user', userText);
+            
+            // NOTE: Chat history is CLEARED before sending to simulate short, memory-less interaction.
+            // Only the current user message is sent to Gemini.
+            chatHistory = [{ role: 'user', parts: userMessageParts }]; 
+
+            userInput.value = '';
+            userInput.style.height = 'auto'; 
+            sendButton.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+
+            playSendSound();
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${FLASH_MODEL}:generateContent?key=${API_KEY}`;
+            
+            // 2. Prepare payload (use ONLY the current message and selected language)
+            const responseLanguage = localStorage.getItem(LANG_KEY) || 'English';
+            // UPDATED SYSTEM PROMPT: Emphasize short, relevant answers and remove the context emphasis.
+            const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **short, direct, and highly relevant answers**. Answer in the language: ${responseLanguage}. Keep your responses well-structured using Markdown. Do not include unnecessary conversational filler.`;
+
+            const payload = {
+                contents: chatHistory,
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            let aiResponseText = "";
+            
+            // Add a temporary AI bubble to receive the streamed text
+            const aiIndex = 0; // Since history is reset, this will always be the first AI message
+            let tempBubble = null;
+            
+            // Create a temporary placeholder message bubble for the AI response
+            tempBubble = document.createElement('div');
+            tempBubble.className = `flex justify-start ai-message-wrapper`;
+            tempBubble.dataset.index = aiIndex;
+            
+            const contentBlock = document.createElement('div');
+            contentBlock.className = 'flex flex-col items-start';
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'max-w-[85%] px-4 py-2 rounded-xl text-sm transition duration-300 chat-bubble-ai mr-auto';
+            bubble.id = `ai-stream-${aiIndex}`;
+            bubble.innerHTML = `<span class="italic text-gray-400">...</span>`; // Initial loading text
+
+            contentBlock.appendChild(bubble);
+            tempBubble.appendChild(contentBlock);
+            chatWindow.appendChild(tempBubble);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+
+            try {
+                const result = await fetchWithRetry(apiUrl, payload);
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    aiResponseText = candidate.content.parts[0].text;
+                    
+                    // --- TYPING SIMULATION (Streaming UX) ---
+                    const speed = 15; // ms per character
+                    let i = 0;
+                    
+                    const streamFn = () => {
+                        if (i < aiResponseText.length) {
+                            const chunk = aiResponseText.substring(0, i + 1);
+                            // Update the innerHTML of the temporary bubble
+                            const targetBubble = chatWindow.querySelector(`#ai-stream-${aiIndex}`) || tempBubble.querySelector('.chat-bubble-ai');
+                            if (targetBubble) {
+                                targetBubble.innerHTML = chunk.replace(/\n/g, '<br>');
+                                chatWindow.scrollTop = chatWindow.scrollHeight;
+                            }
+                            i++;
+                            setTimeout(streamFn, speed);
+                        } else {
+                            // --- FINISHED STREAMING ---
+                            loadingIndicator.classList.add('hidden');
+                            sendButton.disabled = false;
+                            userInput.focus();
+                            
+                            // 3. Finalize and save the AI response 
+                            
+                            // Remove the temporary streaming bubble
+                            tempBubble.remove();
+                            // Add the final, fully formatted message
+                            addMessage('model', aiResponseText);
+                            
+                            playReceiveSound();
+                            validateInput();
+                        }
+                    };
+                    streamFn(); // Start the typing simulation
+
+                } else if (result.error && result.error.message) {
+                    aiResponseText = `AI Error: ${result.error.message}. Please try again.`;
+                    addMessage('system', aiResponseText);
+                } else {
+                     aiResponseText = "Sorry, I received a blank response.";
+                     addMessage('system', aiResponseText);
+                }
+
+            } catch (error) {
+                console.error("Gemini API call failed:", error);
+                addMessage('system', `Network Error: I'm having trouble connecting to the AI. Details: ${error.message}. Please check your internet connection and try again.`);
+            } finally {
+                // If an error occurred before or during streaming setup, ensure final state is set
+                if (loadingIndicator.classList.contains('hidden') === false) {
+                    loadingIndicator.classList.add('hidden');
+                    sendButton.disabled = false;
+                    userInput.focus();
+                    validateInput();
+                    
+                    // If streaming didn't start/complete successfully, remove the temporary bubble
+                    const tempElement = chatWindow.querySelector(`[data-index="${aiIndex}"]`);
+                    if (tempElement) tempBubble.remove();
+                }
+            }
+        };
+
+
+        // Enable buttons when text is present
+        userInput.addEventListener('input', () => {
+            const hasInput = userInput.value.trim() !== '';
+            sendButton.disabled = !hasInput;
+        });
+
+        // --- INITIALIZATION ---
+        
+        loadTheme();
+        loadLanguage();
+        startNewChat(); // Start fresh, no history loaded
+        validateInput();
+    </script>
 </body>
 </html>

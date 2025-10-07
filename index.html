@@ -551,6 +551,7 @@
                         addMessage('system', `Error signing out: ${error.message}. Please try again.`);
                     }
                 } else {
+                    console.log(`Attempting Google Sign-In. Redirect URL set to: ${window.location.origin}`); // DEBUG LOG ADDED
                     try {
                         const { error } = await supabase.auth.signInWithOAuth({ 
                             provider: 'google', 

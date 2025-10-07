@@ -141,29 +141,16 @@
             <div class="space-y-3 flex-grow">
                 <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Settings & Tools</div>
 
-                <!-- Selectors Group -->
-                <div class="flex space-x-2">
-                    <select id="lang-selector" class="flex-1 text-sm p-2 rounded-xl bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-white" onchange="updateLanguage()">
-                        <option value="English">Language: EN</option><option value="Spanish">ES</option><option value="French">FR</option>
-                        <option value="German">DE</option><option value="Japanese">JP</option><option value="Chinese">ZH</option>
-                        <option value="Korean">KO</option><option value="Russian">RU</option><option value="Arabic">AR</option>
-                        <option value="Vietnamese">VI</option>
-                    </select>
-                    <select id="tone-selector" class="flex-1 text-sm p-2 rounded-xl bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-white" onchange="updateTone()">
-                        <option value="Friendly">Tone: Friendly</option><option value="Professional">Professional</option><option value="Creative">Creative</option>
-                        <option value="Neutral">Neutral</option>
-                    </select>
-                </div>
-
+                <!-- Settings Button (New Centralized Control) -->
+                <button id="settings-button" onclick="showSettingsModal()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.942 3.31.82 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.942 1.543-.82 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.942-3.31-.82-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.942-1.543.82-3.31 2.37-2.37h.001c.43.723 1.055 1.096 1.761 1.096z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    Settings
+                </button>
+                
                 <!-- Export Button -->
                 <button id="export-button" onclick="exportChat()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     Export Conversation (.txt)
-                </button>
-                 <!-- Theme Toggle -->
-                <button id="theme-toggle-sidebar" onclick="toggleTheme()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
-                    <svg id="theme-icon-sidebar" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                    Toggle Theme
                 </button>
             </div>
 
@@ -206,15 +193,18 @@
             <div id="chat-window" class="flex-grow p-4 space-y-4 overflow-y-auto">
                 <div id="initial-message" class="flex justify-center mt-20">
                     <div class="text-center max-w-xs text-gray-500 transition duration-300">
+                        <!-- NEW HEADLINE -->
+                        <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Welcome to Knowsta</h3>
+                        <!-- END NEW HEADLINE -->
                         <p class="text-lg font-semibold mb-2">New conversation started.</p>
                         <p class="text-sm">Ask me anything! Your conversation history is kept for context.</p>
                         
                         <!-- TOPICS / GUIDED PROMPTS -->
                         <div class="mt-6 space-y-2 px-2 sm:px-0">
                             <div class="text-center flex flex-wrap justify-center gap-2">
-                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain the latest AI models.')">Latest AI Models</button>
-                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Write a Python function for a binary search.')">Coding Concept</button>
-                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Give me a creative writing prompt for a short story.')">Creative Prompt</button>
+                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Summarize the latest trends in renewable energy.')">Latest Energy Trends</button>
+                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Give me a simple recipe for a quick dinner.')">Quick Dinner Idea</button>
+                                <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain how quantum computing works in simple terms.')">Quantum Computing Basics</button>
                             </div>
                         </div>
                         
@@ -275,6 +265,52 @@
         
     </div>
 
+    <!-- Settings Modal (NEW) -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-md transition duration-300 transform scale-100 dark:text-white">
+            <h2 class="text-2xl font-bold mb-6 text-center text-indigo-600">App Settings</h2>
+
+            <!-- Theme Control -->
+            <div class="mb-6 pb-4 border-b dark:border-gray-700">
+                <p class="text-lg font-semibold mb-2">Appearance</p>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-gray-700 dark:text-gray-300">Current Theme: <span id="current-theme-label" class="font-medium">Light</span></span>
+                    <button onclick="toggleTheme()" class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 animated-button">
+                        Toggle Light/Dark
+                    </button>
+                </div>
+            </div>
+
+            <!-- Language Control -->
+            <div class="mb-6 pb-4 border-b dark:border-gray-700">
+                <p class="text-lg font-semibold mb-2">Response Language</p>
+                <select id="modal-lang-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="updateLanguageFromModal()">
+                    <option value="English">English</option><option value="Spanish">Spanish</option><option value="French">French</option>
+                    <option value="German">German</option><option value="Japanese">Japanese</option><option value="Chinese">Chinese (ZH)</option>
+                    <option value="Korean">Korean (KO)</option><option value="Russian">Russian (RU)</option><option value="Arabic">Arabic (AR)</option>
+                    <option value="Vietnamese">Vietnamese (VI)</option>
+                </select>
+            </div>
+
+            <!-- AI Tone Control -->
+            <div class="mb-6">
+                <p class="text-lg font-semibold mb-2">AI Personality Tone</p>
+                <select id="modal-tone-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="updateToneFromModal()">
+                    <option value="Friendly">Friendly (Default)</option>
+                    <option value="Professional">Professional (Formal, Concise)</option>
+                    <option value="Creative">Creative (Imaginative, Vivid)</option>
+                    <option value="Neutral">Neutral (Objective, Direct)</option>
+                </select>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="hideSettingsModal()" class="py-2 px-6 bg-indigo-600 text-white rounded-xl shadow-md hover:bg-indigo-700 transition duration-150 animated-button">
+                    Close Settings
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- About Modal -->
     <div id="about-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transition duration-300 transform scale-100 dark:text-white">
@@ -372,9 +408,13 @@
         const initialMessage = document.getElementById('initial-message');
         const themeIcon = document.getElementById('theme-icon-sidebar'); 
         const aboutModal = document.getElementById('about-modal');
+        const settingsModal = document.getElementById('settings-modal'); // NEW REFERENCE
+        const currentThemeLabel = document.getElementById('current-theme-label'); // NEW REFERENCE
+        const modalLangSelector = document.getElementById('modal-lang-selector'); // NEW REFERENCE
+        const modalToneSelector = document.getElementById('modal-tone-selector'); // NEW REFERENCE
         const micButton = document.getElementById('mic-button');
-        const langSelector = document.getElementById('lang-selector');
-        const toneSelector = document.getElementById('tone-selector'); 
+        // Removed: const langSelector = document.getElementById('lang-selector'); // This was the null element!
+        // Removed: const toneSelector = document.getElementById('tone-selector'); // This was also causing issues!
         const profileModal = document.getElementById('profile-modal');
         const profileAvatarImg = document.getElementById('profile-avatar-img');
         const profileNameText = document.getElementById('profile-name-text');
@@ -425,6 +465,7 @@
                 if (themeIcon) {
                      themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
                 }
+                currentThemeLabel.textContent = 'Dark';
             } else {
                 document.documentElement.classList.remove('dark');
                 document.body.classList.remove('dark');
@@ -432,6 +473,7 @@
                 if (themeIcon) {
                     themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />`;
                 }
+                currentThemeLabel.textContent = 'Light';
             }
         }
 
@@ -458,31 +500,57 @@
         }
         
         // --- Multilingual Support ---
-        window.updateLanguage = () => {
-            const selectedLang = langSelector.value;
+        window.updateLanguage = (selectedLang) => {
             localStorage.setItem(LANG_KEY, selectedLang);
+            // Removed: langSelector.value = selectedLang;
+        };
+
+        window.updateLanguageFromModal = () => {
+            const selectedLang = modalLangSelector.value;
+            updateLanguage(selectedLang);
         };
 
         function loadLanguage() {
             const savedLang = localStorage.getItem(LANG_KEY) || 'English';
-            langSelector.value = savedLang;
+            updateLanguage(savedLang);
+            if (modalLangSelector) {
+                modalLangSelector.value = savedLang;
+            }
         }
 
         // --- Custom Tone (Personality) ---
-        window.updateTone = () => {
-            responseTone = toneSelector.value;
+        window.updateTone = (selectedTone) => {
+            responseTone = selectedTone;
             localStorage.setItem(TONE_KEY, responseTone);
+            // Removed: toneSelector.value = selectedTone;
+        };
+
+        window.updateToneFromModal = () => {
+            const selectedTone = modalToneSelector.value;
+            updateTone(selectedTone);
         };
 
         function loadTone() {
             const savedTone = localStorage.getItem(TONE_KEY) || 'Friendly';
-            responseTone = savedTone;
-            toneSelector.value = savedTone;
+            updateTone(savedTone);
+            if (modalToneSelector) {
+                modalToneSelector.value = savedTone;
+            }
         }
 
         // --- Modal Handlers ---
         window.showAboutModal = () => { aboutModal.classList.remove('hidden'); aboutModal.classList.add('flex'); };
         window.hideAboutModal = () => { aboutModal.classList.add('hidden'); aboutModal.classList.remove('flex'); };
+
+        window.showSettingsModal = () => { 
+            // Sync modal selectors with current state
+            modalLangSelector.value = localStorage.getItem(LANG_KEY) || 'English';
+            modalToneSelector.value = localStorage.getItem(TONE_KEY) || 'Friendly';
+            
+            settingsModal.classList.remove('hidden'); 
+            settingsModal.classList.add('flex'); 
+        };
+        window.hideSettingsModal = () => { settingsModal.classList.add('hidden'); settingsModal.classList.remove('flex'); };
         
         // FIX: Consolidated profile/auth click logic for the sidebar button
         window.handleAuthClickOrProfile = () => {
@@ -541,14 +609,15 @@
             messageDiv.className = 'flex justify-center mt-20';
             // Only show the welcome message
             messageDiv.innerHTML = `<div class="text-center max-w-xs text-gray-500 transition duration-300">
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Welcome to Knowsta</h3>
                 <p class="text-lg font-semibold mb-2">New conversation started.</p>
                 <p class="text-sm">Ask me anything! Your conversation history is kept for context.</p>
                 <!-- TOPICS / GUIDED PROMPTS -->
                 <div class="mt-6 space-y-2 px-2 sm:px-0">
                     <div class="text-center flex flex-wrap justify-center gap-2">
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain the latest AI models.')">Latest AI Models</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Write a Python function for a binary search.')">Coding Concept</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Give me a creative writing prompt for a short story.')">Creative Prompt</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Summarize the latest trends in renewable energy.')">Latest Energy Trends</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Give me a simple recipe for a quick dinner.')">Quick Dinner Idea</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain how quantum computing works in simple terms.')">Quantum Computing Basics</button>
                     </div>
                 </div>
             </div>`;

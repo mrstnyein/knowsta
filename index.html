@@ -462,16 +462,24 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
         
         const FLASH_MODEL = 'gemini-2.5-flash-preview-05-20';
-        // WARNING: API Key is exposed in client-side code. Use a backend proxy for production.
-        const API_KEY = "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4"; 
+        // FIX: Setting API_KEY to an empty string allows the execution environment to use its internal proxy.
+        // This is the common fix for authentication/location-based errors in this environment.
+        const API_KEY = ""; 
 
         const THEME_KEY = 'knowsta_theme';
         const LANG_KEY = 'knowsta_lang';
         const TONE_KEY = 'knowsta_tone'; 
         const BIO_KEY = 'knowsta_bio'; 
-        const CHAT_HISTORY_KEY = 'knowsta_chat_history'; // New key for history
+        
+        // --- FIX: Dynamic key for persistent user data ---
+        function getChatHistoryKey(id) {
+            return `knowsta_chat_history_${id}`;
+        }
+        function getProfileBioKey(id) {
+            return `knowsta_bio_${id}`;
+        }
 
-        const MINIMUM_LOAD_MS = 3000; // FIX: Adjusted to 3 seconds
+        const MINIMUM_LOAD_MS = 3000; 
 
         let chatHistory = [];
         let userId = 'guest';
@@ -539,7 +547,7 @@
         }
 
 
-        // --- LOCALIZATION DATA ---
+        // --- LOCALIZATION DATA (Unchanged) ---
         const localizationData = {
             'English': { 
                 'sidebar_username': 'Sign In / Profile', 'btn_new_chat': 'New Chat', 'btn_settings': 'Settings', 
@@ -723,12 +731,14 @@
         // --- PROFILE CUSTOMIZATION (Local Storage Mock) ---
         
         window.saveProfileCustomization = () => {
+             // FIX: Bio key now uses userId for persistence swap
              profileBio = profileBioInput.value;
-             localStorage.setItem(BIO_KEY, profileBio);
+             localStorage.setItem(getProfileBioKey(userId), profileBio);
         }
 
         function loadProfileCustomization() {
-            profileBio = localStorage.getItem(BIO_KEY) || '';
+            // FIX: Load Bio using userId
+            profileBio = localStorage.getItem(getProfileBioKey(userId)) || '';
             if (profileBioInput) {
                 profileBioInput.value = profileBio;
             }
@@ -743,14 +753,16 @@
                 time: msg.time,
             }));
             if (historyToStore.length > 0) {
-                 localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(historyToStore));
+                 // FIX: Saves to user-specific key
+                 localStorage.setItem(getChatHistoryKey(userId), JSON.stringify(historyToStore));
             } else {
-                 localStorage.removeItem(CHAT_HISTORY_KEY);
+                 localStorage.removeItem(getChatHistoryKey(userId));
             }
         }
 
         function loadChatHistory() {
-            const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
+            // FIX: Loads from user-specific key
+            const savedHistory = localStorage.getItem(getChatHistoryKey(userId));
             if (savedHistory) {
                 try {
                     const history = JSON.parse(savedHistory);
@@ -766,7 +778,7 @@
                     }
                 } catch (e) {
                     console.error("Error loading chat history:", e);
-                    localStorage.removeItem(CHAT_HISTORY_KEY);
+                    localStorage.removeItem(getChatHistoryKey(userId));
                 }
             }
             return false;
@@ -816,7 +828,7 @@
             profileAvatarImg.src = avatarUrl || userAvatar.src; // Use current header avatar as fallback
             
             // Load Bio
-            profileBioInput.value = localStorage.getItem(BIO_KEY) || '';
+            loadProfileCustomization(); // FIX: Load user-specific bio
 
             // Show appropriate content based on auth status
             const profileAuthButton = document.getElementById('profile-auth-button');
@@ -855,7 +867,7 @@
                 <div class="mt-6 space-y-2 px-2 sm:px-0">
                     <div class="text-center flex flex-wrap justify-center gap-2">
                         <!-- UPDATED TOPICS (3 MEDIUM-LONG) -->
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Draft a detailed project proposal for a sustainable city development plan.')">Draft Project Proposal</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Draft a professional email to a client requesting project feedback.')">Draft Project Proposal</button>
                         <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain the core principles of the blockchain trilemma and give real-world examples.')">Explain Blockchain Trilemma</button>
                         <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Write a short, engaging story about a time-traveling musician searching for a lost chord.')">Write Creative Story</button>
                     </div>
@@ -917,7 +929,9 @@
         supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         const updateAuthUI = (user) => {
-            // Update the main header buttons
+            // Store old userId to swap history later
+            const oldUserId = userId; 
+            
             if (user) {
                 const displayName = user.user_metadata.full_name || user.email || 'User';
                 const avatarUrl = user.user_metadata.avatar_url;
@@ -947,6 +961,17 @@
                 userId = 'guest';
                 sendButton.disabled = false;
             }
+            
+            // FIX: If user changed, reload history and profile settings for the new userId
+            if (oldUserId !== userId) {
+                // Save previous user's history and load new user's history/profile
+                saveChatHistory(oldUserId); // Save the session the user just left
+                loadProfileCustomization(); // Load new user's profile bio
+                
+                if (!loadChatHistory()) {
+                    startNewChat(); // If new user has no history, start fresh
+                }
+            }
         };
         
         window.handleAuthClick = async () => {
@@ -956,6 +981,8 @@
             if (session) {
                 // Sign Out
                 try {
+                    // FIX: Save current history before signing out (to be loaded next time)
+                    saveChatHistory(); 
                     await supabase.auth.signOut();
                     startNewChat(); 
                     addMessage('system', 'You have been signed out. Start a new chat.');
@@ -1037,7 +1064,7 @@
             updateAuthUI(user);
             translateUI(localStorage.getItem(LANG_KEY) || 'English'); // Always translate on auth change
             if (event === 'SIGNED_IN') {
-                startNewChat(); 
+                // NOTE: History/profile swap handled in updateAuthUI
                 addMessage('system', `Welcome, ${user.user_metadata.full_name || 'User'}! I am ready to assist you.`);
                 hideProfileModal(); // Close modal on successful sign-in
             }
@@ -1048,7 +1075,7 @@
         });
 
 
-        // --- SPEECH RECOGNITION (Voice Input) ---
+        // --- SPEECH RECOGNITION (Voice Input - Unchanged) ---
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         let isListening = false;
         
@@ -1111,7 +1138,7 @@
         };
 
 
-        // --- UI UTILITIES ---
+        // --- UI UTILITIES (Unchanged) ---
 
         window.autoExpand = (element) => {
             element.style.height = 'auto';
@@ -1447,16 +1474,20 @@
             loadTheme();
             loadLanguage(); 
             loadTone();
-            loadProfileCustomization();
+            // loadProfileCustomization() called inside updateAuthUI (after userId is set)
 
             // Load history or start new chat (History check is now inside loadChatHistory)
             const minimumLoadTime = new Promise(resolve => setTimeout(resolve, MINIMUM_LOAD_MS)); // FIX: Uses 3000ms
             const authReadyCheck = supabase.auth.getSession(); 
 
             Promise.all([minimumLoadTime, authReadyCheck]).then(() => {
+                // Initial auth state check will trigger updateAuthUI which loads initial history/profile
+                
+                // If no history was loaded by the auth listener (i.e., guest without prior history), start fresh.
                 if (!loadChatHistory()) {
                      startNewChat(); 
                 }
+                loadProfileCustomization(); // Ensure profile custom fields are loaded/synced once auth is known
                 validateInput();
 
                 // Hide Preloader and show app container after 3s minimum AND auth check is done

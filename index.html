@@ -6,75 +6,41 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-
   :root {
-    --primary: #007aff;
-    --primary-light: #0a84ff;
-    --bg: #f2f2f7;
-    --white: #fff;
-    --text-dark: #1c1c1e;
-    --text-light: #8e8e93;
-    --border: #d1d1d6;
+    --primary:#007aff; --primary-light:#0a84ff;
+    --bg:#f2f2f7; --white:#fff;
+    --text-dark:#1c1c1e; --text-light:#8e8e93; --border:#d1d1d6;
   }
-
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 0; font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    display: flex; justify-content: center; align-items: center; height: 100vh;
-  }
-
-  .chat-app {
-    width: 100%; max-width: 420px; height: 85vh;
-    display: flex; flex-direction: column; background: var(--white);
-    border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden;
-    transition: all 0.3s ease;
-  }
-
-  header {
-    background: var(--white); border-bottom: 1px solid var(--border);
-    padding: 16px; display: flex; justify-content: space-between; align-items: center;
-    position: sticky; top: 0; z-index: 10;
-  }
-
-  header h2 { margin:0; font-size:1.4rem; color: var(--text-dark);}
-  header button {
-    background: var(--primary); color: var(--white); border:none;
-    padding:6px 14px; border-radius:12px; font-weight:600; cursor:pointer;
-    transition: all 0.2s ease;
-  }
-  header button:hover { background: var(--primary-light); }
-
-  #chat { flex:1; padding:16px; display:flex; flex-direction:column; overflow-y:auto; background: var(--bg); }
-
-  .msg { display:flex; flex-direction:column; margin-bottom:14px; animation: fadeIn 0.2s ease; }
-  .msg .meta { font-size:0.7rem; color: var(--text-light); margin-bottom:4px; display:flex; align-items:center; gap:6px; }
-  .msg .meta img { width:20px; height:20px; border-radius:50%; }
-  .msg .bubble { padding:12px 18px; font-size:0.95rem; max-width:75%; border-radius:20px; line-height:1.4; box-shadow:0 4px 8px rgba(0,0,0,0.05); word-break:break-word; }
-
-  .msg.sent { align-items:flex-end; }
-  .msg.sent .bubble { background: var(--primary); color: var(--white); border-bottom-right-radius:6px; border-top-right-radius:20px; }
-
-  .msg.received { align-items:flex-start; }
-  .msg.received .bubble { background: var(--white); color: var(--text-dark); border-bottom-left-radius:6px; border-top-left-radius:20px; }
-
-  .input-area { display:flex; padding:12px; border-top:1px solid var(--border); background: var(--white); }
-  .input-area input { flex:1; padding:12px 16px; border:1px solid var(--border); border-radius:20px; font-size:1rem; outline:none; transition: all 0.2s ease; }
-  .input-area input:focus { border-color: var(--primary); box-shadow:0 0 5px rgba(0,122,255,0.2);}
-  .input-area button { background: var(--primary); color: var(--white); font-weight:600; padding:12px 18px; border-radius:20px; margin-left:8px; border:none; cursor:pointer; transition: all 0.2s ease; }
-  .input-area button:hover { background: var(--primary-light); }
-
-  /* Auth Screen */
-  #auth { text-align:center; padding:40px 24px; display:flex; flex-direction:column; justify-content:center; flex:1; }
-  #auth h2 { font-size:1.8rem; color: var(--text-dark); margin-bottom:20px; }
-  #auth input { width:100%; padding:14px; margin:10px 0; border-radius:20px; border:1px solid var(--border); font-size:1rem; outline:none; transition: all 0.2s ease;}
-  #auth input:focus { border-color: var(--primary); box-shadow:0 0 8px rgba(0,122,255,0.2);}
-  #auth button { width:100%; padding:14px; margin-top:12px; border-radius:24px; font-weight:600; border:none; cursor:pointer; transition: all 0.2s ease;}
-  #auth button:hover { opacity:0.9; }
-  #google-btn { background:#4285f4; margin-top:16px; color:#fff;}
-  #google-btn:hover { background:#357ae8; }
-
-  @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:0;font-family:'Inter',sans-serif;background:var(--bg);display:flex;justify-content:center;align-items:center;height:100vh;}
+  .chat-app{width:100%;max-width:420px;height:85vh;display:flex;flex-direction:column;background:var(--white);border-radius:24px;box-shadow:0 20px 40px rgba(0,0,0,0.1);overflow:hidden;}
+  header{background:var(--white);border-bottom:1px solid var(--border);padding:16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+  header h2{margin:0;font-size:1.4rem;color:var(--text-dark);}
+  header button{background:var(--primary);color:var(--white);border:none;padding:6px 14px;border-radius:12px;font-weight:600;cursor:pointer;transition:all 0.2s ease;}
+  header button:hover{background:var(--primary-light);}
+  #chat{flex:1;padding:16px;display:flex;flex-direction:column;overflow-y:auto;background:var(--bg);}
+  .msg{display:flex;flex-direction:column;margin-bottom:14px;animation:fadeIn 0.2s ease;}
+  .msg .meta{font-size:0.7rem;color:var(--text-light);margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+  .msg .meta img{width:20px;height:20px;border-radius:50%;}
+  .msg .bubble{padding:12px 18px;font-size:0.95rem;max-width:75%;border-radius:20px;line-height:1.4;box-shadow:0 4px 8px rgba(0,0,0,0.05);word-break:break-word;}
+  .msg.sent{align-items:flex-end;}
+  .msg.sent .bubble{background:var(--primary);color:var(--white);border-bottom-right-radius:6px;border-top-right-radius:20px;}
+  .msg.received{align-items:flex-start;}
+  .msg.received .bubble{background:var(--white);color:var(--text-dark);border-bottom-left-radius:6px;border-top-left-radius:20px;}
+  .input-area{display:flex;padding:12px;border-top:1px solid var(--border);background:var(--white);}
+  .input-area input{flex:1;padding:12px 16px;border:1px solid var(--border);border-radius:20px;font-size:1rem;outline:none;transition:all 0.2s ease;}
+  .input-area input:focus{border-color:var(--primary);box-shadow:0 0 5px rgba(0,122,255,0.2);}
+  .input-area button{background:var(--primary);color:var(--white);font-weight:600;padding:12px 18px;border-radius:20px;margin-left:8px;border:none;cursor:pointer;transition:all 0.2s ease;}
+  .input-area button:hover{background:var(--primary-light);}
+  #auth{text-align:center;padding:40px 24px;display:flex;flex-direction:column;justify-content:center;flex:1;}
+  #auth h2{font-size:1.8rem;color:var(--text-dark);margin-bottom:20px;}
+  #auth input{width:100%;padding:14px;margin:10px 0;border-radius:20px;border:1px solid var(--border);font-size:1rem;outline:none;transition:all 0.2s ease;}
+  #auth input:focus{border-color:var(--primary);box-shadow:0 0 8px rgba(0,122,255,0.2);}
+  #auth button{width:100%;padding:14px;margin-top:12px;border-radius:24px;font-weight:600;border:none;cursor:pointer;transition:all 0.2s ease;}
+  #auth button:hover{opacity:0.9;}
+  #google-btn{background:#4285f4;margin-top:16px;color:#fff;}
+  #google-btn:hover{background:#357ae8;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body>
@@ -105,7 +71,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', ()=>{
   const supabaseUrl = 'https://nreviyisnhwckepaiglq.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg'; 
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
   const authDiv = document.getElementById('auth');
@@ -200,7 +166,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     if(!phone) return alert('Enter phone number');
     const {error} = await supabase.auth.signInWithOtp({phone});
     if(error) return alert(error.message);
-    alert('OTP sent! Check your phone.');
+    alert('OTP sent!');
     sendOtpBtn.style.display='none';
     otpInput.style.display='block';
     verifyOtpBtn.style.display='block';
@@ -223,9 +189,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   async function upsertProfile(userData){
     if(!userData) return;
-    const {error} = await supabase.from('profiles')
+    await supabase.from('profiles')
       .upsert({id:userData.id,email:userData.email,phone:userData.phone,avatar_url:userData.user_metadata?.avatar_url || null},{onConflict:'id'});
-    if(error) console.error(error);
   }
 
   supabase.auth.onAuthStateChange((event, session)=>{

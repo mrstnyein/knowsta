@@ -52,7 +52,6 @@
             background-color: #1c1c1e;
         }
         .dark .app-container {
-            background-color: #2c2c2e;
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         .dark header {
@@ -459,7 +458,11 @@
                     }
                 } else {
                     try {
-                        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', });
+                        const { error } = await supabase.auth.signInWithOAuth({ 
+                            provider: 'google', 
+                            // FIX: Explicitly set redirectTo to the current origin to resolve 404 issue in the embedded environment.
+                            redirectTo: window.location.origin 
+                        });
                         if (error) throw error;
                     } catch (error) {
                         console.error("Supabase Google sign in error:", error);

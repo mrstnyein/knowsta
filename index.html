@@ -6,6 +6,15 @@
     <title>Knowsta</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="./favicon.ico" />
+    
+    <!-- SEO and Open Graph Tags -->
+    <meta name="description" content="Knowsta AI: The smart conversational assistant powered by Gemini. Fast, accurate, and multilingual chat."/>
+    <meta property="og:title" content="Knowsta AI Assistant"/>
+    <meta property="og:description" content="The fast, modern, and multilingual AI chat app powered by Google Gemini."/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:image" content="https://placehold.co/1200x630/4f46e5/ffffff?text=Knowsta+AI"/>
+    <meta property="og:url" content="[Your App URL]"/> 
+
     <!-- Tone.js for synthesized sound effects (no external files needed) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/tone.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -70,7 +79,7 @@
             color: white;
             border-radius: 18px 18px 2px 18px;
             padding: 10px 14px;
-            max-width: 90%; /* Increased max width slightly */
+            max-width: 90%; 
         }
         .chat-bubble-ai {
             background-color: #e5e5ea; 
@@ -88,6 +97,27 @@
         /* Increased focus clarity */
         .input-bar-wrapper:focus-within {
             box-shadow: 0 0 0 1px #4f46e5, 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(79, 70, 229, 0.3);
+        }
+        
+        /* --- PRELOADER STYLES --- */
+        #preloader {
+            background-color: #f0f2f5;
+        }
+        .dark #preloader {
+            background-color: #1c1c1e;
+        }
+        .dark #preloader .loading-dots span {
+            background-color: #6366f1;
+        }
+        .loading-dots span {
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
         }
 
         /* --- DARK MODE STYLES --- */
@@ -115,18 +145,52 @@
 
         /* FIX: Ensure typed text is visible in light mode input */
         #user-input { color: #1c1c1e; }
+        
+        /* Timestamps (Small and subtle) */
+        .timestamp {
+            font-size: 0.6rem;
+            opacity: 0.6;
+            margin-top: 2px;
+            user-select: none;
+        }
+        .user-message-wrapper .timestamp {
+            margin-right: 16px;
+        }
+        .ai-message-wrapper .timestamp {
+            margin-left: 16px;
+        }
+        
+        /* FIX: Logo color in light mode header */
+        .main-chat-panel header h1 {
+            color: #4f46e5; /* Tailwind Indigo-600 */
+        }
+        .dark .main-chat-panel header h1 {
+            color: white; 
+        }
     </style>
 </head>
 <body class="p-0 sm:p-4">
-    <div id="app" class="app-container">
+    <!-- PRELOADER -->
+    <div id="preloader" class="fixed inset-0 flex items-center justify-center z-50 transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-12 h-12 mb-4 animate-bounce rounded-full">
+            <div class="loading-dots flex justify-center space-x-1">
+                <span class="w-3 h-3 bg-indigo-600 rounded-full"></span>
+                <span class="w-3 h-3 bg-indigo-600 rounded-full"></span>
+                <span class="w-3 h-3 bg-indigo-600 rounded-full"></span>
+            </div>
+            <p id="preloader-text" class="mt-4 text-gray-700 dark:text-gray-300">Loading Knowsta...</p>
+        </div>
+    </div>
+    
+    <div id="app" class="app-container opacity-0">
 
         <!-- --- SIDEBAR (Desktop Navigation) --- -->
         <div class="sidebar p-4 pt-6">
             
-            <!-- Logo and App Title -->
-            <div class="flex items-center mb-6">
-                <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-7 h-7 mr-3 rounded-full">
-                <h2 class="text-lg font-bold text-gray-800 dark:text-white">Knowsta</h2>
+            <!-- Logo Only (Brand Identity) -->
+            <div class="flex items-center justify-center mb-6">
+                <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-8 h-8 rounded-full">
             </div>
 
             <!-- New Chat Button -->
@@ -172,8 +236,10 @@
             
             <!-- Header (Mobile/Web) -->
             <header class="p-4 border-b border-gray-100 shadow-sm sticky top-0 z-10 flex items-center justify-between transition duration-300">
+                <!-- Brand Title (Visible on Mobile/Web) -->
                 <div class="flex items-center">
-                    <h1 id="header-conversation-title" class="text-xl font-bold text-gray-800 transition duration-300">Conversation</h1>
+                    <!-- FIX: Header text color uses primary indigo color in light mode -->
+                    <h1 class="text-xl font-bold transition duration-300 text-indigo-600 dark:text-white">Knowsta</h1>
                 </div>
                 <!-- Mobile/Web Auth/Profile button -->
                 <div class="flex items-center space-x-3">
@@ -225,7 +291,7 @@
                     <textarea
                         id="user-input"
                         rows="1"
-                        placeholder="Say something..."
+                        placeholder="Ask anything..."
                         class="flex-grow p-1 bg-transparent resize-none focus:ring-0 focus:border-transparent outline-none transition duration-150 dark:text-white"
                         oninput="autoExpand(this); validateInput()"
                         onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
@@ -339,8 +405,15 @@
             <!-- Auth/Profile Content -->
             <div id="profile-content" class="flex flex-col items-center space-y-4">
                 <img id="profile-avatar-img" src="https://placehold.co/80x80/cccccc/ffffff?text=U" alt="Profile Avatar" class="w-20 h-20 rounded-full border-4 border-indigo-500">
+                
                 <p id="profile-name-text" class="text-lg font-semibold dark:text-white">User Name</p>
                 <p id="profile-id-text" class="text-xs text-gray-500 dark:text-gray-400 break-all">ID: </p>
+
+                <!-- Profile Customization -->
+                <div class="w-full space-y-2">
+                    <label for="profile-bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio / About Me (Local Storage)</label>
+                    <textarea id="profile-bio" oninput="saveProfileCustomization()" placeholder="Tell people about yourself..." rows="3" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600"></textarea>
+                </div>
                 
                 <!-- Sign In/Out Buttons -->
                 <button 
@@ -377,47 +450,50 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
         
         const FLASH_MODEL = 'gemini-2.5-flash-preview-05-20';
+        // WARNING: API Key is exposed in client-side code. Use a backend proxy for production.
         const API_KEY = "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4"; 
 
         const THEME_KEY = 'knowsta_theme';
         const LANG_KEY = 'knowsta_lang';
         const TONE_KEY = 'knowsta_tone'; 
+        const BIO_KEY = 'knowsta_bio'; 
+        const CHAT_HISTORY_KEY = 'knowsta_chat_history'; // New key for history
 
         let chatHistory = [];
         let userId = 'guest';
         let supabase;
         let speechRecognition;
         let responseTone = 'Friendly';
+        let profileBio = '';
 
 
         // --- UI REFERENCES ---
+        const appContainer = document.getElementById('app');
+        const preloader = document.getElementById('preloader');
         const chatWindow = document.getElementById('chat-window');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
         const loadingIndicator = document.getElementById('loading-indicator');
         const authButton = document.getElementById('auth-button');
         const userAvatar = document.getElementById('user-avatar');
-        const initialMessage = document.getElementById('initial-message');
         const themeIcon = document.getElementById('theme-icon-sidebar'); 
         const aboutModal = document.getElementById('about-modal');
-        const settingsModal = document.getElementById('settings-modal'); // NEW REFERENCE
-        const currentThemeLabel = document.getElementById('current-theme-label'); // NEW REFERENCE
-        const modalLangSelector = document.getElementById('modal-lang-selector'); // NEW REFERENCE
-        const modalToneSelector = document.getElementById('modal-tone-selector'); // NEW REFERENCE
+        const settingsModal = document.getElementById('settings-modal'); 
+        const currentThemeLabel = document.getElementById('current-theme-label'); 
+        const modalLangSelector = document.getElementById('modal-lang-selector'); 
+        const modalToneSelector = document.getElementById('modal-tone-selector'); 
         const micButton = document.getElementById('mic-button');
         const profileModal = document.getElementById('profile-modal');
         const profileAvatarImg = document.getElementById('profile-avatar-img');
         const profileNameText = document.getElementById('profile-name-text');
         const profileIdText = document.getElementById('profile-id-text');
+        const profileBioInput = document.getElementById('profile-bio');
         const sidebarUsername = document.getElementById('sidebar-username');
         const userAvatarSidebar = document.getElementById('user-avatar-sidebar');
-        // NEW REFERENCES FOR TRANSLATABLE ELEMENTS
         const labelNewChat = document.getElementById('label-new-chat');
         const labelSettings = document.getElementById('label-settings');
         const labelExport = document.getElementById('label-export');
         const labelAbout = document.getElementById('label-about');
-        const headerConversationTitle = document.getElementById('header-conversation-title'); // NEW ID FOR MAIN HEADER
-        // END NEW REFERENCES
 
 
         // --- SOUND MANAGER (Tone.js) ---
@@ -449,42 +525,42 @@
         }
 
 
-        // --- LOCALIZATION DATA (FIX 1) ---
+        // --- LOCALIZATION DATA ---
         const localizationData = {
             'English': { 
                 'sidebar_username': 'Sign In / Profile', 'btn_new_chat': 'New Chat', 'btn_settings': 'Settings', 
                 'btn_export': 'Export Conversation (.txt)', 'btn_about': 'About Knowsta', 'btn_signin': 'Sign In',
-                'btn_signout': 'Sign Out', 'head_conversation': 'Conversation',
+                'btn_signout': 'Sign Out', 'head_conversation': 'Knowsta', 
                 'head_settings': 'App Settings', 'theme_label': 'Current Theme:', 'theme_toggle': 'Toggle Light/Dark',
                 'lang_label': 'Response Language', 'tone_label': 'AI Personality Tone', 'close': 'Close', 'submit': 'Submit',
-                'user_name_default': 'User Name', 'profile_signin': 'User Profile / Sign In', 'welcome_head': 'How can I help you?', // UPDATED
-                'welcome_sub': 'I\'m ready to assist you.', // UPDATED
-                'welcome_text': 'Start by asking a factual question, requesting code, or a creative prompt.', // UPDATED
-                'placeholder': 'Say something...'
+                'user_name_default': 'User Name', 'profile_signin': 'User Profile / Sign In', 'welcome_head': 'How can I help you?', 
+                'welcome_sub': 'I\'m ready to assist you.', 
+                'welcome_text': 'Start by asking a factual question, requesting code, or a creative prompt.',
+                'placeholder': 'Ask anything...' 
             },
             'Spanish': {
                 'sidebar_username': 'Iniciar Sesión / Perfil', 'btn_new_chat': 'Nuevo Chat', 'btn_settings': 'Ajustes',
                 'btn_export': 'Exportar Conversación (.txt)', 'btn_about': 'Acerca de Knowsta', 'btn_signin': 'Iniciar Sesión',
-                'btn_signout': 'Cerrar Sesión', 'head_conversation': 'Conversación',
+                'btn_signout': 'Cerrar Sesión', 'head_conversation': 'Knowsta', 
                 'head_settings': 'Configuración de la Aplicación', 'theme_label': 'Tema Actual:', 'theme_toggle': 'Alternar Tema',
                 'lang_label': 'Idioma de Respuesta', 'tone_label': 'Tono de Personalidad IA', 'close': 'Cerrar', 'submit': 'Enviar',
                 'user_name_default': 'Nombre de Usuario', 'profile_signin': 'Perfil de Usuario / Iniciar Sesión',
-                'welcome_head': '¿Cómo puedo ayudarte?', // UPDATED
-                'welcome_sub': 'Estoy listo para asistirte.', // UPDATED
+                'welcome_head': '¿Cómo puedo ayudarte?', 
+                'welcome_sub': 'Estoy listo para asistirte.', 
                 'welcome_text': 'Comienza haciendo una pregunta, solicitando código o una sugerencia creativa.',
-                'placeholder': 'Di algo...'
+                'placeholder': 'Pregunta lo que sea...' 
             },
              'French': {
                 'sidebar_username': 'Connexion / Profil', 'btn_new_chat': 'Nouveau Chat', 'btn_settings': 'Paramètres',
                 'btn_export': 'Exporter la conversation (.txt)', 'btn_about': 'À propos de Knowsta', 'btn_signin': 'Se Connecter',
-                'btn_signout': 'Déconnexion', 'head_conversation': 'Conversation',
+                'btn_signout': 'Déconnexion', 'head_conversation': 'Knowsta', 
                 'head_settings': 'Paramètres de l\'Appli', 'theme_label': 'Thème Actuel :', 'theme_toggle': 'Basculer Thème',
                 'lang_label': 'Langue de Réponse', 'tone_label': 'Ton de Personnalité IA', 'close': 'Fermer', 'submit': 'Soumettre',
                 'user_name_default': 'Nom d\'utilisateur', 'profile_signin': 'Profil Utilisateur / Connexion',
-                'welcome_head': 'Comment puis-je vous aider ?', // UPDATED
-                'welcome_sub': 'Je suis prêt à vous assister.', // UPDATED
+                'welcome_head': 'Comment puis-je vous aider ?', 
+                'welcome_sub': 'Je suis prêt à vous assister.', 
                 'welcome_text': 'Commencez par poser une question, demander du code ou une invite créative.',
-                'placeholder': 'Dites quelque chose...'
+                'placeholder': 'Demandez n\'importe quoi...' 
             },
         };
 
@@ -502,7 +578,7 @@
             const authBtnText = supabase?.auth.currentUser ? getLocalizedText('btn_signout') : getLocalizedText('btn_signin');
             authButton.textContent = authBtnText;
             
-            // Sidebar (FIX: Use direct references to new label spans)
+            // Sidebar 
             sidebarUsername.textContent = getLocalizedText('sidebar_username');
             if (labelNewChat) labelNewChat.textContent = getLocalizedText('btn_new_chat');
             if (labelSettings) labelSettings.textContent = getLocalizedText('btn_settings');
@@ -545,7 +621,7 @@
         }
 
 
-        // --- UI UTILITIES (Theme, Language, Modals, Tone) ---
+        // --- THEME & APPEARANCE ---
 
         /** Sets the theme class and updates the icon. */
         function applyTheme(theme) {
@@ -587,7 +663,7 @@
 
         function loadTheme() {
             const savedTheme = localStorage.getItem(THEME_KEY);
-            // Default to 'light' for initial load
+            // Default to 'light' for initial load (FIX: Changed to 'light' from 'dark' for user request)
             let initialTheme = savedTheme || 'light'; 
             applyTheme(initialTheme);
         }
@@ -595,7 +671,7 @@
         // --- Multilingual Support ---
         window.updateLanguage = (selectedLang) => {
             localStorage.setItem(LANG_KEY, selectedLang);
-            translateUI(selectedLang); // FIX 1: Update UI language
+            translateUI(selectedLang); 
         };
 
         window.updateLanguageFromModal = () => {
@@ -628,6 +704,58 @@
             if (modalToneSelector) {
                 modalToneSelector.value = savedTone;
             }
+        }
+
+        // --- PROFILE CUSTOMIZATION (Local Storage Mock) ---
+        
+        window.saveProfileCustomization = () => {
+             profileBio = profileBioInput.value;
+             localStorage.setItem(BIO_KEY, profileBio);
+        }
+
+        function loadProfileCustomization() {
+            profileBio = localStorage.getItem(BIO_KEY) || '';
+            if (profileBioInput) {
+                profileBioInput.value = profileBio;
+            }
+        }
+
+        // --- CHAT HISTORY MANAGEMENT ---
+
+        function saveChatHistory() {
+            const historyToStore = chatHistory.map(msg => ({
+                role: msg.role,
+                text: msg.text,
+                time: msg.time,
+            }));
+            if (historyToStore.length > 0) {
+                 localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(historyToStore));
+            } else {
+                 localStorage.removeItem(CHAT_HISTORY_KEY);
+            }
+        }
+
+        function loadChatHistory() {
+            const savedHistory = localStorage.getItem(CHAT_HISTORY_KEY);
+            if (savedHistory) {
+                try {
+                    const history = JSON.parse(savedHistory);
+                    if (history.length > 0) {
+                        chatHistory = history;
+                        chatWindow.innerHTML = '';
+                        history.forEach(msg => {
+                            // Reconstruct the message object for display without streaming simulation hassle
+                            addMessage(msg.role, msg.text, false, msg.time); 
+                        });
+                         setTimeout(() => { chatWindow.scrollTop = chatWindow.scrollHeight; }, 100);
+                        return true;
+                    }
+                } catch (e) {
+                    console.error("Error loading chat history:", e);
+                    localStorage.removeItem(CHAT_HISTORY_KEY);
+                }
+            }
+            return false;
         }
 
         // --- Modal Handlers ---
@@ -672,6 +800,9 @@
             profileNameText.textContent = displayName;
             profileIdText.textContent = `ID: ${uid}`;
             profileAvatarImg.src = avatarUrl || userAvatar.src; // Use current header avatar as fallback
+            
+            // Load Bio
+            profileBioInput.value = localStorage.getItem(BIO_KEY) || '';
 
             // Show appropriate content based on auth status
             const profileAuthButton = document.getElementById('profile-auth-button');
@@ -709,13 +840,15 @@
                 <!-- TOPICS / GUIDED PROMPTS -->
                 <div class="mt-6 space-y-2 px-2 sm:px-0">
                     <div class="text-center flex flex-wrap justify-center gap-2">
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Generate a professional email requesting a project extension.')">Draft a Professional Email</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Design a minimal, responsive landing page using Tailwind.')">Design a Website Layout</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Write a short, thrilling scene about a hidden ancient artifact.')">Creative Story Prompt</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Make a recipe for spicy noodles.')">Make a Recipe</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Suggest me a fun weekend activity.')">Suggest</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Draft an email to a new client.')">Draft Email</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain the basics of quantum computing.')">Explain</button>
                     </div>
                 </div>
             </div>`;
             chatWindow.appendChild(messageDiv);
+            saveChatHistory(); // Save empty history
         };
 
         window.sendTopic = (topicText) => {
@@ -978,7 +1111,7 @@
         };
 
         /** Adds a message bubble to the chat window. */
-        function addMessage(role, text, isImageHtml = false) {
+        function addMessage(role, text, isImageHtml = false, timestamp = null) {
             // FIX: Remove the initial prompt block reliably on first message
             const promptBlock = document.getElementById('initial-message');
             if (promptBlock) {
@@ -987,6 +1120,7 @@
             
             const isUser = role === 'user';
             const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            const currentTime = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             const messageContainer = document.createElement('div');
             messageContainer.className = `flex ${isUser ? 'justify-end user-message-wrapper' : 'justify-start ai-message-wrapper'}`;
@@ -1045,10 +1179,12 @@
                     controls.innerHTML = `<button onclick="editMessage('${messageId}', '${text.replace(/'/g, "\\'")}')" class="hover:text-indigo-500 px-1 rounded-md">Edit</button>`;
                     contentBlock.appendChild(controls);
                     contentBlock.classList.add('items-end'); // Align controls right
+                    contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-end">${currentTime}</p>`; // Timestamp
                 } else if (role === 'model') {
                     controls.innerHTML = `<button onclick="regenerateResponse('${messageId}')" class="hover:text-indigo-500 px-1 rounded-md">Regenerate</button>`;
                     contentBlock.appendChild(controls);
                     contentBlock.classList.add('items-start'); // Align controls left
+                    contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-start">${currentTime}</p>`; // Timestamp
                 }
 
                 messageContainer.appendChild(contentBlock);
@@ -1119,6 +1255,7 @@
             
             // 3. Clear the chatHistory state (only used for the last exchange anyway)
             chatHistory = []; 
+            saveChatHistory();
         };
 
         /** Regenerates the AI response for a given model message ID. */
@@ -1148,13 +1285,6 @@
         };
 
 
-        // --- IMAGE GENERATION LOGIC (REMOVED due to billing error) ---
-
-        // window.handleImageGeneration = async function() {
-        //     // Removed Image Generation Logic
-        // };
-
-
         // --- MAIN CHAT LOGIC (Includes Streaming Simulation) ---
 
         window.sendMessage = async function(overrideText, isRegenerate = false) {
@@ -1169,17 +1299,17 @@
                 addMessage('user', userText);
                 
                 // NOTE: Chat history is CLEARED before sending to simulate short, memory-less interaction.
-                chatHistory = [{ role: 'user', parts: userMessageParts }]; 
+                chatHistory = [{ role: 'user', parts: userMessageParts, text: userText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]; 
             }
             
             userInput.value = '';
             userInput.style.height = 'auto'; 
             sendButton.disabled = true;
-            // imageGenButton.disabled = true; // Disabled during chat
             loadingIndicator.classList.remove('hidden');
 
             playSendSound();
 
+            // WARNING: Exposed API Key is used here. For production, this must be proxied.
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${FLASH_MODEL}:generateContent?key=${API_KEY}`;
             
             // 2. Prepare payload (use ONLY the current message and selected language/tone)
@@ -1244,11 +1374,14 @@
                             // --- FINISHED STREAMING ---
                             loadingIndicator.classList.add('hidden');
                             sendButton.disabled = false;
-                            // imageGenButton.disabled = false;
                             userInput.focus();
                             
                             // 3. Finalize and save the AI response 
                             
+                            // Add final AI response to history state
+                            chatHistory.push({ role: 'model', text: aiResponseText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+                            saveChatHistory();
+
                             // Remove the temporary streaming bubble
                             tempBubble.remove();
                             // Add the final, fully formatted message
@@ -1276,12 +1409,12 @@
                 if (loadingIndicator.classList.contains('hidden') === false) {
                     loadingIndicator.classList.add('hidden');
                     sendButton.disabled = false;
-                    // imageGenButton.disabled = false;
                     userInput.focus();
                     validateInput();
                     
                     // If streaming didn't start/complete successfully, remove the temporary bubble
                     if (tempBubble) tempBubble.remove();
+                    saveChatHistory();
                 }
             }
         };
@@ -1291,16 +1424,38 @@
         userInput.addEventListener('input', () => {
             const hasInput = userInput.value.trim() !== '';
             sendButton.disabled = !hasInput;
-            // imageGenButton.disabled = !hasInput; // Disabled
         });
 
-        // --- INITIALIZATION ---
+        // --- APP INITIALIZATION ---
+
+        function initApp() {
+            // Load essential configurations first
+            loadTheme();
+            loadLanguage(); 
+            loadTone();
+            loadProfileCustomization();
+
+            // Load history or start new chat (History check is now inside loadChatHistory)
+            const minimumLoadTime = new Promise(resolve => setTimeout(resolve, 5000));
+            const authReadyCheck = supabase.auth.getSession(); 
+
+            Promise.all([minimumLoadTime, authReadyCheck]).then(() => {
+                if (!loadChatHistory()) {
+                     startNewChat(); 
+                }
+                validateInput();
+
+                // Hide Preloader and show app container after 5s minimum AND auth check is done
+                preloader.classList.add('opacity-0');
+                preloader.addEventListener('transitionend', () => {
+                    preloader.classList.add('hidden');
+                    appContainer.classList.remove('opacity-0');
+                }, { once: true });
+            });
+        }
         
-        loadTheme();
-        loadLanguage(); // FIX 1: Calls translateUI
-        loadTone();
-        startNewChat(); // FIX: Show welcome screen immediately on load
-        validateInput();
+        // This is called once all external module scripts have loaded.
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>

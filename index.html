@@ -112,6 +112,9 @@
         #chat-window::-webkit-scrollbar { width: 6px; }
         #chat-window::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         .animated-button:active { transform: scale(0.95); }
+
+        /* FIX: Ensure typed text is visible in light mode input */
+        #user-input { color: #1c1c1e; }
     </style>
 </head>
 <body class="p-0 sm:p-4">
@@ -166,7 +169,7 @@
 
             <!-- Profile and About Footer -->
             <div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-                <button onclick="showProfileModal()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
+                <button id="sidebar-auth-btn" onclick="handleAuthClickOrProfile()" class="w-full flex items-center p-2 rounded-xl text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 animated-button">
                     <img id="user-avatar-sidebar" src="https://placehold.co/32x32/cccccc/ffffff?text=U" alt="User" class="w-8 h-8 rounded-full mr-3">
                     <span id="sidebar-username">Sign In / Profile</span>
                 </button>
@@ -481,9 +484,28 @@
         window.showAboutModal = () => { aboutModal.classList.remove('hidden'); aboutModal.classList.add('flex'); };
         window.hideAboutModal = () => { aboutModal.classList.add('hidden'); aboutModal.classList.remove('flex'); };
         
+        // FIX: Consolidated profile/auth click logic for the sidebar button
+        window.handleAuthClickOrProfile = () => {
+            const user = supabase?.auth.currentUser;
+            if (user) {
+                // If authenticated, show profile modal
+                showProfileModal();
+            } else {
+                // If not authenticated (Guest), initiate sign-in immediately
+                handleAuthClick();
+            }
+        }
+
         window.showProfileModal = () => { 
             const user = supabase?.auth.currentUser;
-            const displayName = user?.user_metadata.full_name || user?.email || 'Guest User';
+            // Only show profile modal if authenticated
+            if (!user) {
+                // If not signed in, treat it as a sign-in action
+                handleAuthClick(); 
+                return;
+            }
+
+            const displayName = user?.user_metadata.full_name || user?.email || 'User';
             const avatarUrl = user?.user_metadata.avatar_url;
             const uid = user?.id || 'N/A';
 
@@ -495,21 +517,12 @@
             const profileAuthButton = document.getElementById('profile-auth-button');
             const authFormContainer = document.getElementById('auth-form-container');
             
-            if (user) {
-                // AUTHENTICATED: Show Sign Out
-                profileAuthButton.textContent = 'Sign Out';
-                profileAuthButton.classList.replace('bg-indigo-600', 'bg-red-600');
-                profileAuthButton.onclick = handleAuthClick;
-                authFormContainer.classList.add('hidden');
-            } else {
-                // GUEST: Show Sign In
-                profileAuthButton.textContent = 'Sign In with Google';
-                profileAuthButton.classList.replace('bg-red-600', 'bg-indigo-600');
-                profileAuthButton.onclick = handleAuthClick; // Google sign-in
-                authFormContainer.classList.remove('hidden'); // Show email/pass form
-            }
-
-
+            // If we are in this function, the user is AUTHENTICATED
+            profileAuthButton.textContent = 'Sign Out';
+            profileAuthButton.classList.replace('bg-indigo-600', 'bg-red-600');
+            profileAuthButton.onclick = handleAuthClick;
+            authFormContainer.classList.add('hidden');
+            
             profileModal.classList.remove('hidden'); 
             profileModal.classList.add('flex'); 
         };
@@ -599,23 +612,25 @@
                 const displayName = user.user_metadata.full_name || user.email || 'User';
                 const avatarUrl = user.user_metadata.avatar_url;
 
+                // Main Header
                 authButton.textContent = 'Sign Out';
                 authButton.className = 'py-1 px-3 border border-gray-300 text-gray-700 text-sm rounded-full transition duration-150 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 animated-button';
                 userAvatar.src = avatarUrl || `https://placehold.co/32x32/4f46e5/ffffff?text=${displayName[0]}`;
                 userAvatar.classList.remove('hidden');
                 
-                // Update Sidebar
+                // Sidebar
                 sidebarUsername.textContent = displayName;
                 userAvatarSidebar.src = userAvatar.src;
                 
                 userId = user.id;
                 sendButton.disabled = false;
             } else {
+                // Main Header
                 authButton.textContent = 'Sign In';
                 authButton.className = 'py-1 px-3 bg-indigo-600 text-white text-sm rounded-full transition duration-150 hover:bg-indigo-700 animated-button';
                 userAvatar.classList.add('hidden');
                 
-                // Update Sidebar
+                // Sidebar
                 sidebarUsername.textContent = 'Sign In / Profile';
                 userAvatarSidebar.src = 'https://placehold.co/32x32/cccccc/ffffff?text=U';
                 

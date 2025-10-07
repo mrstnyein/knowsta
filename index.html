@@ -44,6 +44,7 @@
 </style>
 </head>
 <body>
+
 <div class="chat-app">
   <header id="chat-header" style="display:none;">
     <h2>Knowsta Chat 💬</h2>
@@ -69,136 +70,138 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', ()=>{
+  // 1️⃣ Initialize Supabase immediately
   const supabaseUrl = 'https://nreviyisnhwckepaiglq.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg'; 
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg'; // Replace with your anon key
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-  const authDiv = document.getElementById('auth');
-  const chatSection = document.getElementById('chat-section');
-  const chatHeader = document.getElementById('chat-header');
-  const chatBox = document.getElementById('chat');
-  const msgInput = document.getElementById('msg');
+  document.addEventListener('DOMContentLoaded', () => {
+    const authDiv = document.getElementById('auth');
+    const chatSection = document.getElementById('chat-section');
+    const chatHeader = document.getElementById('chat-header');
+    const chatBox = document.getElementById('chat');
+    const msgInput = document.getElementById('msg');
 
-  const phoneInput = document.getElementById('phone-input');
-  const otpInput = document.getElementById('otp-input');
-  const sendOtpBtn = document.getElementById('send-otp-btn');
-  const verifyOtpBtn = document.getElementById('verify-otp-btn');
-  const googleBtn = document.getElementById('google-btn');
+    const phoneInput = document.getElementById('phone-input');
+    const otpInput = document.getElementById('otp-input');
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const verifyOtpBtn = document.getElementById('verify-otp-btn');
+    const googleBtn = document.getElementById('google-btn');
 
-  let user = null;
-  let profileCache = {};
+    let user = null;
+    let profileCache = {};
 
-  function showChat(){
-    authDiv.style.display='none';
-    chatSection.style.display='flex';
-    chatHeader.style.display='flex';
-    loadMessages();
-    subscribeToMessages();
-  }
+    function showChat(){
+      authDiv.style.display='none';
+      chatSection.style.display='flex';
+      chatHeader.style.display='flex';
+      loadMessages();
+      subscribeToMessages();
+    }
 
-  function showAuth(){
-    authDiv.style.display='flex';
-    chatSection.style.display='none';
-    chatHeader.style.display='none';
-    chatBox.innerHTML='';
-    phoneInput.value=''; otpInput.value='';
-    otpInput.style.display='none';
-    verifyOtpBtn.style.display='none';
-    sendOtpBtn.style.display='block';
-  }
+    function showAuth(){
+      authDiv.style.display='flex';
+      chatSection.style.display='none';
+      chatHeader.style.display='none';
+      chatBox.innerHTML='';
+      phoneInput.value=''; otpInput.value='';
+      otpInput.style.display='none';
+      verifyOtpBtn.style.display='none';
+      sendOtpBtn.style.display='block';
+    }
 
-  async function renderMessage(m){
-    const msgDiv = document.createElement('div');
-    msgDiv.classList.add('msg', m.user_id===user?.id?'sent':'received');
+    async function renderMessage(m){
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('msg', m.user_id===user?.id?'sent':'received');
 
-    let profile = profileCache[m.user_id];
-    if(!profile && m.profiles){ profile = m.profiles; profileCache[m.user_id]=profile; }
+      let profile = profileCache[m.user_id];
+      if(!profile && m.profiles){ profile = m.profiles; profileCache[m.user_id]=profile; }
 
-    const userName = profile?.email || profile?.phone || 'User';
-    const avatar = profile?.avatar_url || 'https://i.pravatar.cc/40';
-    const timestamp = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      const userName = profile?.email || profile?.phone || 'User';
+      const avatar = profile?.avatar_url || 'https://i.pravatar.cc/40';
+      const timestamp = new Date(m.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
-    msgDiv.innerHTML = `<div class="meta"><img src="${avatar}" /> ${userName} · ${timestamp}</div>
-                        <div class="bubble">${m.content}</div>`;
-    chatBox.appendChild(msgDiv);
-    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
-  }
+      msgDiv.innerHTML = `<div class="meta"><img src="${avatar}" /> ${userName} · ${timestamp}</div>
+                          <div class="bubble">${m.content}</div>`;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+    }
 
-  async function loadMessages(){
-    const {data,error} = await supabase.from('messages')
-      .select('content,created_at,user_id,profiles:user_id(email,phone,avatar_url)')
-      .order('created_at',{ascending:true});
-    if(!error && data) data.forEach(renderMessage);
-  }
+    async function loadMessages(){
+      const {data,error} = await supabase.from('messages')
+        .select('content,created_at,user_id,profiles:user_id(email,phone,avatar_url)')
+        .order('created_at',{ascending:true});
+      if(!error && data) data.forEach(renderMessage);
+    }
 
-  function subscribeToMessages(){
-    supabase.removeAllChannels();
-    supabase.channel('realtime:messages')
-      .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, async payload=>{
-        let profile = profileCache[payload.new.user_id];
-        if(!profile){
-          const {data} = await supabase.from('profiles').select('email,phone,avatar_url').eq('id', payload.new.user_id).single();
-          profile = data;
-        }
-        renderMessage({...payload.new, profiles:profile});
-      }).subscribe();
-  }
+    function subscribeToMessages(){
+      supabase.removeAllChannels();
+      supabase.channel('realtime:messages')
+        .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, async payload=>{
+          let profile = profileCache[payload.new.user_id];
+          if(!profile){
+            const {data} = await supabase.from('profiles').select('email,phone,avatar_url').eq('id', payload.new.user_id).single();
+            profile = data;
+          }
+          renderMessage({...payload.new, profiles:profile});
+        }).subscribe();
+    }
 
-  async function sendMessage(){
-    const msg = msgInput.value.trim();
-    if(!msg || !user) return;
-    await supabase.from('messages').insert([{content:msg, user_id:user.id}]);
-    msgInput.value='';
-  }
+    async function sendMessage(){
+      const msg = msgInput.value.trim();
+      if(!msg || !user) return;
+      await supabase.from('messages').insert([{content:msg, user_id:user.id}]);
+      msgInput.value='';
+    }
 
-  document.getElementById('send-btn').addEventListener('click', sendMessage);
-  msgInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
+    document.getElementById('send-btn').addEventListener('click', sendMessage);
+    msgInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
 
-  document.getElementById('logout-btn').addEventListener('click', async ()=>{
-    await supabase.auth.signOut();
-    user = null;
-    showAuth();
+    document.getElementById('logout-btn').addEventListener('click', async ()=>{
+      await supabase.auth.signOut();
+      user = null;
+      showAuth();
+    });
+
+    sendOtpBtn.addEventListener('click', async ()=>{
+      const phone = phoneInput.value;
+      if(!phone) return alert('Enter phone number');
+      const {error} = await supabase.auth.signInWithOtp({phone});
+      if(error) return alert(error.message);
+      alert('OTP sent!');
+      sendOtpBtn.style.display='none';
+      otpInput.style.display='block';
+      verifyOtpBtn.style.display='block';
+    });
+
+    verifyOtpBtn.addEventListener('click', async ()=>{
+      const phone = phoneInput.value;
+      const token = otpInput.value;
+      if(!phone || !token) return alert('Enter phone and OTP');
+      const {data,error} = await supabase.auth.verifyOtp({phone, token, type:'sms'});
+      if(error) return alert(error.message);
+      await upsertProfile(data.user);
+      user = data.user;
+      showChat();
+    });
+
+    googleBtn.addEventListener('click', async ()=>{
+      await supabase.auth.signInWithOAuth({provider:'google', options:{redirectTo:window.location.href}});
+    });
+
+    async function upsertProfile(userData){
+      if(!userData) return;
+      await supabase.from('profiles')
+        .upsert({id:userData.id,email:userData.email,phone:userData.phone,avatar_url:userData.user_metadata?.avatar_url || null},{onConflict:'id'});
+    }
+
+    supabase.auth.onAuthStateChange((event, session)=>{
+      if(session?.user){ user=session.user; showChat(); } else showAuth();
+    });
+
+    supabase.auth.getSession().then(({data:{session}})=>{ if(session?.user){ user=session.user; showChat(); } else showAuth(); });
+
   });
-
-  sendOtpBtn.addEventListener('click', async ()=>{
-    const phone = phoneInput.value;
-    if(!phone) return alert('Enter phone number');
-    const {error} = await supabase.auth.signInWithOtp({phone});
-    if(error) return alert(error.message);
-    alert('OTP sent!');
-    sendOtpBtn.style.display='none';
-    otpInput.style.display='block';
-    verifyOtpBtn.style.display='block';
-  });
-
-  verifyOtpBtn.addEventListener('click', async ()=>{
-    const phone = phoneInput.value;
-    const token = otpInput.value;
-    if(!phone || !token) return alert('Enter phone and OTP');
-    const {data,error} = await supabase.auth.verifyOtp({phone, token, type:'sms'});
-    if(error) return alert(error.message);
-    await upsertProfile(data.user);
-    user = data.user;
-    showChat();
-  });
-
-  googleBtn.addEventListener('click', async ()=>{
-    await supabase.auth.signInWithOAuth({provider:'google', options:{redirectTo:window.location.href}});
-  });
-
-  async function upsertProfile(userData){
-    if(!userData) return;
-    await supabase.from('profiles')
-      .upsert({id:userData.id,email:userData.email,phone:userData.phone,avatar_url:userData.user_metadata?.avatar_url || null},{onConflict:'id'});
-  }
-
-  supabase.auth.onAuthStateChange((event, session)=>{
-    if(session?.user){ user=session.user; showChat(); } else showAuth();
-  });
-
-  supabase.auth.getSession().then(({data:{session}})=>{ if(session?.user){ user=session.user; showChat(); } else showAuth(); });
-});
 </script>
 </body>
 </html>

@@ -16,12 +16,14 @@
             transition: background-color 0.3s;
         }
         .app-container {
-            max-width: 600px;
+            /* Adjusted max-width for better tablet/web viewing */
+            max-width: 768px; 
             height: 95vh;
             margin: 2.5vh auto;
             border-radius: 24px; /* Apple-style rounded corners */
             overflow: hidden;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05), 0 5px 15px rgba(0, 0, 0, 0.05);
+            /* Enhanced shadow for depth */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             background-color: white;
@@ -40,11 +42,13 @@
             background-color: #007aff; /* Apple Blue */
             color: white;
             border-bottom-right-radius: 4px;
+            padding: 10px 14px; /* Slightly larger padding */
         }
         .chat-bubble-ai {
             background-color: #e5e5ea; /* Apple light gray */
             color: #1c1c1e;
             border-bottom-left-radius: 4px;
+            padding: 10px 14px; /* Slightly larger padding */
         }
 
         /* --- DARK MODE STYLES --- */
@@ -52,7 +56,7 @@
             background-color: #1c1c1e;
         }
         .dark .app-container {
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         .dark header {
             background-color: #2c2c2e;
@@ -107,7 +111,10 @@
 
         /* Message Controls (Edit/Regenerate) */
         .user-message-wrapper:hover .message-controls {
-            opacity: 0;
+            opacity: 1; /* Show controls on hover */
+        }
+        .ai-message-wrapper:hover .message-controls {
+            opacity: 1; /* Show controls on hover */
         }
     </style>
 </head>
@@ -120,36 +127,51 @@
                 <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-8 h-8 mr-2 rounded-full">
                 <h1 class="text-xl font-bold text-gray-800 transition duration-300">Knowsta AI</h1>
             </div>
-            <div class="flex items-center space-x-3">
-                 <!-- NEW CHAT BUTTON -->
+            <div class="flex items-center space-x-3 flex-wrap justify-end">
+                
+                <!-- Group 1: New Chat -->
                  <button id="new-chat-button" onclick="startNewChat()" class="py-1 px-3 text-sm rounded-full bg-indigo-600 text-white transition duration-150 hover:bg-indigo-700">
                     New Chat
                 </button>
-                 <!-- Language Selector -->
-                 <select id="lang-selector" class="text-sm p-1 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-white" onchange="updateLanguage()">
-                    <option value="English">EN</option>
-                    <option value="Spanish">ES</option>
-                    <option value="French">FR</option>
-                    <option value="German">DE</option>
-                    <option value="Japanese">JP</option>
-                </select>
-                <!-- Theme Toggle Button -->
-                <button id="theme-toggle" onclick="toggleTheme()" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 transition duration-150">
-                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </button>
-                <!-- About Button -->
-                <button id="header-about-button" onclick="showAboutModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 transition duration-150">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </button>
-                <!-- Authentication Button (Sign In/Sign Out) -->
+                
+                <!-- Group 2: Selectors (Language & Tone) -->
+                <div class="flex space-x-2">
+                    <select id="lang-selector" class="text-sm p-1 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-white" onchange="updateLanguage()">
+                        <option value="English">EN</option>
+                        <option value="Spanish">ES</option>
+                        <option value="French">FR</option>
+                        <option value="German">DE</option>
+                        <option value="Japanese">JP</option>
+                    </select>
+                    <select id="tone-selector" class="text-sm p-1 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-white" onchange="updateTone()">
+                        <option value="Friendly">Friendly</option>
+                        <option value="Professional">Professional</option>
+                        <option value="Creative">Creative</option>
+                        <option value="Neutral">Neutral</option>
+                    </select>
+                </div>
+
+                <!-- Group 3: Utility Buttons (Export, Theme, About) -->
+                <div class="flex space-x-2">
+                    <button id="export-button" onclick="exportChat()" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 transition duration-150" title="Export Chat (.txt)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    </button>
+                    <button id="theme-toggle" onclick="toggleTheme()" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 transition duration-150">
+                        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </button>
+                    <button id="header-about-button" onclick="showAboutModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 transition duration-150">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- Group 4: Auth/Profile -->
                 <button id="auth-button" onclick="handleAuthClick()" class="py-1 px-3 text-sm rounded-full transition duration-150">
                     Initializing...
                 </button>
-                <!-- User Avatar (Placeholder for Profile) -->
                 <img 
                     id="user-avatar" 
                     src="https://placehold.co/32x32/cccccc/ffffff?text=U" 
@@ -198,7 +220,7 @@
                     id="user-input"
                     rows="1"
                     placeholder="Say something..."
-                    class="flex-grow p-3 border border-gray-300 rounded-xl resize-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    class="flex-grow p-3 border border-gray-300 rounded-xl resize-none focus:ring-indigo-500 focus:border-indigo-500 shadow-lg shadow-indigo-500/10 transition duration-150 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     oninput="autoExpand(this); validateInput()"
                     onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
                 ></textarea>
@@ -283,11 +305,13 @@
 
         const THEME_KEY = 'knowsta_theme';
         const LANG_KEY = 'knowsta_lang';
+        const TONE_KEY = 'knowsta_tone'; // New key for tone
 
         let chatHistory = [];
         let userId = 'guest';
         let supabase;
         let speechRecognition;
+        let responseTone = 'Friendly';
 
 
         // --- UI REFERENCES ---
@@ -302,6 +326,7 @@
         const aboutModal = document.getElementById('about-modal');
         const micButton = document.getElementById('mic-button');
         const langSelector = document.getElementById('lang-selector');
+        const toneSelector = document.getElementById('tone-selector'); // New reference
         const profileModal = document.getElementById('profile-modal');
         const profileAvatarImg = document.getElementById('profile-avatar-img');
         const profileNameText = document.getElementById('profile-name-text');
@@ -337,7 +362,7 @@
         }
 
 
-        // --- UI UTILITIES (Theme, Language, Modals) ---
+        // --- UI UTILITIES (Theme, Language, Modals, Tone) ---
 
         /** Sets the theme class and updates the icon. */
         function applyTheme(theme) {
@@ -370,12 +395,25 @@
         window.updateLanguage = () => {
             const selectedLang = langSelector.value;
             localStorage.setItem(LANG_KEY, selectedLang);
-            addMessage('system', `Response language set to ${selectedLang}.`);
+            // Removed: addMessage('system', `Response language set to ${selectedLang}.`);
         };
 
         function loadLanguage() {
             const savedLang = localStorage.getItem(LANG_KEY) || 'English';
             langSelector.value = savedLang;
+        }
+
+        // --- Custom Tone (Personality) ---
+        window.updateTone = () => {
+            responseTone = toneSelector.value;
+            localStorage.setItem(TONE_KEY, responseTone);
+            // Removed: addMessage('system', `AI personality tone set to ${responseTone}.`);
+        };
+
+        function loadTone() {
+            const savedTone = localStorage.getItem(TONE_KEY) || 'Friendly';
+            responseTone = savedTone;
+            toneSelector.value = savedTone;
         }
 
         // --- Modal Handlers ---
@@ -398,7 +436,7 @@
         window.hideProfileModal = () => { profileModal.classList.add('hidden'); profileModal.classList.remove('flex'); };
 
 
-        // --- HISTORY LOGIC (Simpler, no localStorage) ---
+        // --- HISTORY LOGIC (Single Session, No Persistence) ---
 
         /** Clears UI and history state to start a new conversation. */
         window.startNewChat = () => {
@@ -408,9 +446,50 @@
             const messageDiv = document.createElement('div');
             messageDiv.id = 'initial-message';
             messageDiv.className = 'flex justify-center mt-20';
+            // Only show the welcome message
             messageDiv.innerHTML = `<div class="text-center max-w-xs text-gray-500 transition duration-300"><p class="text-lg font-semibold mb-2">New conversation started.</p><p class="text-sm">Ask me anything! Your conversation history is kept for context.</p></div>`;
             chatWindow.appendChild(messageDiv);
         };
+
+        // --- EXPORT CHAT LOGIC ---
+        window.exportChat = () => {
+            const chatElements = chatWindow.children;
+            if (chatElements.length === 0 || chatElements[0].id === 'initial-message') {
+                addMessage('system', 'No conversation to export.');
+                return;
+            }
+
+            let exportText = `# Knowsta AI Chat Log\n\nDate: ${new Date().toLocaleString()}\n---\n\n`;
+            
+            for (const el of chatElements) {
+                const bubble = el.querySelector('.chat-bubble-user, .chat-bubble-ai');
+                if (bubble) {
+                    const role = bubble.classList.contains('chat-bubble-user') ? 'User' : 'Knowsta';
+                    // Extract clean text content, replacing <br> with newlines and removing HTML tags
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = bubble.innerHTML;
+                    const text = tempDiv.textContent.trim().replace(/\s*\n\s*/g, '\n');
+                    
+                    exportText += `**${role}:** ${text}\n\n`;
+                } else if (el.textContent.includes('system')) {
+                    // Optionally include system messages
+                    exportText += `[System Message] ${el.textContent.trim()}\n\n`;
+                }
+            }
+
+            const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+            const filename = `Knowsta_Chat_${new Date().toISOString().slice(0, 10)}.txt`;
+            
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            addMessage('system', `Chat exported as "${filename}".`);
+        };
+
 
         // --- SUPABASE INITIALIZATION & AUTH ---
         if (SUPABASE_URL.startsWith('YOUR_') || SUPABASE_ANON_KEY.startsWith('YOUR_')) {
@@ -568,9 +647,15 @@
             if (initialMessage) { initialMessage.remove(); }
             
             const isUser = role === 'user';
+            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
             const messageContainer = document.createElement('div');
-            messageContainer.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            messageContainer.className = `flex ${isUser ? 'justify-end user-message-wrapper' : 'justify-start ai-message-wrapper'}`;
+            messageContainer.id = messageId;
+
+
+            const contentBlock = document.createElement('div');
+            contentBlock.className = 'flex flex-col';
 
             const bubble = document.createElement('div');
             const isSystem = role === 'system';
@@ -605,7 +690,24 @@
             }
             
             if (!isSystem) {
-                messageContainer.appendChild(bubble);
+                contentBlock.appendChild(bubble);
+                
+                // Add Edit/Regenerate Controls (Visible on hover via CSS)
+                const controls = document.createElement('div');
+                controls.className = 'message-controls flex gap-1 mt-1 text-gray-400 dark:text-gray-500 text-xs opacity-0 transition duration-200';
+
+                if (isUser) {
+                    controls.innerHTML = `<button onclick="editMessage('${messageId}', '${text.replace(/'/g, "\\'")}')" class="hover:text-indigo-500 px-1 rounded-md">Edit</button>`;
+                    contentBlock.appendChild(controls);
+                    contentBlock.classList.add('items-end'); // Align controls right
+                } else if (role === 'model') {
+                    controls.innerHTML = `<button onclick="regenerateResponse('${messageId}')" class="hover:text-indigo-500 px-1 rounded-md">Regenerate</button>`;
+                    contentBlock.appendChild(controls);
+                    contentBlock.classList.add('items-start'); // Align controls left
+                }
+
+                messageContainer.appendChild(contentBlock);
+
             } else {
                 messageContainer.innerHTML = bubble.innerHTML;
             }
@@ -649,22 +751,76 @@
             }
         }
 
+        // --- MESSAGE EDIT/REGENERATE LOGIC ---
+
+        /** Edits the user message associated with the ID and prepares for resending. */
+        window.editMessage = (messageId, oldText) => {
+            // 1. Load message into input
+            userInput.value = oldText;
+            autoExpand(userInput);
+            validateInput();
+            userInput.focus();
+
+            // 2. Remove the message and subsequent AI response from the DOM
+            const userMsgElement = document.getElementById(messageId);
+            if (userMsgElement) {
+                // The user message is being edited, so remove it and the message immediately following it (the AI response).
+                const aiMsgElement = userMsgElement.nextElementSibling;
+                userMsgElement.remove();
+                if (aiMsgElement) {
+                     aiMsgElement.remove();
+                }
+            }
+            
+            // 3. Clear the chatHistory state (only used for the last exchange anyway)
+            chatHistory = []; 
+            // Removed: addMessage('system', 'Message loaded for editing. Press send to resubmit.');
+        };
+
+        /** Regenerates the AI response for a given model message ID. */
+        window.regenerateResponse = (modelMessageId) => {
+            const modelMsgElement = document.getElementById(modelMessageId);
+            if (!modelMsgElement) return;
+
+            // The user message is the element immediately preceding the model message.
+            const userMsgElement = modelMsgElement.previousElementSibling;
+            if (!userMsgElement || !userMsgElement.querySelector('.chat-bubble-user')) {
+                 addMessage('system', 'Cannot regenerate. The original user query is missing.');
+                 return;
+            }
+            
+            // Get the user's text content
+            const userText = userMsgElement.querySelector('.chat-bubble-user').textContent.trim();
+            
+            // 1. Remove the old AI response from the DOM
+            modelMsgElement.remove();
+
+            // 2. Clear history state and resend the user message
+            chatHistory = []; 
+            
+            // Resend the message (passing the text directly and setting isRegenerate flag)
+            addMessage('system', 'Regenerating response...');
+            sendMessage(userText, true); 
+        };
+
+
         // --- MAIN CHAT LOGIC (Includes Streaming Simulation) ---
 
-        window.sendMessage = async function() {
-            const userText = userInput.value.trim();
+        window.sendMessage = async function(overrideText, isRegenerate = false) {
+            const userText = overrideText || userInput.value.trim();
             
             if (!userText) return;
 
             // 1. Update UI and history for user message
             
-            const userMessageParts = [{ text: userText }];
-            addMessage('user', userText);
+            if (!isRegenerate) {
+                const userMessageParts = [{ text: userText }];
+                addMessage('user', userText);
+                
+                // NOTE: Chat history is CLEARED before sending to simulate short, memory-less interaction.
+                chatHistory = [{ role: 'user', parts: userMessageParts }]; 
+            }
             
-            // NOTE: Chat history is CLEARED before sending to simulate short, memory-less interaction.
-            // Only the current user message is sent to Gemini.
-            chatHistory = [{ role: 'user', parts: userMessageParts }]; 
-
             userInput.value = '';
             userInput.style.height = 'auto'; 
             sendButton.disabled = true;
@@ -674,33 +830,32 @@
 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${FLASH_MODEL}:generateContent?key=${API_KEY}`;
             
-            // 2. Prepare payload (use ONLY the current message and selected language)
+            // 2. Prepare payload (use ONLY the current message and selected language/tone)
             const responseLanguage = localStorage.getItem(LANG_KEY) || 'English';
-            // UPDATED SYSTEM PROMPT: Emphasize short, relevant answers and remove the context emphasis.
-            const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **short, direct, and highly relevant answers**. Answer in the language: ${responseLanguage}. Keep your responses well-structured using Markdown. Do not include unnecessary conversational filler.`;
+            
+            const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **short, direct, and highly relevant answers**. Answer in the language: ${responseLanguage}. Adopt a **${responseTone}** tone and personality. Keep your responses well-structured using Markdown. Do not include unnecessary conversational filler.`;
 
             const payload = {
-                contents: chatHistory,
+                contents: chatHistory, // Contains only the current user query
                 systemInstruction: { parts: [{ text: systemInstruction }] }
             };
 
             let aiResponseText = "";
             
             // Add a temporary AI bubble to receive the streamed text
-            const aiIndex = 0; // Since history is reset, this will always be the first AI message
             let tempBubble = null;
             
             // Create a temporary placeholder message bubble for the AI response
+            const aiId = `ai-temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             tempBubble = document.createElement('div');
             tempBubble.className = `flex justify-start ai-message-wrapper`;
-            tempBubble.dataset.index = aiIndex;
+            tempBubble.id = aiId;
             
             const contentBlock = document.createElement('div');
             contentBlock.className = 'flex flex-col items-start';
             
             const bubble = document.createElement('div');
             bubble.className = 'max-w-[85%] px-4 py-2 rounded-xl text-sm transition duration-300 chat-bubble-ai mr-auto';
-            bubble.id = `ai-stream-${aiIndex}`;
             bubble.innerHTML = `<span class="italic text-gray-400">...</span>`; // Initial loading text
 
             contentBlock.appendChild(bubble);
@@ -724,7 +879,7 @@
                         if (i < aiResponseText.length) {
                             const chunk = aiResponseText.substring(0, i + 1);
                             // Update the innerHTML of the temporary bubble
-                            const targetBubble = chatWindow.querySelector(`#ai-stream-${aiIndex}`) || tempBubble.querySelector('.chat-bubble-ai');
+                            const targetBubble = document.getElementById(aiId)?.querySelector('.chat-bubble-ai');
                             if (targetBubble) {
                                 targetBubble.innerHTML = chunk.replace(/\n/g, '<br>');
                                 chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -770,8 +925,7 @@
                     validateInput();
                     
                     // If streaming didn't start/complete successfully, remove the temporary bubble
-                    const tempElement = chatWindow.querySelector(`[data-index="${aiIndex}"]`);
-                    if (tempElement) tempBubble.remove();
+                    if (tempBubble) tempBubble.remove();
                 }
             }
         };
@@ -787,6 +941,7 @@
         
         loadTheme();
         loadLanguage();
+        loadTone();
         startNewChat(); // Start fresh, no history loaded
         validateInput();
     </script>

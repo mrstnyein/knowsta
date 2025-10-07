@@ -94,9 +94,9 @@
             transition: box-shadow 0.2s, background-color 0.3s;
             box-shadow: 0 0 0 1px #e2e8f0, 0 1px 3px 0 rgba(0, 0, 0, 0.05);
         }
-        /* Increased focus clarity */
+        /* Increased focus clarity - using new primary color */
         .input-bar-wrapper:focus-within {
-            box-shadow: 0 0 0 1px #4f46e5, 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 0 0 1px #004aad, 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(0, 74, 173, 0.3);
         }
         
         /* --- PRELOADER STYLES --- */
@@ -107,7 +107,7 @@
             background-color: #1c1c1e;
         }
         .dark #preloader .loading-dots span {
-            background-color: #6366f1;
+            background-color: #004aad; /* Darkened primary color */
         }
         .loading-dots span {
             animation: bounce 1.4s infinite ease-in-out both;
@@ -130,13 +130,16 @@
         .dark #user-input { color: white; }
         .dark .input-bar-wrapper { background-color: #3a3a3c; border-color: #48484a; }
         .dark .input-bar-wrapper:focus-within {
-            box-shadow: 0 0 0 1px #6366f1, 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 0 1px #004aad, 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(0, 74, 173, 0.3);
         }
         .dark header { background-color: rgba(44, 44, 46, 0.9); border-color: #3a3a3c; }
         .dark .topic-item { background-color: #3a3a3c; color: #e5e5ea; }
-        /* FIX: High contrast text in dark sidebar footer */
+        /* Sidebar text readability fix */
         .dark .sidebar .text-gray-700 { color: #f0f2f5; }
         .dark .sidebar .text-gray-300 { color: #a2a2a7; }
+        .dark .sidebar .animated-button { color: #f0f2f5; } /* Ensures buttons are visible */
+        .dark .sidebar .hover\\:bg-gray-200:hover { background-color: #3a3a3c; }
+
 
         /* Scrollbar and Animations remain the same */
         #chat-window::-webkit-scrollbar { width: 6px; }
@@ -162,10 +165,20 @@
         
         /* FIX: Logo color in light mode header */
         .main-chat-panel header h1 {
-            color: #4f46e5; /* Tailwind Indigo-600 */
+            color: #004aad; /* New primary color */
         }
         .dark .main-chat-panel header h1 {
             color: white; 
+        }
+        
+        /* Button primary color update */
+        #new-chat-button, #send-button, #auth-button.bg-indigo-600, 
+        #settings-modal .bg-indigo-600, #about-modal .bg-indigo-600, #profile-modal .bg-indigo-600 {
+            background-color: #004aad;
+        }
+        #new-chat-button:hover, #send-button:hover, #auth-button.bg-indigo-600:hover,
+        #settings-modal .bg-indigo-600:hover, #about-modal .bg-indigo-600:hover, #profile-modal .bg-indigo-600:hover {
+            background-color: #003a89;
         }
     </style>
 </head>
@@ -238,8 +251,8 @@
             <header class="p-4 border-b border-gray-100 shadow-sm sticky top-0 z-10 flex items-center justify-between transition duration-300">
                 <!-- Brand Title (Visible on Mobile/Web) -->
                 <div class="flex items-center">
-                    <!-- FIX: Header text color uses primary indigo color in light mode -->
-                    <h1 class="text-xl font-bold transition duration-300 text-indigo-600 dark:text-white">Knowsta</h1>
+                    <!-- FIX: Header text color uses primary color -->
+                    <h1 class="text-xl font-bold transition duration-300 text-[#004aad] dark:text-white">Knowsta</h1>
                 </div>
                 <!-- Mobile/Web Auth/Profile button -->
                 <div class="flex items-center space-x-3">
@@ -250,13 +263,12 @@
                         id="user-avatar" 
                         src="https://placehold.co/32x32/cccccc/ffffff?text=U" 
                         alt="User Avatar" 
-                        class="w-8 h-8 rounded-full hidden cursor-pointer border-2 border-indigo-500 shadow-md transition duration-150 animated-button" 
+                        class="w-8 h-8 rounded-full hidden cursor-pointer border-2 border-[#004aad] shadow-md transition duration-150 animated-button" 
                         onclick="showProfileModal()">
                 </div>
             </header>
 
             <!-- Chat Window -->
-            <!-- FIX 3: Removed initial-message block from HTML. It will only be added by startNewChat(). -->
             <div id="chat-window" class="flex-grow p-4 space-y-4 overflow-y-auto">
                 <!-- Content will be injected here -->
             </div>
@@ -264,11 +276,11 @@
             <!-- Input Area -->
             <div class="p-4 border-t border-gray-100 bg-white transition duration-300">
                 <!-- Loading Indicator -->
-                <div id="loading-indicator" class="hidden text-center text-sm text-indigo-600 mb-2">
+                <div id="loading-indicator" class="hidden text-center text-sm text-[#004aad] mb-2">
                     <div class="loading-dots flex justify-center space-x-1">
-                        <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
-                        <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
-                        <span class="w-2 h-2 bg-indigo-600 rounded-full"></span>
+                        <span class="w-2 h-2 bg-[#004aad] rounded-full"></span>
+                        <span class="w-2 h-2 bg-[#004aad] rounded-full"></span>
+                        <span class="w-2 h-2 bg-[#004aad] rounded-full"></span>
                     </div>
                     <p class="mt-1">Knowsta is thinking...</p>
                 </div>
@@ -280,7 +292,7 @@
                     <button
                         id="mic-button"
                         onclick="toggleVoiceInput()"
-                        class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-indigo-600 transition duration-150 dark:text-gray-300 dark:hover:text-indigo-400 animated-button"
+                        class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-[#004aad] transition duration-150 dark:text-gray-300 dark:hover:text-white animated-button"
                         title="Start Voice Input"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -301,7 +313,7 @@
                     <button
                         id="send-button"
                         onclick="sendMessage()"
-                        class="w-8 h-8 mr-1 my-0.5 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-indigo-700 transition duration-150 disabled:opacity-30 disabled:shadow-none animated-button"
+                        class="w-8 h-8 mr-1 my-0.5 bg-[#004aad] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#003a89] transition duration-150 disabled:opacity-30 disabled:shadow-none animated-button"
                         disabled
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -317,7 +329,7 @@
     <!-- Settings Modal (NEW) -->
     <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-md transition duration-300 transform scale-100 dark:text-white">
-            <h2 class="text-2xl font-bold mb-6 text-center text-indigo-600">App Settings</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center text-[#004aad]">App Settings</h2>
 
             <!-- Theme Control -->
             <div class="mb-6 pb-4 border-b dark:border-gray-700">
@@ -362,7 +374,7 @@
             </div>
 
             <div class="mt-6 text-center">
-                <button onclick="hideSettingsModal()" class="py-2 px-6 bg-indigo-600 text-white rounded-xl shadow-md hover:bg-indigo-700 transition duration-150 animated-button">
+                <button onclick="hideSettingsModal()" class="py-2 px-6 bg-[#004aad] text-white rounded-xl shadow-md hover:bg-[#003a89] transition duration-150 animated-button">
                     Close Settings
                 </button>
             </div>
@@ -372,14 +384,14 @@
     <!-- About Modal -->
     <div id="about-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transition duration-300 transform scale-100 dark:text-white">
-            <h2 class="text-2xl font-bold mb-4 text-center text-indigo-600">Knowsta</h2>
+            <h2 class="text-2xl font-bold mb-4 text-center text-[#004aad]">Knowsta</h2>
             <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
                 Knowsta is an intelligent conversational AI assistant designed for seamless, contextual interaction. It is powered by the advanced **Gemini 2.5 Flash** model, ensuring fast, relevant, and well-structured answers.
             </p>
             
             <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
                 <p class="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>Developed by:</strong> <a href="https://github.com/MrSTNyein" target="_blank" class="text-indigo-600 hover:text-indigo-400">Sithu Nyein</a>
+                    <strong>Developed by:</strong> <a href="https://github.com/MrSTNyein" target="_blank" class="text-[#004aad] hover:text-[#003a89]">Sithu Nyein</a>
                 </p>
                 <p class="text-sm text-gray-700 dark:text-gray-300">
                     <strong>Authentication provided by:</strong> Supabase
@@ -390,7 +402,7 @@
             </div>
 
             <div class="mt-6 text-center">
-                <button onclick="hideAboutModal()" class="py-2 px-6 bg-indigo-600 text-white rounded-xl shadow-md hover:bg-indigo-700 transition duration-150 animated-button">
+                <button onclick="hideAboutModal()" class="py-2 px-6 bg-[#004aad] text-white rounded-xl shadow-md hover:bg-[#003a89] transition duration-150 animated-button">
                     Close
                 </button>
             </div>
@@ -400,11 +412,11 @@
     <!-- User Profile Modal (Used as Auth/Profile View) -->
     <div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transition duration-300 transform scale-100 dark:text-white">
-            <h2 class="text-2xl font-bold mb-4 text-center text-indigo-600">User Profile / Sign In</h2>
+            <h2 class="text-2xl font-bold mb-4 text-center text-[#004aad]">User Profile / Sign In</h2>
             
             <!-- Auth/Profile Content -->
             <div id="profile-content" class="flex flex-col items-center space-y-4">
-                <img id="profile-avatar-img" src="https://placehold.co/80x80/cccccc/ffffff?text=U" alt="Profile Avatar" class="w-20 h-20 rounded-full border-4 border-indigo-500">
+                <img id="profile-avatar-img" src="https://placehold.co/80x80/cccccc/ffffff?text=U" alt="Profile Avatar" class="w-20 h-20 rounded-full border-4 border-[#004aad]">
                 
                 <p id="profile-name-text" class="text-lg font-semibold dark:text-white">User Name</p>
                 <p id="profile-id-text" class="text-xs text-gray-500 dark:text-gray-400 break-all">ID: </p>
@@ -412,7 +424,7 @@
                 <!-- Profile Customization -->
                 <div class="w-full space-y-2">
                     <label for="profile-bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio / About Me (Local Storage)</label>
-                    <textarea id="profile-bio" oninput="saveProfileCustomization()" placeholder="Tell people about yourself..." rows="3" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600"></textarea>
+                    <textarea id="profile-bio" oninput="saveProfileCustomization()" placeholder="Tell people about yourself..." rows="3" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600"></textarea>
                 </div>
                 
                 <!-- Sign In/Out Buttons -->
@@ -427,8 +439,8 @@
                 <!-- Email/Password Auth Form (for demonstration in modal) -->
                 <div class="w-full space-y-3 pt-4 border-t dark:border-gray-700 hidden" id="auth-form-container">
                     <p class="text-xs font-semibold text-gray-600 dark:text-gray-300">Sign In / Register</p>
-                    <input type="email" id="modal-email-input" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600">
-                    <input type="password" id="modal-password-input" placeholder="Password (min 6 characters)" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600">
+                    <input type="email" id="modal-email-input" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600">
+                    <input type="password" id="modal-password-input" placeholder="Password (min 6 characters)" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600">
                     <button id="modal-email-auth-button" onclick="handleModalEmailAuth()" class="w-full py-3 px-4 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-800 animated-button dark:bg-gray-600 dark:hover:bg-gray-700">
                         Submit
                     </button>
@@ -436,7 +448,7 @@
                 </div>
             </div>
             
-            <button onclick="hideProfileModal()" class="w-full py-2 px-6 bg-indigo-600 text-white rounded-xl shadow-md hover:bg-indigo-700 transition duration-150 mt-4 animated-button">Close</button>
+            <button onclick="hideProfileModal()" class="w-full py-2 px-6 bg-[#004aad] text-white rounded-xl shadow-md hover:bg-[#003a89] transition duration-150 mt-4 animated-button">Close</button>
         </div>
 
 
@@ -458,6 +470,8 @@
         const TONE_KEY = 'knowsta_tone'; 
         const BIO_KEY = 'knowsta_bio'; 
         const CHAT_HISTORY_KEY = 'knowsta_chat_history'; // New key for history
+
+        const MINIMUM_LOAD_MS = 3000; // FIX: Adjusted to 3 seconds
 
         let chatHistory = [];
         let userId = 'guest';
@@ -840,10 +854,10 @@
                 <!-- TOPICS / GUIDED PROMPTS -->
                 <div class="mt-6 space-y-2 px-2 sm:px-0">
                     <div class="text-center flex flex-wrap justify-center gap-2">
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Make a recipe for spicy noodles.')">Make a Recipe</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Suggest me a fun weekend activity.')">Suggest</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Make a recipe for spicy noodles.')">Make Recipe</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Suggest me a fun weekend activity.')">Suggest Idea</button>
                         <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Draft an email to a new client.')">Draft Email</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain the basics of quantum computing.')">Explain</button>
+                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Explain the basics of quantum computing.')">Explain Tech</button>
                     </div>
                 </div>
             </div>`;
@@ -923,7 +937,7 @@
             } else {
                 // Main Header
                 authButton.textContent = getLocalizedText('btn_signin');
-                authButton.className = 'py-1 px-3 bg-indigo-600 text-white text-sm rounded-full transition duration-150 hover:bg-indigo-700 animated-button';
+                authButton.className = 'py-1 px-3 bg-[#004aad] text-white text-sm rounded-full transition duration-150 hover:bg-[#003a89] animated-button';
                 userAvatar.classList.add('hidden');
                 
                 // Sidebar
@@ -1176,12 +1190,12 @@
                 controls.className = 'message-controls flex gap-1 mt-1 text-gray-400 dark:text-gray-500 text-xs opacity-0 transition duration-200';
 
                 if (isUser) {
-                    controls.innerHTML = `<button onclick="editMessage('${messageId}', '${text.replace(/'/g, "\\'")}')" class="hover:text-indigo-500 px-1 rounded-md">Edit</button>`;
+                    controls.innerHTML = `<button onclick="editMessage('${messageId}', '${text.replace(/'/g, "\\'")}')" class="hover:text-[#004aad] px-1 rounded-md">Edit</button>`;
                     contentBlock.appendChild(controls);
                     contentBlock.classList.add('items-end'); // Align controls right
                     contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-end">${currentTime}</p>`; // Timestamp
                 } else if (role === 'model') {
-                    controls.innerHTML = `<button onclick="regenerateResponse('${messageId}')" class="hover:text-indigo-500 px-1 rounded-md">Regenerate</button>`;
+                    controls.innerHTML = `<button onclick="regenerateResponse('${messageId}')" class="hover:text-[#004aad] px-1 rounded-md">Regenerate</button>`;
                     contentBlock.appendChild(controls);
                     contentBlock.classList.add('items-start'); // Align controls left
                     contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-start">${currentTime}</p>`; // Timestamp
@@ -1436,7 +1450,7 @@
             loadProfileCustomization();
 
             // Load history or start new chat (History check is now inside loadChatHistory)
-            const minimumLoadTime = new Promise(resolve => setTimeout(resolve, 5000));
+            const minimumLoadTime = new Promise(resolve => setTimeout(resolve, MINIMUM_LOAD_MS)); // FIX: Uses 3000ms
             const authReadyCheck = supabase.auth.getSession(); 
 
             Promise.all([minimumLoadTime, authReadyCheck]).then(() => {
@@ -1445,7 +1459,7 @@
                 }
                 validateInput();
 
-                // Hide Preloader and show app container after 5s minimum AND auth check is done
+                // Hide Preloader and show app container after 3s minimum AND auth check is done
                 preloader.classList.add('opacity-0');
                 preloader.addEventListener('transitionend', () => {
                     preloader.classList.add('hidden');

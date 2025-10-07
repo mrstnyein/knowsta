@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Knowsta Chat 💬</title>
+<title>Knowsta Chat</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
@@ -70,10 +70,10 @@
 </div>
 
 <script>
-  // 1️⃣ Initialize Supabase immediately
+  // ✅ Initialize Supabase correctly
   const supabaseUrl = 'https://nreviyisnhwckepaiglq.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg'; // Replace with your anon key
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
   document.addEventListener('DOMContentLoaded', () => {
     const authDiv = document.getElementById('auth');
@@ -81,7 +81,6 @@
     const chatHeader = document.getElementById('chat-header');
     const chatBox = document.getElementById('chat');
     const msgInput = document.getElementById('msg');
-
     const phoneInput = document.getElementById('phone-input');
     const otpInput = document.getElementById('otp-input');
     const sendOtpBtn = document.getElementById('send-otp-btn');
@@ -128,19 +127,19 @@
     }
 
     async function loadMessages(){
-      const {data,error} = await supabase.from('messages')
+      const {data,error} = await supabaseClient.from('messages')
         .select('content,created_at,user_id,profiles:user_id(email,phone,avatar_url)')
         .order('created_at',{ascending:true});
       if(!error && data) data.forEach(renderMessage);
     }
 
     function subscribeToMessages(){
-      supabase.removeAllChannels();
-      supabase.channel('realtime:messages')
+      supabaseClient.removeAllChannels();
+      supabaseClient.channel('realtime:messages')
         .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, async payload=>{
           let profile = profileCache[payload.new.user_id];
           if(!profile){
-            const {data} = await supabase.from('profiles').select('email,phone,avatar_url').eq('id', payload.new.user_id).single();
+            const {data} = await supabaseClient.from('profiles').select('email,phone,avatar_url').eq('id', payload.new.user_id).single();
             profile = data;
           }
           renderMessage({...payload.new, profiles:profile});
@@ -150,7 +149,7 @@
     async function sendMessage(){
       const msg = msgInput.value.trim();
       if(!msg || !user) return;
-      await supabase.from('messages').insert([{content:msg, user_id:user.id}]);
+      await supabaseClient.from('messages').insert([{content:msg, user_id:user.id}]);
       msgInput.value='';
     }
 
@@ -158,7 +157,7 @@
     msgInput.addEventListener('keypress', e=>{ if(e.key==='Enter') sendMessage(); });
 
     document.getElementById('logout-btn').addEventListener('click', async ()=>{
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       user = null;
       showAuth();
     });
@@ -166,7 +165,7 @@
     sendOtpBtn.addEventListener('click', async ()=>{
       const phone = phoneInput.value;
       if(!phone) return alert('Enter phone number');
-      const {error} = await supabase.auth.signInWithOtp({phone});
+      const {error} = await supabaseClient.auth.signInWithOtp({phone});
       if(error) return alert(error.message);
       alert('OTP sent!');
       sendOtpBtn.style.display='none';
@@ -178,7 +177,7 @@
       const phone = phoneInput.value;
       const token = otpInput.value;
       if(!phone || !token) return alert('Enter phone and OTP');
-      const {data,error} = await supabase.auth.verifyOtp({phone, token, type:'sms'});
+      const {data,error} = await supabaseClient.auth.verifyOtp({phone, token, type:'sms'});
       if(error) return alert(error.message);
       await upsertProfile(data.user);
       user = data.user;
@@ -186,21 +185,20 @@
     });
 
     googleBtn.addEventListener('click', async ()=>{
-      await supabase.auth.signInWithOAuth({provider:'google', options:{redirectTo:window.location.href}});
+      await supabaseClient.auth.signInWithOAuth({provider:'google', options:{redirectTo:window.location.href}});
     });
 
     async function upsertProfile(userData){
       if(!userData) return;
-      await supabase.from('profiles')
+      await supabaseClient.from('profiles')
         .upsert({id:userData.id,email:userData.email,phone:userData.phone,avatar_url:userData.user_metadata?.avatar_url || null},{onConflict:'id'});
     }
 
-    supabase.auth.onAuthStateChange((event, session)=>{
+    supabaseClient.auth.onAuthStateChange((event, session)=>{
       if(session?.user){ user=session.user; showChat(); } else showAuth();
     });
 
-    supabase.auth.getSession().then(({data:{session}})=>{ if(session?.user){ user=session.user; showChat(); } else showAuth(); });
-
+    supabaseClient.auth.getSession().then(({data:{session}})=>{ if(session?.user){ user=session.user; showChat(); } else showAuth(); });
   });
 </script>
 </body>

@@ -249,6 +249,8 @@
             <!-- COHESIVE INPUT BAR -->
             <div class="flex items-end gap-1 p-1 border border-gray-300 rounded-2xl shadow-lg shadow-gray-200/50 dark:border-gray-600 dark:bg-gray-700 input-bar-wrapper">
                 
+                <!-- Removed Image Generation Button to fix billing error -->
+                
                 <!-- Voice Input Button (Smaller, contained) -->
                 <button
                     id="mic-button"
@@ -256,7 +258,7 @@
                     class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-indigo-600 transition duration-150 dark:text-gray-300 dark:hover:text-indigo-400 animated-button"
                     title="Start Voice Input"
                 >
-                    <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7v0a7 7 0 01-7-7v0M12 19v3M12 4v12M12 4a3 3 0 00-3 3v5a3 3 0 006 0V7a3 3 0 00-3-3z" />
                     </svg>
                 </button>
@@ -346,11 +348,12 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
         
         const FLASH_MODEL = 'gemini-2.5-flash-preview-05-20';
+        // const IMAGE_MODEL = 'imagen-3.0-generate-002'; // REMOVED DUE TO BILLING ERROR
         const API_KEY = "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4"; 
 
         const THEME_KEY = 'knowsta_theme';
         const LANG_KEY = 'knowsta_lang';
-        const TONE_KEY = 'knowsta_tone'; // New key for tone
+        const TONE_KEY = 'knowsta_tone'; 
 
         let chatHistory = [];
         let userId = 'guest';
@@ -370,8 +373,9 @@
         const themeIcon = document.getElementById('theme-icon');
         const aboutModal = document.getElementById('about-modal');
         const micButton = document.getElementById('mic-button');
+        // const imageGenButton = document.getElementById('image-gen-button'); // REMOVED DUE TO BILLING ERROR
         const langSelector = document.getElementById('lang-selector');
-        const toneSelector = document.getElementById('tone-selector'); // New reference
+        const toneSelector = document.getElementById('tone-selector'); 
         const profileModal = document.getElementById('profile-modal');
         const profileAvatarImg = document.getElementById('profile-avatar-img');
         const profileNameText = document.getElementById('profile-name-text');
@@ -618,7 +622,7 @@
                         const { error } = await supabase.auth.signInWithOAuth({ 
                             provider: 'google', 
                             options: {
-                                // Implementing the user's specific redirectTo path
+                                // Implementing the user's specific redirectTo path for Supabase fix
                                 redirectTo: `${window.location.origin}/knowsta/` 
                             }
                         });
@@ -718,12 +722,17 @@
         window.validateInput = () => {
             const hasInput = userInput.value.trim() !== '';
             sendButton.disabled = !hasInput;
+            // Removed imageGenButton validation as the button is removed
             userInput.placeholder = hasInput ? "Message Knowsta..." : "Say something...";
         };
 
         /** Adds a message bubble to the chat window. */
-        function addMessage(role, text) {
-            if (initialMessage) { initialMessage.remove(); }
+        function addMessage(role, text, isImageHtml = false) {
+            // FIX: Remove the initial prompt block reliably on first message
+            const promptBlock = document.getElementById('initial-message');
+            if (promptBlock) {
+                promptBlock.remove();
+            }
             
             const isUser = role === 'user';
             const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -754,13 +763,19 @@
             // Handle Text Content (applies to all roles)
             if (text) {
                 let formattedText = text;
-                formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                formattedText = formattedText.replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>');
-                formattedText = formattedText.replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>');
-                formattedText = formattedText.replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
                 
-                if (formattedText.includes('<li>')) {
-                    formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
+                if (isImageHtml) {
+                    formattedText = text; // Use raw HTML
+                } else {
+                    // Apply Markdown only if it's not raw image HTML
+                    formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    formattedText = formattedText.replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>');
+                    formattedText = formattedText.replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>');
+                    formattedText = formattedText.replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
+                    
+                    if (formattedText.includes('<li>')) {
+                        formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
+                    }
                 }
 
                 const textNode = document.createElement('div');
@@ -882,6 +897,13 @@
         };
 
 
+        // --- IMAGE GENERATION LOGIC (REMOVED due to billing error) ---
+
+        // window.handleImageGeneration = async function() {
+        //     // Removed Image Generation Logic
+        // };
+
+
         // --- MAIN CHAT LOGIC (Includes Streaming Simulation) ---
 
         window.sendMessage = async function(overrideText, isRegenerate = false) {
@@ -902,6 +924,7 @@
             userInput.value = '';
             userInput.style.height = 'auto'; 
             sendButton.disabled = true;
+            // imageGenButton.disabled = true; // Disabled during chat
             loadingIndicator.classList.remove('hidden');
 
             playSendSound();
@@ -968,6 +991,7 @@
                             // --- FINISHED STREAMING ---
                             loadingIndicator.classList.add('hidden');
                             sendButton.disabled = false;
+                            // imageGenButton.disabled = false;
                             userInput.focus();
                             
                             // 3. Finalize and save the AI response 
@@ -999,6 +1023,7 @@
                 if (loadingIndicator.classList.contains('hidden') === false) {
                     loadingIndicator.classList.add('hidden');
                     sendButton.disabled = false;
+                    // imageGenButton.disabled = false;
                     userInput.focus();
                     validateInput();
                     
@@ -1013,6 +1038,7 @@
         userInput.addEventListener('input', () => {
             const hasInput = userInput.value.trim() !== '';
             sendButton.disabled = !hasInput;
+            // imageGenButton.disabled = !hasInput; // Disabled
         });
 
         // --- INITIALIZATION ---

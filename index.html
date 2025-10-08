@@ -467,7 +467,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
         
         const FLASH_MODEL = 'gemini-2.5-flash-preview-05-20';
-        // FIX: Reverted to use exposed key for wider compatibility outside of Gemini Canvas environment.
+        // WARNING: Reverting to explicit API key for external deployment viability.
         const API_KEY = "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4"; 
 
         const THEME_KEY = 'knowsta_theme';
@@ -1547,9 +1547,14 @@
             // IMPROVED SYSTEM INSTRUCTION FOR FASTER, RELEVANT ANSWERS AND AUTO LANGUAGE DETECTION
             const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${responseTone}** tone and personality. Keep your responses short and well-structured using Markdown. Do not include unnecessary conversational filler or preamble.`;
 
+            // FIX: Clean the chatHistory array to only include 'role' and 'parts' for the API call.
+            const cleanHistory = chatHistory.map(msg => ({
+                role: msg.role,
+                parts: msg.parts,
+            }));
 
             const payload = {
-                contents: chatHistory, // Contains only the current user query
+                contents: cleanHistory, // Use the cleaned history array
                 systemInstruction: { parts: [{ text: systemInstruction }] }
             };
 
@@ -1608,7 +1613,8 @@
                             // 3. Finalize and save the AI response 
                             
                             // Add final AI response to history state
-                            chatHistory.push({ role: 'model', text: aiResponseText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+                            chatHistory.push({ role: 'model', text: aiResponseText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), parts: [{text: aiResponseText}] });
+
                             saveChatHistory();
 
                             // Remove the temporary streaming bubble

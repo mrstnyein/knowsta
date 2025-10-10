@@ -123,7 +123,7 @@
             40% { transform: scale(1.0); }
         }
 
-        /* --- TYPING INDICATOR STYLES --- */
+        /* --- TYPING INDICATOR & CURSOR STYLES --- */
         .typing-dots-animation span {
             animation: typing-bounce 1.4s infinite ease-in-out both;
             background-color: #004aad; /* Primary blue for dots */
@@ -134,6 +134,23 @@
         @keyframes typing-bounce {
             0%, 80%, 100% { transform: scale(0); }
             40% { transform: scale(1.0); }
+        }
+        
+        .typing-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 1.2em;
+            background-color: #004aad; /* Main app color */
+            animation: blink 1s step-end infinite;
+            vertical-align: bottom;
+            margin-left: 2px;
+        }
+        .dark .typing-cursor {
+            background-color: #5599ff; /* A lighter blue for dark mode contrast */
+        }
+        @keyframes blink {
+            from, to { opacity: 1; }
+            50% { opacity: 0; }
         }
 
 
@@ -183,8 +200,8 @@
         }
 
         /* Scrollbar and Animations remain the same */
-        #chat-window::-webkit-scrollbar { width: 6px; }
-        #chat-window::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        #chat-window::-webkit-scrollbar, #chat-history-list::-webkit-scrollbar { width: 6px; }
+        #chat-window::-webkit-scrollbar-thumb, #chat-history-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         .animated-button:active { transform: scale(0.95); }
 
         /* FIX: Ensure typed text is visible in light mode input */
@@ -226,6 +243,67 @@
         .message-controls { opacity: 0; transition: opacity 0.2s; }
         .user-message-wrapper:hover .message-controls,
         .ai-message-wrapper:hover .message-controls { opacity: 1; }
+
+        /* Chat History List Styles */
+        #chat-history-list .chat-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-radius: 8px; /* Rounded corners for history items */
+        }
+        #chat-history-list .chat-history-item .chat-title {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            flex-grow: 1;
+            padding: 8px; /* Add padding to the clickable area */
+        }
+
+        #chat-history-list .chat-history-item.active {
+            background-color: #e6f0ff;
+            color: #004aad;
+            font-weight: 600;
+        }
+        .dark #chat-history-list .chat-history-item.active {
+            background-color: #3a3a3c;
+        }
+
+        #chat-history-list .chat-history-item .delete-chat-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+            padding: 6px;
+            border-radius: 50%;
+        }
+        #chat-history-list .chat-history-item:hover .delete-chat-btn {
+            opacity: 1;
+        }
+        #chat-history-list .chat-history-item .delete-chat-btn:hover {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+        .dark #chat-history-list .chat-history-item .delete-chat-btn:hover {
+            background-color: #4b1f20;
+            color: #f87171;
+        }
+
+        /* Modal Transitions */
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        .modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal.hidden .modal-content {
+            transform: scale(0.95);
+            opacity: 0;
+        }
     </style>
 </head>
 <body class="p-0 sm:p-4">
@@ -245,47 +323,49 @@
     <div id="app" class="app-container opacity-0">
 
         <!-- --- SIDEBAR (Desktop Navigation) --- -->
-        <div class="sidebar p-4 pt-6">
+        <div class="sidebar p-4 pt-6 flex flex-col">
             
-            <!-- Logo Only (Brand Identity) -->
-            <div class="flex items-center justify-center mb-6">
-                <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-8 h-8 rounded-full">
+            <!-- Logo & New Chat -->
+            <div class="flex-shrink-0">
+                <div class="flex items-center justify-center mb-6">
+                    <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-8 h-8 rounded-full">
+                </div>
+                <button id="new-chat-button" onclick="knowstaApp.methods.startNewChat()" class="w-full py-2 px-3 text-base rounded-xl bg-indigo-600 text-white transition duration-150 hover:bg-indigo-700 animated-button shadow-md mb-6">
+                    <div class="flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        <span id="label-new-chat">New Chat</span>
+                    </div>
+                </button>
             </div>
 
-            <!-- New Chat Button -->
-            <button id="new-chat-button" onclick="startNewChat()" class="w-full py-2 px-3 text-base rounded-xl bg-indigo-600 text-white transition duration-150 hover:bg-indigo-700 animated-button shadow-md mb-6">
-                <div class="flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-                    <span id="label-new-chat">New Chat</span>
-                </div>
-            </button>
+            <!-- Chat History (NEW) -->
+            <div id="chat-history-container" class="flex-grow overflow-y-auto mb-4 border-t border-b border-gray-200 dark:border-gray-700 py-4">
+                 <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 px-1">Recent Chats</div>
+                 <div id="chat-history-list" class="space-y-1">
+                     <!-- History items will be injected here -->
+                 </div>
+            </div>
 
             <!-- Utility Buttons -->
-            <div class="space-y-3 flex-grow">
+            <div class="space-y-3 flex-shrink-0">
                 <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Settings & Tools</div>
-
-                <!-- Settings Button (New Centralized Control) -->
-                <button id="settings-button" onclick="showSettingsModal()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
+                <button id="settings-button" onclick="knowstaApp.methods.showSettingsModal()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.942 3.31.82 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.942 1.543-.82 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.942-3.31-.82-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.942-1.543.82-3.31 2.37-2.37h.001c.43.723 1.055 1.096 1.761 1.096z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     <span id="label-settings">Settings</span>
                 </button>
-                
-                <!-- Export Button -->
-                <button id="export-button" onclick="exportChat()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
+                <button id="export-button" onclick="knowstaApp.methods.exportChat()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     <span id="label-export">Export Conversation (.txt)</span>
                 </button>
             </div>
 
             <!-- Profile and About Footer -->
-            <div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-                <!-- Profile Button -->
-                <button id="sidebar-auth-btn" onclick="handleAuthClickOrProfile()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
+            <div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 flex-shrink-0">
+                <button id="sidebar-auth-btn" onclick="knowstaApp.methods.handleAuthClickOrProfile()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
                     <img id="user-avatar-sidebar" src="https://placehold.co/32x32/cccccc/ffffff?text=U" alt="User" class="w-8 h-8 rounded-full mr-3">
                     <span id="sidebar-username">Sign In / Profile</span>
                 </button>
-                <!-- About Button -->
-                <button id="about-btn" onclick="showAboutModal()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
+                <button id="about-btn" onclick="knowstaApp.methods.showAboutModal()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span id="label-about">About Knowsta</span>
                 </button>
@@ -304,7 +384,7 @@
                 </div>
                 <!-- Mobile/Web Auth/Profile button -->
                 <div class="flex items-center space-x-3">
-                    <button id="auth-button" onclick="handleAuthClick()" class="py-1 px-3 text-sm rounded-full transition duration-150 animated-button">
+                    <button id="auth-button" onclick="knowstaApp.methods.handleAuthClick()" class="py-1 px-3 text-sm rounded-full transition duration-150 animated-button">
                         Initializing...
                     </button>
                     <img 
@@ -312,7 +392,7 @@
                         src="https://placehold.co/32x32/cccccc/ffffff?text=U" 
                         alt="User Avatar" 
                         class="w-8 h-8 rounded-full hidden cursor-pointer border-2 border-[#004aad] shadow-md transition duration-150 animated-button" 
-                        onclick="showProfileModal()">
+                        onclick="knowstaApp.methods.showProfileModal()">
                 </div>
             </header>
 
@@ -324,16 +404,19 @@
             <!-- Input Area -->
             <div class="p-4 border-t border-gray-100 bg-white transition duration-300">
                 <!-- Loading Indicator (Typing Dots UX) -->
-                <div id="loading-indicator" class="hidden text-center text-sm text-[#004aad] mb-2">
-                    <!-- Status message (Just a sec... / Knowsta is thinking...) -->
-                    <p id="loading-message" class="mt-1 font-semibold text-gray-700 dark:text-gray-300"></p>
-                    
-                    <!-- Dot Indicator (Only visible when loading-indicator is active) -->
-                    <div id="typing-dots" class="flex justify-center space-x-1 mt-1 typing-dots-animation">
-                        <span class="w-2 h-2 rounded-full"></span>
-                        <span class="w-2 h-2 rounded-full"></span>
-                        <span class="w-2 h-2 rounded-full"></span>
+                <div id="loading-indicator" class="hidden flex-col items-center text-sm text-[#004aad] mb-2">
+                    <div class="flex items-center">
+                        <p id="loading-message" class="mt-1 font-semibold text-gray-700 dark:text-gray-300"></p>
+                        <div id="typing-dots" class="flex justify-center space-x-1 mt-1 typing-dots-animation ml-2">
+                            <span class="w-2 h-2 rounded-full"></span>
+                            <span class="w-2 h-2 rounded-full"></span>
+                            <span class="w-2 h-2 rounded-full"></span>
+                        </div>
                     </div>
+                     <!-- NEW: Stop Generation Button -->
+                    <button id="stop-generating-btn" onclick="knowstaApp.methods.stopGeneration()" class="hidden mt-2 mx-auto py-1 px-3 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 animated-button">
+                        Stop Generating
+                    </button>
                 </div>
                 
                 <!-- COHESIVE INPUT BAR -->
@@ -342,7 +425,7 @@
                     <!-- Voice Input Button (Smaller, contained) -->
                     <button
                         id="mic-button"
-                        onclick="toggleVoiceInput()"
+                        onclick="knowstaApp.methods.toggleVoiceInput()"
                         class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-[#004aad] transition duration-150 dark:text-gray-300 dark:hover:text-white animated-button"
                         title="Start Voice Input"
                     >
@@ -356,14 +439,14 @@
                         rows="1"
                         placeholder="Ask anything..."
                         class="flex-grow p-1 bg-transparent resize-none focus:ring-0 focus:border-transparent outline-none transition duration-150 dark:text-white"
-                        oninput="autoExpand(this); validateInput()"
-                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }"
+                        oninput="knowstaApp.methods.autoExpand(this); knowstaApp.methods.validateInput()"
+                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); knowstaApp.methods.sendMessage(); }"
                     ></textarea>
                     
                     <!-- Send Button (Smaller, rounded, contained) -->
                     <button
                         id="send-button"
-                        onclick="sendMessage()"
+                        onclick="knowstaApp.methods.sendMessage()"
                         class="w-8 h-8 mr-1 my-0.5 bg-[#004aad] text-white rounded-full flex items-center justify-center shadow-lg hover:bg-[#003a89] transition duration-150 disabled:opacity-30 disabled:shadow-none animated-button"
                         disabled
                     >
@@ -378,25 +461,26 @@
     </div>
 
     <!-- Settings Modal (NEW) -->
-    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-md transition duration-300 transform scale-100 dark:text-white">
+    <div id="settings-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-md dark:text-white relative">
+            <button onclick="knowstaApp.methods.hideSettingsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
             <h2 class="text-2xl font-bold mb-6 text-center text-[#004aad]">App Settings</h2>
-
-            <!-- Theme Control -->
+            
             <div class="mb-6 pb-4 border-b dark:border-gray-700">
                 <p class="text-lg font-semibold mb-2">Appearance</p>
                 <div class="flex items-center justify-between">
                     <span class="text-sm text-gray-700 dark:text-gray-300">Current Theme: <span id="current-theme-label" class="font-medium">Light</span></span>
-                    <button onclick="toggleTheme()" class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 animated-button">
+                    <button onclick="knowstaApp.methods.toggleTheme()" class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 animated-button">
                         Toggle Light/Dark
                     </button>
                 </div>
             </div>
-
-            <!-- Language Control -->
+            
             <div class="mb-6 pb-4 border-b dark:border-gray-700">
                 <p class="text-lg font-semibold mb-2">Response Language</p>
-                <select id="modal-lang-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="updateLanguageFromModal()">
+                <select id="modal-lang-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateLanguageFromModal()">
                     <option value="English">English</option>
                     <option value="Spanish">Español (ES)</option>
                     <option value="French">Français (FR)</option>
@@ -412,1357 +496,1032 @@
                     <option value="Hindi">हिन्दी (HI)</option>
                 </select>
             </div>
-
-            <!-- AI Tone Control -->
-            <div class="mb-6">
+            
+            <div class="mb-6 pb-4 border-b dark:border-gray-700">
                 <p class="text-lg font-semibold mb-2">AI Personality Tone</p>
-                <select id="modal-tone-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="updateToneFromModal()">
+                <select id="modal-tone-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateToneFromModal()">
                     <option value="Friendly">Friendly (Default)</option>
                     <option value="Professional">Professional (Formal, Concise)</option>
                     <option value="Creative">Creative (Imaginative, Vivid)</option>
                     <option value="Neutral">Neutral (Objective, Direct)</option>
                 </select>
             </div>
-
-            <div class="mt-6 text-center">
-                <button onclick="hideSettingsModal()" class="py-2 px-6 bg-[#004aad] text-white rounded-xl shadow-md hover:bg-[#003a89] transition duration-150 animated-button">
-                    Close Settings
-                </button>
+            
+            <div class="mb-6">
+                 <p class="text-lg font-semibold mb-2">Data Management</p>
+                 <button onclick="knowstaApp.methods.clearAllData()" class="w-full py-2 px-4 bg-red-600 text-white rounded-xl hover:bg-red-700 animated-button">
+                     Clear My Data
+                 </button>
+                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">This will permanently delete all your chat history and profile bio stored in this browser.</p>
             </div>
         </div>
     </div>
     
     <!-- About Modal -->
-    <div id="about-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transition duration-300 transform scale-100 dark:text-white">
+    <div id="about-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm dark:text-white relative">
+            <button onclick="knowstaApp.methods.hideAboutModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
             <h2 class="text-2xl font-bold mb-4 text-center text-[#004aad]">Knowsta</h2>
             <p class="text-sm text-gray-700 dark:text-gray-300 mb-4">
                 Knowsta is an intelligent conversational AI assistant designed for seamless, contextual interaction. It is powered by the advanced **Gemini 2.5 Flash** model, ensuring fast, relevant, and well-structured answers.
             </p>
             
             <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
-                <!-- START: Updated Creator Bio Section -->
-                <p class="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>Developed by:</strong> Sithu Nyein
-                </p>
-                <p class="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>Connect:</strong> <a href="https://github.com/MrSTNyein" target="_blank" class="text-[#004aad] hover:text-[#003a89] underline">GitHub Profile</a>
-                </p>
-                <!-- END: Updated Creator Bio Section -->
-                <p class="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>Authentication provided by:</strong> Supabase
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 pt-2">
-                    Core AI is powered by Gemini 2.5 Flash.
-                </p>
-            </div>
-
-            <div class="mt-6 text-center">
-                <button onclick="hideAboutModal()" class="py-2 px-6 bg-[#004aad] text-white rounded-xl shadow-md hover:bg-[#003a89] transition duration-150 animated-button">
-                    Close
-                </button>
+                <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Developed by:</strong> Sithu Nyein</p>
+                <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Connect:</strong> <a href="https://github.com/MrSTNyein" target="_blank" class="text-[#004aad] hover:text-[#003a89] underline">GitHub Profile</a></p>
+                <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Authentication provided by:</strong> Supabase</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 pt-2">Core AI is powered by Gemini 2.5 Flash.</p>
             </div>
         </div>
     </div>
 
     <!-- User Profile Modal (Used as Auth/Profile View) -->
-    <div id="profile-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4 transition duration-300">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transition duration-300 transform scale-100 dark:text-white">
+    <div id="profile-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="modal-content bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm dark:text-white relative">
+             <button onclick="knowstaApp.methods.hideProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
             <h2 class="text-2xl font-bold mb-4 text-center text-[#004aad]">User Profile / Sign In</h2>
             
-            <!-- Auth/Profile Content -->
             <div id="profile-content" class="flex flex-col items-center space-y-4">
                 <img id="profile-avatar-img" src="https://placehold.co/80x80/cccccc/ffffff?text=U" alt="Profile Avatar" class="w-20 h-20 rounded-full border-4 border-[#004aad]">
-                
                 <p id="profile-name-text" class="text-lg font-semibold dark:text-white">User Name</p>
                 <p id="profile-id-text" class="text-xs text-gray-500 dark:text-gray-400 break-all">ID: </p>
-
-                <!-- Profile Customization -->
                 <div class="w-full space-y-2">
                     <label for="profile-bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio / About Me (Local Storage)</label>
-                    <textarea id="profile-bio" oninput="saveProfileCustomization()" placeholder="Tell people about yourself..." rows="3" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600"></textarea>
+                    <textarea id="profile-bio" oninput="knowstaApp.methods.saveProfileCustomization()" placeholder="Tell people about yourself..." rows="3" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600"></textarea>
                 </div>
-                
-                <!-- Sign In/Out Buttons -->
                 <button 
                     id="profile-auth-button"
-                    onclick="handleAuthClick(); hideProfileModal();" 
-                    class="w-full py-2 px-4 bg-red-600 text-white rounded-xl shadow-md hover:bg-red-700 transition duration-150 animated-button"
-                >
+                    onclick="knowstaApp.methods.handleAuthClick(); knowstaApp.methods.hideProfileModal();" 
+                    class="w-full py-2 px-4 bg-red-600 text-white rounded-xl shadow-md hover:bg-red-700 transition duration-150 animated-button">
                     Sign Out
                 </button>
-
-                <!-- Email/Password Auth Form (for demonstration in modal) -->
                 <div class="w-full space-y-3 pt-4 border-t dark:border-gray-700 hidden" id="auth-form-container">
                     <p class="text-xs font-semibold text-gray-600 dark:text-gray-300">Sign In / Register</p>
                     <input type="email" id="modal-email-input" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600">
                     <input type="password" id="modal-password-input" placeholder="Password (min 6 characters)" class="w-full p-3 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600">
-                    <button id="modal-email-auth-button" onclick="handleModalEmailAuth()" class="w-full py-3 px-4 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-800 animated-button dark:bg-gray-600 dark:hover:bg-gray-700">
+                    <button id="modal-email-auth-button" onclick="knowstaApp.methods.handleModalEmailAuth()" class="w-full py-3 px-4 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-800 animated-button dark:bg-gray-600 dark:hover:bg-gray-700">
                         Submit
                     </button>
                     <p id="modal-auth-message" class="text-sm text-center text-red-500 hidden"></p>
                 </div>
             </div>
-            
-            <button onclick="hideProfileModal()" class="w-full py-2 px-6 bg-[#004aad] text-white rounded-xl shadow-md hover:bg-[#003a89] transition duration-150 mt-4 animated-button">Close</button>
         </div>
-
+    </div>
 
     <!-- Supabase & App Script -->
     <script type="module">
         // Import Supabase Client
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        // --- GLOBAL CONFIGURATION ---
-        const SUPABASE_URL = 'https://nreviyisnhwckepaiglq.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg';
-        
-        const FLASH_MODEL = 'gemini-2.5-flash-preview-05-20';
-        // WARNING: Reverting to explicit API key for external deployment viability.
-        const API_KEY = "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4"; 
-
-        const THEME_KEY = 'knowsta_theme';
-        const LANG_KEY = 'knowsta_lang';
-        const TONE_KEY = 'knowsta_tone'; 
-        
-        // **NEW** Creator Biography (used for AI grounding only)
-        const CREATOR_BIO = "Sithu Nyein (born 2003) is a 22-year-old Myanmar-based digital marketer and entrepreneur, currently enhancing his skills through Coursera’s professional programs. He is the founder of Knowsta, an upcoming AI-powered chat application designed to deliver smarter, more creative, and user-friendly conversations for global users. Sithu aims to make AI assistance more personalized, accessible, and efficient, bridging the gap between human communication and artificial intelligence.";
-        
-        // --- FIX: Dynamic key for persistent user data ---
-        function getChatHistoryKey(id) {
-            return `knowsta_chat_history_${id}`;
-        }
-        function getProfileBioKey(id) {
-            return `knowsta_bio_${id}`;
-        }
-
-        const MINIMUM_LOAD_MS = 3000; 
-
-        let chatHistory = [];
-        let userId = 'guest';
-        let supabase;
-        let speechRecognition;
-        let responseTone = 'Friendly';
-        let profileBio = '';
-
-
-        // --- UI REFERENCES ---
-        const appContainer = document.getElementById('app');
-        const preloader = document.getElementById('preloader');
-        const chatWindow = document.getElementById('chat-window');
-        const userInput = document.getElementById('user-input');
-        const sendButton = document.getElementById('send-button');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        // ADDED loadingMessage reference
-        const loadingMessage = document.getElementById('loading-message');
-        const authButton = document.getElementById('auth-button');
-        const userAvatar = document.getElementById('user-avatar');
-        const themeIcon = document.getElementById('theme-icon-sidebar'); 
-        const aboutModal = document.getElementById('about-modal');
-        const settingsModal = document.getElementById('settings-modal'); 
-        const currentThemeLabel = document.getElementById('current-theme-label'); 
-        const modalLangSelector = document.getElementById('modal-lang-selector'); 
-        const modalToneSelector = document.getElementById('modal-tone-selector'); 
-        const micButton = document.getElementById('mic-button');
-        const profileModal = document.getElementById('profile-modal');
-        const profileAvatarImg = document.getElementById('profile-avatar-img');
-        const profileNameText = document.getElementById('profile-name-text');
-        const profileIdText = document.getElementById('profile-id-text');
-        const profileBioInput = document.getElementById('profile-bio');
-        const sidebarUsername = document.getElementById('sidebar-username');
-        const userAvatarSidebar = document.getElementById('user-avatar-sidebar');
-        const labelNewChat = document.getElementById('label-new-chat');
-        const labelSettings = document.getElementById('label-settings');
-        const labelExport = document.getElementById('label-export');
-        const labelAbout = document.getElementById('label-about');
-
-
-        // --- SOUND MANAGER (Tone.js) ---
-
-        let playSendSound = () => {};
-        let playReceiveSound = () => {};
-
-        if (window.Tone) {
-            const sendSynth = new Tone.Synth({
-                oscillator: { type: "square" },
-                envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
-            }).toDestination();
-
-            const receiveSynth = new Tone.PolySynth(Tone.Synth, {
-                oscillator: { type: "sine" },
-                envelope: { attack: 0.05, decay: 0.2, sustain: 0.1, release: 0.5 }
-            }).toDestination();
-            
-            document.addEventListener('click', () => {
-                if (Tone.context.state !== 'running') {
-                    Tone.start().then(() => console.log("AudioContext started."));
-                }
-            }, { once: true });
-
-            window.playSendSound = () => { sendSynth.triggerAttackRelease("C5", "16n"); };
-            window.playReceiveSound = () => { receiveSynth.triggerAttackRelease(["C4", "E4", "G4"], "8n"); };
-        } else {
-            console.warn("Tone.js not loaded. Sound effects disabled.");
-        }
-
-
-        // --- LOCALIZATION DATA (Unchanged) ---
-        const localizationData = {
-            'English': { 
-                'sidebar_username': 'Sign In / Profile', 'btn_new_chat': 'New Chat', 'btn_settings': 'Settings', 
-                'btn_export': 'Export Conversation (.txt)', 'btn_about': 'About Knowsta', 'btn_signin': 'Sign In',
-                'btn_signout': 'Sign Out', 'head_conversation': 'Knowsta', 
-                'head_settings': 'App Settings', 'theme_label': 'Current Theme:', 'theme_toggle': 'Toggle Light/Dark',
-                'lang_label': 'Response Language', 'tone_label': 'AI Personality Tone', 'close': 'Close', 'submit': 'Submit',
-                'user_name_default': 'User Name', 'profile_signin': 'User Profile / Sign In', 'welcome_head': 'How can I help you?', 
-                'welcome_sub': 'I\'m ready to assist you.', 
-                'welcome_text': 'Start by asking a factual question, requesting code, or a creative prompt.',
-                'placeholder': 'Ask anything...' 
+        // --- GLOBAL APP OBJECT ---
+        const knowstaApp = {
+            // --- CONFIGURATION ---
+            config: {
+                SUPABASE_URL: 'https://nreviyisnhwckepaiglq.supabase.co',
+                SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg',
+                FLASH_MODEL: 'gemini-2.5-flash-preview-05-20',
+                API_KEY: "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4", // WARNING: Exposed API Key. For production, proxy this.
+                THEME_KEY: 'knowsta_theme',
+                LANG_KEY: 'knowsta_lang',
+                TONE_KEY: 'knowsta_tone',
+                CREATOR_BIO: "Sithu Nyein (born 2003) is a 22-year-old Myanmar-based digital marketer and entrepreneur, currently enhancing his skills through Coursera’s professional programs. He is the founder of Knowsta, an upcoming AI-powered chat application designed to deliver smarter, more creative, and user-friendly conversations for global users. Sithu aims to make AI assistance more personalized, accessible, and efficient, bridging the gap between human communication and artificial intelligence.",
+                MINIMUM_LOAD_MS: 3000,
             },
-            'Spanish': {
-                'sidebar_username': 'Iniciar Sesión / Perfil', 'btn_new_chat': 'Nuevo Chat', 'btn_settings': 'Ajustes',
-                'btn_export': 'Exportar Conversación (.txt)', 'btn_about': 'Acerca de Knowsta', 'btn_signin': 'Iniciar Sesión',
-                'btn_signout': 'Cerrar Sesión', 'head_conversation': 'Knowsta', 
-                'head_settings': 'Configuración de la Aplicación', 'theme_label': 'Tema Actual:', 'theme_toggle': 'Alternar Tema',
-                'lang_label': 'Idioma de Respuesta', 'tone_label': 'Tono de Personalidad IA', 'close': 'Cerrar', 'submit': 'Enviar',
-                'user_name_default': 'Nombre de Usuario', 'profile_signin': 'Perfil de Usuario / Iniciar Sesión',
-                'welcome_head': '¿Cómo puedo ayudarte?', 
-                'welcome_sub': 'Estoy listo para asistirte.', 
-                'welcome_text': 'Comienza haciendo una pregunta, solicitando código o una sugerencia creativa.',
-                'placeholder': 'Pregunta lo que sea...' 
+
+            // --- APPLICATION STATE ---
+            state: {
+                chatHistory: [],
+                allChats: {}, // NEW: Stores all conversations
+                currentChatId: null, // NEW: Tracks the active chat
+                userId: 'guest',
+                supabase: null,
+                speechRecognition: null,
+                responseTone: 'Friendly',
+                profileBio: '',
+                isListening: false,
+                sendSynth: null,
+                receiveSynth: null,
+                isGenerating: false, // NEW
+                stopGenerationRequested: false, // NEW
             },
-             'French': {
-                'sidebar_username': 'Connexion / Profil', 'btn_new_chat': 'Nouveau Chat', 'btn_settings': 'Paramètres',
-                'btn_export': 'Exporter la conversation (.txt)', 'btn_about': 'À propos de Knowsta', 'btn_signin': 'Se Connecter',
-                'btn_signout': 'Déconnexion', 'head_conversation': 'Knowsta', 
-                'head_settings': 'Paramètres de l\'Appli', 'theme_label': 'Thème Actuel :', 'theme_toggle': 'Basculer Thème',
-                'lang_label': 'Langue de Réponse', 'tone_label': 'Ton de Personnalité IA', 'close': 'Fermer', 'submit': 'Soumettre',
-                'user_name_default': 'Nom d\'utilisateur', 'profile_signin': 'Profil Utilisateur / Connexion',
-                'welcome_head': 'Comment puis-je vous aider ?', 
-                'welcome_sub': 'Je suis prêt à vous assister.', 
-                'welcome_text': 'Commencez par poser une question, demander du code ou une invite créative.',
-                'placeholder': 'Demandez n\'importe quoi...' 
-            },
-        };
-
-        function getLocalizedText(key) {
-            const lang = localStorage.getItem(LANG_KEY) || 'English';
-            return (localizationData[lang] && localizationData[lang][key]) || localizationData['English'][key];
-        }
-
-        function translateUI(lang) {
-            // Main Header & Auth
-            const conversationHeader = document.querySelector('.main-chat-panel header h1');
-            if (conversationHeader) { 
-                conversationHeader.textContent = getLocalizedText('head_conversation');
-            }
-            const authBtnText = supabase?.auth.currentUser ? getLocalizedText('btn_signout') : getLocalizedText('btn_signin');
-            authButton.textContent = authBtnText;
             
-            // Sidebar 
-            sidebarUsername.textContent = getLocalizedText('sidebar_username');
-            if (labelNewChat) labelNewChat.textContent = getLocalizedText('btn_new_chat');
-            if (labelSettings) labelSettings.textContent = getLocalizedText('btn_settings');
-            if (labelExport) labelExport.textContent = getLocalizedText('btn_export');
-            if (labelAbout) labelAbout.textContent = getLocalizedText('btn_about');
-            
-            // Settings Modal (FIX: Added null checks for modal elements)
-            if (settingsModal) {
-                const h2 = settingsModal.querySelector('h2');
-                if (h2) h2.textContent = getLocalizedText('head_settings');
+            // --- UI ELEMENT REFERENCES ---
+            ui: {},
+
+            // --- METHODS / FUNCTIONS ---
+            methods: {},
+
+            // --- INITIALIZATION ---
+            init() {
+                // 1. Initialize Supabase
+                this.state.supabase = createClient(this.config.SUPABASE_URL, this.config.SUPABASE_ANON_KEY);
                 
-                const pElements = settingsModal.querySelectorAll('.mb-6 p');
-                if (pElements[0]) pElements[0].textContent = 'Appearance'; // Static text
-                if (pElements[1]) pElements[1].textContent = getLocalizedText('lang_label');
-                if (pElements[2]) pElements[2].textContent = getLocalizedText('tone_label');
-
-                const toggleBtn = settingsModal.querySelector('[onclick="toggleTheme()"]');
-                if (toggleBtn) toggleBtn.textContent = getLocalizedText('theme_toggle');
-
-                const closeBtn = settingsModal.querySelector('.mt-6 button');
-                if (closeBtn) closeBtn.textContent = getLocalizedText('close');
-            }
-            
-            // Profile Modal
-            if (profileModal) {
-                const h2 = profileModal.querySelector('h2');
-                if (h2) h2.textContent = getLocalizedText('profile_signin');
+                // 2. Cache UI elements
+                this.ui = {
+                    appContainer: document.getElementById('app'),
+                    preloader: document.getElementById('preloader'),
+                    chatWindow: document.getElementById('chat-window'),
+                    userInput: document.getElementById('user-input'),
+                    sendButton: document.getElementById('send-button'),
+                    loadingIndicator: document.getElementById('loading-indicator'),
+                    loadingMessage: document.getElementById('loading-message'),
+                    authButton: document.getElementById('auth-button'),
+                    userAvatar: document.getElementById('user-avatar'),
+                    themeIcon: document.getElementById('theme-icon-sidebar'),
+                    aboutModal: document.getElementById('about-modal'),
+                    settingsModal: document.getElementById('settings-modal'),
+                    currentThemeLabel: document.getElementById('current-theme-label'),
+                    modalLangSelector: document.getElementById('modal-lang-selector'),
+                    modalToneSelector: document.getElementById('modal-tone-selector'),
+                    micButton: document.getElementById('mic-button'),
+                    profileModal: document.getElementById('profile-modal'),
+                    profileAvatarImg: document.getElementById('profile-avatar-img'),
+                    profileNameText: document.getElementById('profile-name-text'),
+                    profileIdText: document.getElementById('profile-id-text'),
+                    profileBioInput: document.getElementById('profile-bio'),
+                    sidebarUsername: document.getElementById('sidebar-username'),
+                    userAvatarSidebar: document.getElementById('user-avatar-sidebar'),
+                    labelNewChat: document.getElementById('label-new-chat'),
+                    labelSettings: document.getElementById('label-settings'),
+                    labelExport: document.getElementById('label-export'),
+                    labelAbout: document.getElementById('label-about'),
+                    chatHistoryList: document.getElementById('chat-history-list'),
+                    stopGeneratingBtn: document.getElementById('stop-generating-btn'),
+                };
                 
-                const profileAuthButton = document.getElementById('profile-auth-button');
-                if (profileAuthButton) profileAuthButton.textContent = supabase?.auth.currentUser ? getLocalizedText('btn_signout') : getLocalizedText('btn_signin');
-                
-                const closeBtn = profileModal.querySelector('.mt-4 button');
-                if (closeBtn) closeBtn.textContent = getLocalizedText('close');
-            }
-            
-            // Input Placeholder
-            if (userInput) {
-                 userInput.placeholder = getLocalizedText('placeholder');
-            }
-        }
-
-
-        // --- THEME & APPEARANCE ---
-
-        /** Sets the theme class and updates the icon. */
-        function applyTheme(theme) {
-            let finalTheme = theme;
-            
-            if (finalTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-                document.body.classList.add('dark');
-                // Moon Icon
-                if (themeIcon) {
-                     themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
+                // 3. Bind methods to the app context
+                for (const key in this.methods) {
+                    this.methods[key] = this.methods[key].bind(this);
                 }
-                currentThemeLabel.textContent = 'Dark';
-            } else {
-                document.documentElement.classList.remove('dark');
-                document.body.classList.remove('dark');
-                 // Sun Icon
-                if (themeIcon) {
-                    themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />`;
-                }
-                currentThemeLabel.textContent = 'Light';
-            }
-        }
+                
+                // 4. Set up core services
+                this.methods.setupSound();
+                this.methods.setupSpeechRecognition();
 
-        window.toggleTheme = () => {
-            const currentTheme = localStorage.getItem(THEME_KEY);
-            let newTheme;
-
-            // Cycle: light -> dark -> light
-            if (currentTheme === 'light' || !currentTheme) {
-                newTheme = 'dark';
-            } else { // currentTheme is 'dark'
-                newTheme = 'light';
-            }
-            
-            localStorage.setItem(THEME_KEY, newTheme);
-            applyTheme(newTheme);
-        };
-
-        function loadTheme() {
-            const savedTheme = localStorage.getItem(THEME_KEY);
-            // Default to 'light' for initial load (FIX: Changed to 'light' from 'dark' for user request)
-            let initialTheme = savedTheme || 'light'; 
-            applyTheme(initialTheme);
-        }
-        
-        // --- Multilingual Support ---
-        window.updateLanguage = (selectedLang) => {
-            localStorage.setItem(LANG_KEY, selectedLang);
-            translateUI(selectedLang); 
-        };
-
-        window.updateLanguageFromModal = () => {
-            const selectedLang = modalLangSelector.value;
-            updateLanguage(selectedLang);
-        };
-
-        function loadLanguage() {
-            const savedLang = localStorage.getItem(LANG_KEY) || 'English';
-            updateLanguage(savedLang);
-            if (modalLangSelector) {
-                modalLangSelector.value = savedLang;
-            }
-        }
-
-        // --- Custom Tone (Personality) ---
-        window.updateTone = (selectedTone) => {
-            responseTone = selectedTone;
-            localStorage.setItem(TONE_KEY, responseTone);
-        };
-
-        window.updateToneFromModal = () => {
-            const selectedTone = modalToneSelector.value;
-            updateTone(selectedTone);
-        };
-
-        function loadTone() {
-            const savedTone = localStorage.getItem(TONE_KEY) || 'Friendly';
-            updateTone(savedTone);
-            if (modalToneSelector) {
-                modalToneSelector.value = savedTone;
-            }
-        }
-
-        // --- PROFILE CUSTOMIZATION (Local Storage Mock) ---
-        
-        window.saveProfileCustomization = () => {
-             // FIX: Bio key now uses userId for persistence swap
-             profileBio = profileBioInput.value;
-             localStorage.setItem(getProfileBioKey(userId), profileBio);
-        }
-
-        function loadProfileCustomization() {
-            // FIX: Load Bio using userId
-            profileBio = localStorage.getItem(getProfileBioKey(userId)) || '';
-            if (profileBioInput) {
-                profileBioInput.value = profileBio;
-            }
-        }
-
-        // --- CHAT HISTORY MANAGEMENT ---
-
-        function saveChatHistory() {
-            const historyToStore = chatHistory.map(msg => ({
-                role: msg.role,
-                text: msg.text,
-                time: msg.time,
-            }));
-            if (historyToStore.length > 0) {
-                 // FIX: Saves to user-specific key
-                 localStorage.setItem(getChatHistoryKey(userId), JSON.stringify(historyToStore));
-            } else {
-                 localStorage.removeItem(getChatHistoryKey(userId));
-            }
-        }
-
-        function loadChatHistory() {
-            // FIX: Loads from user-specific key
-            const savedHistory = localStorage.getItem(getChatHistoryKey(userId));
-            if (savedHistory) {
-                try {
-                    const history = JSON.parse(savedHistory);
-                    if (history.length > 0) {
-                        chatHistory = history;
-                        chatWindow.innerHTML = '';
-                        history.forEach(msg => {
-                            // Reconstruct the message object for display without streaming simulation hassle
-                            addMessage(msg.role, msg.text, false, msg.time); 
-                        });
-                        setTimeout(() => { chatWindow.scrollTop = chatWindow.scrollHeight; }, 100);
-                        return true;
+                // 5. Load settings and data
+                this.methods.loadTheme();
+                this.methods.loadLanguage();
+                this.methods.loadTone();
+                
+                // 6. Set up Auth listeners
+                this.state.supabase.auth.onAuthStateChange((event, session) => {
+                    const user = session?.user;
+                    this.methods.updateAuthUI(user);
+                    this.methods.translateUI(localStorage.getItem(this.config.LANG_KEY) || 'English');
+                    if (event === 'SIGNED_IN') {
+                        this.methods.addMessage('system', `Welcome, ${user.user_metadata.full_name || 'User'}! I am ready to assist you.`);
+                        this.methods.hideProfileModal();
                     }
-                } catch (e) {
-                    console.error("Error loading chat history:", e);
-                    localStorage.removeItem(getChatHistoryKey(userId));
-                }
-            }
-            return false;
-        }
+                });
 
-        // --- Modal Handlers ---
-        window.showAboutModal = () => { aboutModal.classList.remove('hidden'); aboutModal.classList.add('flex'); };
-        window.hideAboutModal = () => { aboutModal.classList.add('hidden'); aboutModal.classList.remove('flex'); };
+                // 7. Start the app loading sequence
+                const minimumLoadTime = new Promise(resolve => setTimeout(resolve, this.config.MINIMUM_LOAD_MS));
+                const authReadyCheck = this.state.supabase.auth.getSession();
 
-        window.showSettingsModal = () => { 
-            // Sync modal selectors with current state
-            modalLangSelector.value = localStorage.getItem(LANG_KEY) || 'English';
-            modalToneSelector.value = localStorage.getItem(TONE_KEY) || 'Friendly';
-            
-            settingsModal.classList.remove('hidden'); 
-            settingsModal.classList.add('flex'); 
-        };
-        window.hideSettingsModal = () => { settingsModal.classList.add('hidden'); settingsModal.classList.remove('flex'); };
-        
-        // FIX: Consolidated profile/auth click logic for the sidebar button
-        window.handleAuthClickOrProfile = () => {
-            const user = supabase?.auth.currentUser;
-            if (user) {
-                // If authenticated, show profile modal
-                showProfileModal();
-            } else {
-                // If not authenticated (Guest), initiate sign-in immediately
-                handleAuthClick();
-            }
-        }
-
-        window.showProfileModal = () => { 
-            const user = supabase?.auth.currentUser;
-            // Only show profile modal if authenticated
-            if (!user) {
-                // If not signed in, treat it as a sign-in action
-                handleAuthClick(); 
-                return;
-            }
-
-            const displayName = user?.user_metadata.full_name || user?.email || 'User';
-            const avatarUrl = user?.user_metadata.avatar_url;
-            const uid = user?.id || 'N/A';
-
-            profileNameText.textContent = displayName;
-            profileIdText.textContent = `ID: ${uid}`;
-            profileAvatarImg.src = avatarUrl || userAvatar.src; // Use current header avatar as fallback
-            
-            // Load Bio
-            loadProfileCustomization(); // FIX: Load user-specific bio
-
-            // Show appropriate content based on auth status
-            const profileAuthButton = document.getElementById('profile-auth-button');
-            const authFormContainer = document.getElementById('auth-form-container');
-            
-            // If we are in this function, the user is AUTHENTICATED
-            profileAuthButton.textContent = getLocalizedText('btn_signout');
-            profileAuthButton.classList.replace('bg-indigo-600', 'bg-red-600');
-            profileAuthButton.onclick = handleAuthClick;
-            authFormContainer.classList.add('hidden');
-            
-            profileModal.classList.remove('hidden'); 
-            profileModal.classList.add('flex'); 
-        };
-        window.hideProfileModal = () => { profileModal.classList.add('hidden'); profileModal.classList.remove('flex'); };
-
-
-        // --- HISTORY LOGIC (Single Session, No Persistence) ---
-
-        /** Clears UI and history state to start a new conversation. */
-        window.startNewChat = () => {
-            chatHistory = [];
-            chatWindow.innerHTML = '';
-            
-            // FIX 3: Re-add the welcome message structure upon clicking New Chat
-            const messageDiv = document.createElement('div');
-            messageDiv.id = 'initial-message';
-            messageDiv.className = 'flex justify-center mt-20';
-            
-            // Generate content using localized strings
-            messageDiv.innerHTML = `<div class="text-center max-w-xs text-gray-500 transition duration-300">
-                <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">${getLocalizedText('welcome_head')}</h3>
-                <p class="text-lg font-semibold mb-2">${getLocalizedText('welcome_sub')}</p>
-                <p class="text-sm">${getLocalizedText('welcome_text')}</p>
-                <!-- TOPICS / GUIDED PROMPTS -->
-                <div class="mt-6 space-y-2 px-2 sm:px-0">
-                    <div class="text-center flex flex-wrap justify-center gap-2">
-                        <!-- UPDATED TOPICS (3 MEDIUM-LONG) -->
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Draft a professional email to a client requesting project feedback.')">Draft Email</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Make a recipe for spicy noodle soup with ingredients and steps.')">Make Recipe</button>
-                        <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="sendTopic('Suggest three simple activities for a weekend to boost mental clarity.')">Suggest Activities</button>
-                    </div>
-                </div>
-            </div>`;
-            chatWindow.appendChild(messageDiv);
-            saveChatHistory(); // Save empty history
-        };
-
-        window.sendTopic = (topicText) => {
-            userInput.value = topicText;
-            autoExpand(userInput);
-            sendMessage();
-        };
-
-        // --- EXPORT CHAT LOGIC (Unchanged) ---
-        window.exportChat = () => {
-            const chatElements = chatWindow.children;
-            if (chatElements.length === 0 || chatElements[0].id === 'initial-message') {
-                addMessage('system', 'No conversation to export.');
-                return;
-            }
-
-            let exportText = `# Knowsta Chat Log\n\nDate: ${new Date().toLocaleString()}\n---\n\n`;
-            
-            for (const el of chatElements) {
-                const bubble = el.querySelector('.chat-bubble-user, .chat-bubble-ai');
-                if (bubble) {
-                    const role = bubble.classList.contains('chat-bubble-user') ? 'User' : 'Knowsta';
-                    // Extract clean text content, replacing <br> with newlines and removing HTML tags
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = bubble.innerHTML;
-                    const text = tempDiv.textContent.trim().replace(/\s*\n\s*/g, '\n');
+                Promise.all([minimumLoadTime, authReadyCheck]).then(([, { data: { session } }]) => {
+                    this.methods.updateAuthUI(session?.user); // Initial auth state check
                     
-                    exportText += `**${role}:** ${text}\n\n`;
-                } else if (el.textContent.includes('system')) {
-                    // Optionally include system messages
-                    exportText += `[System Message] ${el.textContent.trim()}\n\n`;
-                }
-            }
+                    this.methods.loadAllChats(); // Load all chats from storage
+                    
+                    if (!this.state.currentChatId) {
+                       this.methods.startNewChat();
+                    }
 
-            const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
-            const filename = `Knowsta_Chat_${new Date().toISOString().slice(0, 10)}.txt`;
-            
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            addMessage('system', `Chat exported as "${filename}".`);
-        };
+                    this.methods.loadProfileCustomization();
+                    this.methods.validateInput();
 
-
-        // --- SUPABASE INITIALIZATION & AUTH ---
-        
-        // Initialize Supabase client globally in the module scope
-        supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        const updateAuthUI = (user) => {
-            // Store old userId to swap history later
-            const oldUserId = userId; 
-            
-            if (user) {
-                const displayName = user.user_metadata.full_name || user.email || 'User';
-                const avatarUrl = user.user_metadata.avatar_url;
-
-                // Main Header
-                authButton.textContent = getLocalizedText('btn_signout');
-                // FIX: Changed dark:border-gray-600 to dark:border-gray-500 for better dark mode contrast
-                authButton.className = 'py-1 px-3 border border-gray-300 text-gray-700 text-sm rounded-full transition duration-150 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-300 dark:hover:bg-gray-700 animated-button';
-                userAvatar.src = avatarUrl || `https://placehold.co/32x32/4f46e5/ffffff?text=${displayName[0]}`;
-                userAvatar.classList.remove('hidden');
-                
-                // Sidebar
-                sidebarUsername.textContent = displayName;
-                userAvatarSidebar.src = userAvatar.src;
-                
-                userId = user.id;
-                sendButton.disabled = false;
-            } else {
-                // Main Header
-                authButton.textContent = getLocalizedText('btn_signin');
-                authButton.className = 'py-1 px-3 bg-[#004aad] text-white text-sm rounded-full transition duration-150 hover:bg-[#003a89] animated-button';
-                userAvatar.classList.add('hidden');
-                
-                // Sidebar
-                sidebarUsername.textContent = getLocalizedText('sidebar_username');
-                userAvatarSidebar.src = 'https://placehold.co/32x32/cccccc/ffffff?text=U';
-                
-                userId = 'guest';
-                sendButton.disabled = false;
-            }
-            
-            // FIX: If user changed, reload history and profile settings for the new userId
-            if (oldUserId !== userId) {
-                // Save previous user's history and load new user's history/profile
-                saveChatHistory(oldUserId); // Save the session the user just left
-                loadProfileCustomization(); // Load new user's profile bio
-                
-                if (!loadChatHistory()) {
-                    startNewChat(); // If new user has no history, start fresh
-                }
+                    this.ui.preloader.classList.add('opacity-0');
+                    this.ui.preloader.addEventListener('transitionend', () => {
+                        this.ui.preloader.classList.add('hidden');
+                        this.ui.appContainer.classList.remove('opacity-0');
+                    }, { once: true });
+                });
             }
         };
         
-        window.handleAuthClick = async () => {
-            playSendSound();
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (session) {
-                // Sign Out
-                try {
-                    // FIX: Save current history before signing out (to be loaded next time)
-                    saveChatHistory(); 
-                    await supabase.auth.signOut();
-                    startNewChat(); 
-                    addMessage('system', 'You have been signed out. Start a new chat.');
-                    playReceiveSound();
-                } catch (error) {
-                    console.error("Supabase Sign out error:", error);
-                    addMessage('system', `Error signing out: ${error.message}. Please try again.`);
-                }
-            } else {
-                // Sign In (Google)
-                try {
-                    const { error } = await supabase.auth.signInWithOAuth({ 
-                        provider: 'google', 
-                        options: {
-                            // Implementing the user's specific redirectTo path for Supabase fix
-                            redirectTo: `${window.location.origin}/knowsta/` 
+        // --- DEFINE ALL METHODS ---
+
+        knowstaApp.methods = {
+
+            // --- PERSISTENCE HELPERS ---
+            getChatsKey(id) {
+                return `knowsta_all_chats_${id}`;
+            },
+            getProfileBioKey(id) {
+                return `knowsta_bio_${id}`;
+            },
+
+            // --- SOUND MANAGER ---
+            setupSound() {
+                if (window.Tone) {
+                    this.state.sendSynth = new Tone.Synth({
+                        oscillator: { type: "square" },
+                        envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
+                    }).toDestination();
+                    this.state.receiveSynth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "sine" },
+                        envelope: { attack: 0.05, decay: 0.2, sustain: 0.1, release: 0.5 }
+                    }).toDestination();
+
+                    document.addEventListener('click', () => {
+                        if (Tone.context.state !== 'running') {
+                            Tone.start().then(() => console.log("AudioContext started."));
                         }
-                    });
-                    if (error) throw error;
-                } catch (error) {
-                    console.error("Supabase Google sign in error:", error);
-                    addMessage('system', `Error signing in with Google: ${error.message}. Please check your browser settings or try again.`);
+                    }, { once: true });
+                } else {
+                    console.warn("Tone.js not loaded. Sound effects disabled.");
                 }
-            }
-        };
+            },
+            playSendSound() {
+                if (this.state.sendSynth) this.state.sendSynth.triggerAttackRelease("C5", "16n");
+            },
+            playReceiveSound() {
+                if (this.state.receiveSynth) this.state.receiveSynth.triggerAttackRelease(["C4", "E4", "G4"], "8n");
+            },
 
-        // Modal Email/Password Auth
-        window.handleModalEmailAuth = async () => {
-            const email = document.getElementById('modal-email-input').value;
-            const password = document.getElementById('modal-password-input').value;
-            const modalAuthMessage = document.getElementById('modal-auth-message');
-            const emailAuthButton = document.getElementById('modal-email-auth-button');
+            // --- LOCALIZATION ---
+            getLocalizedText(key) {
+                const localizationData = {
+                    'English': { 'sidebar_username': 'Sign In / Profile', 'btn_new_chat': 'New Chat', 'btn_settings': 'Settings', 'btn_export': 'Export Conversation (.txt)', 'btn_about': 'About Knowsta', 'btn_signin': 'Sign In', 'btn_signout': 'Sign Out', 'head_conversation': 'Knowsta', 'head_settings': 'App Settings', 'theme_label': 'Current Theme:', 'theme_toggle': 'Toggle Light/Dark', 'lang_label': 'Response Language', 'tone_label': 'AI Personality Tone', 'close': 'Close', 'submit': 'Submit', 'user_name_default': 'User Name', 'profile_signin': 'User Profile / Sign In', 'welcome_head': 'How can I help you?', 'welcome_sub': 'I\'m ready to assist you.', 'welcome_text': 'Start by asking a factual question, requesting code, or a creative prompt.', 'placeholder': 'Ask anything...' },
+                    'Spanish': { 'sidebar_username': 'Iniciar Sesión / Perfil', 'btn_new_chat': 'Nuevo Chat', 'btn_settings': 'Ajustes', 'btn_export': 'Exportar Conversación (.txt)', 'btn_about': 'Acerca de Knowsta', 'btn_signin': 'Iniciar Sesión', 'btn_signout': 'Cerrar Sesión', 'head_conversation': 'Knowsta', 'head_settings': 'Configuración de la Aplicación', 'theme_label': 'Tema Actual:', 'theme_toggle': 'Alternar Tema', 'lang_label': 'Idioma de Respuesta', 'tone_label': 'Tono de Personalidad IA', 'close': 'Cerrar', 'submit': 'Enviar', 'user_name_default': 'Nombre de Usuario', 'profile_signin': 'Perfil de Usuario / Iniciar Sesión', 'welcome_head': '¿Cómo puedo ayudarte?', 'welcome_sub': 'Estoy listo para asistirte.', 'welcome_text': 'Comienza haciendo una pregunta, solicitando código o una sugerencia creativa.', 'placeholder': 'Pregunta lo que sea...' },
+                    'French': { 'sidebar_username': 'Connexion / Profil', 'btn_new_chat': 'Nouveau Chat', 'btn_settings': 'Paramètres', 'btn_export': 'Exporter la conversation (.txt)', 'btn_about': 'À propos de Knowsta', 'btn_signin': 'Se Connecter', 'btn_signout': 'Déconnexion', 'head_conversation': 'Knowsta', 'head_settings': 'Paramètres de l\'Appli', 'theme_label': 'Thème Actuel :', 'theme_toggle': 'Basculer Thème', 'lang_label': 'Langue de Réponse', 'tone_label': 'Ton de Personnalité IA', 'close': 'Fermer', 'submit': 'Soumettre', 'user_name_default': 'Nom d\'utilisateur', 'profile_signin': 'Profil Utilisateur / Connexion', 'welcome_head': 'Comment puis-je vous aider ?', 'welcome_sub': 'Je suis prêt à vous assister.', 'welcome_text': 'Commencez par poser une question, demander du code ou une invite créative.', 'placeholder': 'Demandez n\'importe quoi...' },
+                };
+                const lang = localStorage.getItem(this.config.LANG_KEY) || 'English';
+                return (localizationData[lang] && localizationData[lang][key]) || localizationData['English'][key];
+            },
+            translateUI(lang) {
+                const conversationHeader = this.ui.appContainer.querySelector('.main-chat-panel header h1');
+                if (conversationHeader) conversationHeader.textContent = this.methods.getLocalizedText('head_conversation');
+                
+                const authBtnText = this.state.supabase?.auth.currentUser ? this.methods.getLocalizedText('btn_signout') : this.methods.getLocalizedText('btn_signin');
+                this.ui.authButton.textContent = authBtnText;
+                
+                this.ui.sidebarUsername.textContent = this.methods.getLocalizedText('sidebar_username');
+                if (this.ui.labelNewChat) this.ui.labelNewChat.textContent = this.methods.getLocalizedText('btn_new_chat');
+                if (this.ui.labelSettings) this.ui.labelSettings.textContent = this.methods.getLocalizedText('btn_settings');
+                if (this.ui.labelExport) this.ui.labelExport.textContent = this.methods.getLocalizedText('btn_export');
+                if (this.ui.labelAbout) this.ui.labelAbout.textContent = this.methods.getLocalizedText('btn_about');
+                
+                if (this.ui.settingsModal) {
+                    const h2 = this.ui.settingsModal.querySelector('h2');
+                    if (h2) h2.textContent = this.methods.getLocalizedText('head_settings');
+                    
+                    const pElements = this.ui.settingsModal.querySelectorAll('.mb-6 p');
+                    if (pElements[0]) pElements[0].textContent = 'Appearance';
+                    if (pElements[1]) pElements[1].textContent = this.methods.getLocalizedText('lang_label');
+                    if (pElements[2]) pElements[2].textContent = this.methods.getLocalizedText('tone_label');
 
-            modalAuthMessage.classList.add('hidden');
-            emailAuthButton.disabled = true;
-            emailAuthButton.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Authenticating...`;
+                    const toggleBtn = this.ui.settingsModal.querySelector('[onclick*="toggleTheme"]');
+                    if (toggleBtn) toggleBtn.textContent = this.methods.getLocalizedText('theme_toggle');
+                }
+                
+                if (this.ui.profileModal) {
+                    const h2 = this.ui.profileModal.querySelector('h2');
+                    if (h2) h2.textContent = this.methods.getLocalizedText('profile_signin');
+                    
+                    const profileAuthButton = document.getElementById('profile-auth-button');
+                    if (profileAuthButton) profileAuthButton.textContent = this.state.supabase?.auth.currentUser ? this.methods.getLocalizedText('btn_signout') : this.methods.getLocalizedText('btn_signin');
+                }
+                
+                if (this.ui.userInput) {
+                    this.ui.userInput.placeholder = this.methods.getLocalizedText('placeholder');
+                }
+            },
+            
+            // --- THEME & APPEARANCE ---
+            applyTheme(theme) {
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.body.classList.add('dark');
+                    if (this.ui.themeIcon) this.ui.themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />`;
+                    this.ui.currentThemeLabel.textContent = 'Dark';
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.body.classList.remove('dark');
+                    if (this.ui.themeIcon) this.ui.themeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />`;
+                    this.ui.currentThemeLabel.textContent = 'Light';
+                }
+            },
+            toggleTheme() {
+                const currentTheme = localStorage.getItem(this.config.THEME_KEY);
+                const newTheme = (currentTheme === 'light' || !currentTheme) ? 'dark' : 'light';
+                localStorage.setItem(this.config.THEME_KEY, newTheme);
+                this.methods.applyTheme(newTheme);
+            },
+            loadTheme() {
+                const savedTheme = localStorage.getItem(this.config.THEME_KEY) || 'light';
+                this.methods.applyTheme(savedTheme);
+            },
+            
+            // --- SETTINGS ---
+            updateLanguage(selectedLang) {
+                localStorage.setItem(this.config.LANG_KEY, selectedLang);
+                this.methods.translateUI(selectedLang);
+            },
+            updateLanguageFromModal() {
+                const selectedLang = this.ui.modalLangSelector.value;
+                this.methods.updateLanguage(selectedLang);
+            },
+            loadLanguage() {
+                const savedLang = localStorage.getItem(this.config.LANG_KEY) || 'English';
+                this.methods.updateLanguage(savedLang);
+                if (this.ui.modalLangSelector) this.ui.modalLangSelector.value = savedLang;
+            },
+            updateTone(selectedTone) {
+                this.state.responseTone = selectedTone;
+                localStorage.setItem(this.config.TONE_KEY, this.state.responseTone);
+            },
+            updateToneFromModal() {
+                const selectedTone = this.ui.modalToneSelector.value;
+                this.methods.updateTone(selectedTone);
+            },
+            loadTone() {
+                const savedTone = localStorage.getItem(this.config.TONE_KEY) || 'Friendly';
+                this.methods.updateTone(savedTone);
+                if (this.ui.modalToneSelector) this.ui.modalToneSelector.value = savedTone;
+            },
+            
+            // --- PROFILE & HISTORY ---
+            saveProfileCustomization() {
+                this.state.profileBio = this.ui.profileBioInput.value;
+                localStorage.setItem(this.methods.getProfileBioKey(this.state.userId), this.state.profileBio);
+            },
+            loadProfileCustomization() {
+                this.state.profileBio = localStorage.getItem(this.methods.getProfileBioKey(this.state.userId)) || '';
+                if (this.ui.profileBioInput) this.ui.profileBioInput.value = this.state.profileBio;
+            },
+            saveAllChats() {
+                if (this.state.currentChatId && this.state.chatHistory.length > 0) {
+                    this.state.allChats[this.state.currentChatId] = this.state.chatHistory;
+                }
+                localStorage.setItem(this.methods.getChatsKey(this.state.userId), JSON.stringify(this.state.allChats));
+                this.methods.renderChatHistoryList();
+            },
+            loadAllChats() {
+                const savedChats = localStorage.getItem(this.methods.getChatsKey(this.state.userId));
+                if (savedChats) {
+                    try {
+                        this.state.allChats = JSON.parse(savedChats);
+                        const chatIds = Object.keys(this.state.allChats);
+                         if (chatIds.length > 0) {
+                            this.methods.loadChat(chatIds[chatIds.length - 1]);
+                        }
+                    } catch(e) {
+                         this.state.allChats = {};
+                    }
+                } else {
+                    this.state.allChats = {};
+                }
+                this.methods.renderChatHistoryList();
+            },
+            
+            // --- MODAL HANDLERS ---
+            showAboutModal() { this.ui.aboutModal.classList.remove('hidden'); this.ui.aboutModal.classList.add('flex'); },
+            hideAboutModal() { this.ui.aboutModal.classList.add('hidden'); this.ui.aboutModal.classList.remove('flex'); },
+            showSettingsModal() {
+                this.ui.modalLangSelector.value = localStorage.getItem(this.config.LANG_KEY) || 'English';
+                this.ui.modalToneSelector.value = localStorage.getItem(this.config.TONE_KEY) || 'Friendly';
+                this.ui.settingsModal.classList.remove('hidden');
+                this.ui.settingsModal.classList.add('flex');
+            },
+            hideSettingsModal() { this.ui.settingsModal.classList.add('hidden'); this.ui.settingsModal.classList.remove('flex'); },
+            handleAuthClickOrProfile() {
+                const user = this.state.supabase?.auth.currentUser;
+                if (user) {
+                    this.methods.showProfileModal();
+                } else {
+                    this.methods.handleAuthClick();
+                }
+            },
+            showProfileModal() {
+                const user = this.state.supabase?.auth.currentUser;
+                if (!user) {
+                    this.methods.handleAuthClick();
+                    return;
+                }
+                const displayName = user?.user_metadata.full_name || user?.email || 'User';
+                const avatarUrl = user?.user_metadata.avatar_url;
+                const uid = user?.id || 'N/A';
+                this.ui.profileNameText.textContent = displayName;
+                this.ui.profileIdText.textContent = `ID: ${uid}`;
+                this.ui.profileAvatarImg.src = avatarUrl || this.ui.userAvatar.src;
+                this.methods.loadProfileCustomization();
+                const profileAuthButton = document.getElementById('profile-auth-button');
+                const authFormContainer = document.getElementById('auth-form-container');
+                profileAuthButton.textContent = this.methods.getLocalizedText('btn_signout');
+                profileAuthButton.classList.replace('bg-indigo-600', 'bg-red-600');
+                authFormContainer.classList.add('hidden');
+                this.ui.profileModal.classList.remove('hidden');
+                this.ui.profileModal.classList.add('flex');
+            },
+            hideProfileModal() { this.ui.profileModal.classList.add('hidden'); this.ui.profileModal.classList.remove('flex'); },
 
-            if (!email || password.length < 6) {
-                modalAuthMessage.textContent = "Please enter a valid email and password (min 6 chars).";
-                modalAuthMessage.classList.remove('hidden');
+            // --- CHAT LOGIC ---
+            startNewChat() {
+                if (this.state.isGenerating) this.methods.stopGeneration();
+                this.methods.saveAllChats();
+                
+                this.state.chatHistory = [];
+                this.state.currentChatId = `chat_${Date.now()}`;
+                this.ui.chatWindow.innerHTML = '';
+                const messageDiv = document.createElement('div');
+                messageDiv.id = 'initial-message';
+                messageDiv.className = 'flex justify-center mt-20';
+                messageDiv.innerHTML = `<div class="text-center max-w-xs text-gray-500 transition duration-300">
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">${this.methods.getLocalizedText('welcome_head')}</h3>
+                    <p class="text-lg font-semibold mb-2">${this.methods.getLocalizedText('welcome_sub')}</p>
+                    <p class="text-sm">${this.methods.getLocalizedText('welcome_text')}</p>
+                    <div class="mt-6 space-y-2 px-2 sm:px-0">
+                        <div class="text-center flex flex-wrap justify-center gap-2">
+                            <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="knowstaApp.methods.sendTopic('Draft a professional email to a client requesting project feedback.')">Draft Email</button>
+                            <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="knowstaApp.methods.sendTopic('Make a recipe for spicy noodle soup with ingredients and steps.')">Make Recipe</button>
+                            <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="knowstaApp.methods.sendTopic('Suggest three simple activities for a weekend to boost mental clarity.')">Suggest Activities</button>
+                        </div>
+                    </div>
+                </div>`;
+                this.ui.chatWindow.appendChild(messageDiv);
+                this.methods.saveAllChats();
+            },
+            loadChat(chatId) {
+                if (this.state.isGenerating) this.methods.stopGeneration();
+                if (this.state.allChats[chatId]) {
+                    this.methods.saveAllChats();
+                    this.state.currentChatId = chatId;
+                    this.state.chatHistory = this.state.allChats[chatId];
+                    this.ui.chatWindow.innerHTML = '';
+                    this.state.chatHistory.forEach(msg => this.methods.addMessage(msg.role, msg.text, false, msg.time));
+                    setTimeout(() => { this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight; }, 100);
+                    this.methods.renderChatHistoryList();
+                }
+            },
+            sendTopic(topicText) {
+                this.ui.userInput.value = topicText;
+                this.methods.autoExpand(this.ui.userInput);
+                this.methods.sendMessage();
+            },
+            exportChat() {
+                const chatElements = this.ui.chatWindow.children;
+                if (chatElements.length === 0 || chatElements[0].id === 'initial-message') {
+                    this.methods.addMessage('system', 'No conversation to export.');
+                    return;
+                }
+                let exportText = `# Knowsta Chat Log\n\nDate: ${new Date().toLocaleString()}\n---\n\n`;
+                for (const el of chatElements) {
+                    const bubble = el.querySelector('.chat-bubble-user, .chat-bubble-ai');
+                    if (bubble) {
+                        const role = bubble.classList.contains('chat-bubble-user') ? 'User' : 'Knowsta';
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = bubble.innerHTML;
+                        const text = tempDiv.textContent.trim().replace(/\s*\n\s*/g, '\n');
+                        exportText += `**${role}:** ${text}\n\n`;
+                    } else if (el.textContent.includes('system')) {
+                        exportText += `[System Message] ${el.textContent.trim()}\n\n`;
+                    }
+                }
+                const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
+                const filename = `Knowsta_Chat_${new Date().toISOString().slice(0, 10)}.txt`;
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                this.methods.addMessage('system', `Chat exported as "${filename}".`);
+            },
+            
+            // --- AUTHENTICATION ---
+            updateAuthUI(user) {
+                const oldUserId = this.state.userId;
+                if (user) {
+                    const displayName = user.user_metadata.full_name || user.email || 'User';
+                    const avatarUrl = user.user_metadata.avatar_url;
+                    this.ui.authButton.textContent = this.methods.getLocalizedText('btn_signout');
+                    this.ui.authButton.className = 'py-1 px-3 border border-gray-300 text-gray-700 text-sm rounded-full transition duration-150 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-300 dark:hover:bg-gray-700 animated-button';
+                    this.ui.userAvatar.src = avatarUrl || `https://placehold.co/32x32/4f46e5/ffffff?text=${displayName[0]}`;
+                    this.ui.userAvatar.classList.remove('hidden');
+                    this.ui.sidebarUsername.textContent = displayName;
+                    this.ui.userAvatarSidebar.src = this.ui.userAvatar.src;
+                    this.state.userId = user.id;
+                } else {
+                    this.ui.authButton.textContent = this.methods.getLocalizedText('btn_signin');
+                    this.ui.authButton.className = 'py-1 px-3 bg-[#004aad] text-white text-sm rounded-full transition duration-150 hover:bg-[#003a89] animated-button';
+                    this.ui.userAvatar.classList.add('hidden');
+                    this.ui.sidebarUsername.textContent = this.methods.getLocalizedText('sidebar_username');
+                    this.ui.userAvatarSidebar.src = 'https://placehold.co/32x32/cccccc/ffffff?text=U';
+                    this.state.userId = 'guest';
+                }
+                this.ui.sendButton.disabled = false;
+                if (oldUserId !== this.state.userId) {
+                    this.methods.saveAllChats();
+                    this.methods.loadProfileCustomization();
+                    this.methods.loadAllChats();
+                    if (!this.state.currentChatId) {
+                        this.methods.startNewChat();
+                    }
+                }
+            },
+            async handleAuthClick() {
+                this.methods.playSendSound();
+                const { data: { session } } = await this.state.supabase.auth.getSession();
+                if (session) {
+                    try {
+                        this.methods.saveAllChats();
+                        await this.state.supabase.auth.signOut();
+                        this.methods.startNewChat();
+                        this.methods.addMessage('system', 'You have been signed out. Start a new chat.');
+                        this.methods.playReceiveSound();
+                    } catch (error) {
+                        console.error("Supabase Sign out error:", error);
+                        this.methods.addMessage('system', `Error signing out: ${error.message}. Please try again.`);
+                    }
+                } else {
+                    try {
+                        const { error } = await this.state.supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}${window.location.pathname}` } });
+                        if (error) throw error;
+                    } catch (error) {
+                        console.error("Supabase Google sign in error:", error);
+                        this.methods.addMessage('system', `Error signing in with Google: ${error.message}. Please check your browser settings or try again.`);
+                    }
+                }
+            },
+            async handleModalEmailAuth() {
+                const email = document.getElementById('modal-email-input').value;
+                const password = document.getElementById('modal-password-input').value;
+                const modalAuthMessage = document.getElementById('modal-auth-message');
+                const emailAuthButton = document.getElementById('modal-email-auth-button');
+
+                modalAuthMessage.classList.add('hidden');
+                emailAuthButton.disabled = true;
+                emailAuthButton.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Authenticating...`;
+
+                if (!email || password.length < 6) {
+                    modalAuthMessage.textContent = "Please enter a valid email and password (min 6 chars).";
+                    modalAuthMessage.classList.remove('hidden');
+                    emailAuthButton.disabled = false;
+                    emailAuthButton.innerHTML = 'Submit';
+                    return;
+                }
+
+                let { data, error } = await this.state.supabase.auth.signInWithPassword({ email, password });
+                if (error && error.message.includes('Invalid login credentials')) {
+                    ({ data, error } = await this.state.supabase.auth.signUp({ email, password }));
+                    if (!error && data.user) {
+                        modalAuthMessage.textContent = `Success! Signed up and logged in.`;
+                        modalAuthMessage.classList.remove('hidden');
+                    } else if (!error && data.session === null) {
+                        modalAuthMessage.textContent = `Sign Up successful! Check your email to confirm your account.`;
+                        modalAuthMessage.classList.remove('hidden');
+                    }
+                } else if (error) {
+                    modalAuthMessage.textContent = `Auth Error: ${error.message}`;
+                    modalAuthMessage.classList.remove('hidden');
+                } else if (data.user) {
+                    modalAuthMessage.textContent = `Welcome back, ${email}!`;
+                    modalAuthMessage.classList.remove('hidden');
+                }
                 emailAuthButton.disabled = false;
                 emailAuthButton.innerHTML = 'Submit';
-                return;
-            }
-
-            // 1. Attempt Sign In
-            let { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-            if (error && error.message.includes('Invalid login credentials')) {
-                // 2. If Sign In fails, attempt Sign Up
-                ({ data, error } = await supabase.auth.signUp({ email, password }));
-                
-                if (!error && data.user) {
-                     // Successful sign-up & immediate sign-in (Listener fires)
-                     modalAuthMessage.textContent = `Success! Signed up and logged in.`;
-                     modalAuthMessage.classList.remove('hidden');
-                } else if (!error && data.session === null) {
-                     // Successful sign-up, requires email confirmation
-                     modalAuthMessage.textContent = `Sign Up successful! Check your email to confirm your account.`;
-                     modalAuthMessage.classList.remove('hidden');
-                }
-                
-            } else if (error) {
-                // 3. Other Sign In error
-                modalAuthMessage.textContent = `Auth Error: ${error.message}`;
-                modalAuthMessage.classList.remove('hidden');
-            } else if (data.user) {
-                // 4. Successful Sign In (Listener fires)
-                modalAuthMessage.textContent = `Welcome back, ${email}!`;
-                modalAuthMessage.classList.remove('hidden');
-            }
-            
-            emailAuthButton.disabled = false;
-            emailAuthButton.innerHTML = 'Submit';
-        };
-
-        supabase.auth.onAuthStateChange((event, session) => {
-            const user = session?.user;
-            updateAuthUI(user);
-            translateUI(localStorage.getItem(LANG_KEY) || 'English'); // Always translate on auth change
-            if (event === 'SIGNED_IN') {
-                // NOTE: History/profile swap handled in updateAuthUI
-                addMessage('system', `Welcome, ${user.user_metadata.full_name || 'User'}! I am ready to assist you.`);
-                hideProfileModal(); // Close modal on successful sign-in
-            }
-        });
-
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            updateAuthUI(session?.user);
-        });
-
-
-        // --- SPEECH RECOGNITION (Voice Input - Unchanged) ---
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let isListening = false;
-        
-        if (SpeechRecognition) {
-            speechRecognition = new SpeechRecognition();
-            speechRecognition.continuous = false;
-            speechRecognition.interimResults = true;
-            speechRecognition.lang = 'en-US'; // Can be updated based on user preference
-
-            speechRecognition.onstart = () => {
-                isListening = true;
-                micButton.title = "Listening...";
-                micButton.classList.replace('text-gray-500', 'text-red-500');
-                micButton.classList.add('animate-pulse');
-                userInput.focus();
-            };
-
-            speechRecognition.onresult = (event) => {
-                const transcript = Array.from(event.results)
-                    .map(result => result[0])
-                    .map(result => result.transcript)
-                    .join('');
-                
-                userInput.value = transcript;
-                autoExpand(userInput);
-                validateInput();
-            };
-
-            speechRecognition.onend = () => {
-                isListening = false;
-                micButton.title = "Start Voice Input";
-                micButton.classList.replace('text-red-500', 'text-gray-500');
-                micButton.classList.remove('animate-pulse');
-                if (userInput.value.trim() !== '') {
-                    sendMessage(); // Auto-send if content exists
-                }
-            };
-
-            speechRecognition.onerror = (event) => {
-                console.error('Speech recognition error', event);
-                addMessage('system', `Voice input failed: ${event.error}. Ensure microphone access is allowed.`);
-                isListening = false;
-                micButton.title = "Start Voice Input";
-                micButton.classList.replace('text-red-500', 'text-gray-500');
-                micButton.classList.remove('animate-pulse');
-            };
-        } else {
-            micButton.disabled = true;
-            micButton.title = "Voice Input not supported by your browser.";
-        }
-
-        window.toggleVoiceInput = () => {
-            if (!speechRecognition) return;
-
-            if (isListening) {
-                speechRecognition.stop();
-            } else {
-                speechRecognition.start();
-            }
-        };
-
-
-        // --- UI UTILITIES (Unchanged) ---
-
-        window.autoExpand = (element) => {
-            element.style.height = 'auto';
-            element.style.height = element.scrollHeight + 'px';
-        };
-
-        window.validateInput = () => {
-            const hasInput = userInput.value.trim() !== '';
-            sendButton.disabled = !hasInput;
-            userInput.placeholder = hasInput ? getLocalizedText('placeholder') : getLocalizedText('placeholder');
-        };
-
-        /** Adds a message bubble to the chat window. */
-        function addMessage(role, text, isImageHtml = false, timestamp = null) {
-            // FIX: Remove the initial prompt block reliably on first message
-            const promptBlock = document.getElementById('initial-message');
-            if (promptBlock) {
-                promptBlock.remove();
-            }
-            
-            const isUser = role === 'user';
-            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-            const currentTime = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            // NEW: Robust text escaping for HTML onclick attributes
-            // This is necessary because 'text' can contain newlines (\n) or single quotes (').
-            const escapedTextForHtmlAttr = text
-                .replace(/\\/g, '\\\\') // Escape backslashes first
-                .replace(/'/g, "\\'")   // Escape single quotes
-                .replace(/\n/g, '\\n')  // Escape newlines
-                .replace(/\r/g, '');    // Remove carriage returns
-
-            const messageContainer = document.createElement('div');
-            messageContainer.className = `flex ${isUser ? 'justify-end user-message-wrapper' : 'justify-start ai-message-wrapper'}`;
-            messageContainer.id = messageId;
-
-
-            const contentBlock = document.createElement('div');
-            contentBlock.className = 'flex flex-col';
-
-            const bubble = document.createElement('div');
-            const isSystem = role === 'system';
-            
-            let bubbleClass = 'max-w-[85%] px-4 py-2 rounded-xl text-sm transition duration-300';
-            
-            if (isUser) {
-                 bubbleClass += ' chat-bubble-user ml-auto';
-            } else if (role === 'model') {
-                 bubbleClass += ' chat-bubble-ai mr-auto';
-            } else if (isSystem) {
-                 bubbleClass = 'max-w-full text-center px-4 py-1 text-xs text-gray-500 transition duration-300';
-            }
-
-            bubble.className = bubbleClass;
-            
-            // Handle Text Content (applies to all roles)
-            if (text) {
-                let formattedText = text;
-                
-                if (isImageHtml) {
-                    formattedText = text; // Use raw HTML
-                } else {
-                    // Apply Markdown only if it's not raw image HTML
-                    formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    formattedText = formattedText.replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>');
-                    formattedText = formattedText.replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>');
-                    formattedText = formattedText.replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
-                    
-                    if (formattedText.includes('<li>')) {
-                        formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
-                    }
-                }
-
-                const textNode = document.createElement('div');
-                textNode.innerHTML = formattedText;
-                bubble.appendChild(textNode);
-            }
-            
-            if (!isSystem) {
-                contentBlock.appendChild(bubble);
-                
-                // Add Edit/Regenerate Controls (Visible on hover via CSS)
-                const controls = document.createElement('div');
-                controls.className = 'message-controls flex gap-1 mt-1 text-gray-400 dark:text-gray-500 text-xs opacity-0 transition duration-200';
-                
-                // --- Copy Button (All non-system messages) ---
-                controls.innerHTML += `<button onclick="copyToClipboard('${escapedTextForHtmlAttr}')" class="hover:text-[#004aad] px-1 rounded-md" title="Copy Text"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5h2M12 7v8m-4-4h8"/></svg></button>`;
-
-                if (isUser) {
-                    // User Controls: Edit, Delete
-                    controls.innerHTML += `<button onclick="editMessage('${messageId}', '${escapedTextForHtmlAttr}')" class="hover:text-[#004aad] px-1 rounded-md" title="Edit Message"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.836a4 4 0 015.656 5.656l-14 14H5v-4L18.732 6.732z" /></svg></button>`;
-                    controls.innerHTML += `<button onclick="deleteMessage('${messageId}')" class="hover:text-red-500 px-1 rounded-md" title="Delete Message"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>`;
-                    contentBlock.appendChild(controls);
-                    contentBlock.classList.add('items-end'); // Align controls right
-                    contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-end">${currentTime}</p>`; // Timestamp
-                } else if (role === 'model') {
-                    // AI Controls: Listen, Regenerate, Delete
-                    controls.innerHTML += `<button onclick="listenToMessage('${escapedTextForHtmlAttr}')" class="hover:text-[#004aad] px-1 rounded-md" title="Listen to Answer"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V5l9 7-9 7z" /></svg></button>`;
-                    controls.innerHTML += `<button onclick="regenerateResponse('${messageId}')" class="hover:text-[#004aad] px-1 rounded-md" title="Regenerate Response"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.93 8.93 0 0120 12c0 4.97-4.03 9-9 9a9 9 0 01-7.743-4.52M20 12h3M4 12H1m7.643-7.52L10 2m9.778 3.52L22 7m-11.778 13.52L14 22M4 12a8.93 8.93 0 01-1.356-4.52M12 2v3m-7 4l-.582-1.42" /></svg></button>`;
-                    controls.innerHTML += `<button onclick="deleteMessage('${messageId}')" class="hover:text-red-500 px-1 rounded-md" title="Delete Message"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>`;
-                    contentBlock.appendChild(controls);
-                    contentBlock.classList.add('items-start'); // Align controls left
-                    contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-start">${currentTime}</p>`; // Timestamp
-                }
-
-                messageContainer.appendChild(contentBlock);
-
-            } else {
-                messageContainer.innerHTML = bubble.innerHTML;
-            }
-
-            chatWindow.appendChild(messageContainer);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-        
-        /**
-         * Generic LLM API caller with exponential backoff.
-         */
-        async function fetchWithRetry(url, payload, maxRetries = 3) {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.ok) {
-                        return await response.json();
-                    }
-
-                    if (response.status >= 500 || response.status === 429) {
-                        throw new Error(`Server error or rate limited: Status ${response.status}`);
-                    } else {
-                        const errorBody = await response.json();
-                        throw new Error(`API call failed: ${response.status} - ${JSON.stringify(errorBody)}`);
-                    }
-
-                } catch (error) {
-                    console.error(`Attempt ${i + 1} failed:`, error.message);
-                    if (i === maxRetries - 1) {
-                        throw error;
-                    }
-                    const delay = Math.pow(2, i) * 1000 + Math.random() * 500;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
-
-        // --- MESSAGE EDIT/REGENERATE LOGIC ---
-
-        /** Edits the user message associated with the ID and prepares for resending. */
-        window.editMessage = (messageId, oldText) => {
-            // 1. Load message into input
-            userInput.value = oldText;
-            autoExpand(userInput);
-            validateInput();
-            userInput.focus();
-
-            // 2. Remove the message and subsequent AI response from the DOM
-            const userMsgElement = document.getElementById(messageId);
-            if (userMsgElement) {
-                // The user message is being edited, so remove it and the message immediately following it (the AI response).
-                const aiMsgElement = userMsgElement.nextElementSibling;
-                userMsgElement.remove();
-                if (aiMsgElement) {
-                     aiMsgElement.remove();
-                }
-            }
-            
-            // 3. Clear the chatHistory state (only used for the last exchange anyway)
-            chatHistory = []; 
-            saveChatHistory();
-        };
-
-        /** Regenerates the AI response for a given model message ID. */
-        window.regenerateResponse = (modelMessageId) => {
-            const modelMsgElement = document.getElementById(modelMessageId);
-            if (!modelMsgElement) return;
-
-            // The user message is the element immediately preceding the model message.
-            const userMsgElement = modelMsgElement.previousElementSibling;
-            if (!userMsgElement || !userMsgElement.querySelector('.chat-bubble-user')) {
-                 addMessage('system', 'Cannot regenerate. The original user query is missing.');
-                 return;
-            }
-            
-            // Get the user's text content
-            const userText = userMsgElement.querySelector('.chat-bubble-user').textContent.trim();
-            
-            // 1. Remove the old AI response from the DOM
-            modelMsgElement.remove();
-
-            // 2. Clear history state and resend the user message
-            chatHistory = []; 
-            
-            // Resend the message (passing the text directly and setting isRegenerate flag)
-            addMessage('system', 'Regenerating response...');
-            sendMessage(userText, true); 
-        };
-        
-        /** Deletes a message and its subsequent AI response (if applicable) */
-        window.deleteMessage = (messageId) => {
-            const elementToDelete = document.getElementById(messageId);
-            if (!elementToDelete) return;
-            
-            const isUserMessage = elementToDelete.classList.contains('user-message-wrapper');
-            const aiMsgElement = isUserMessage ? elementToDelete.nextElementSibling : null;
-
-            // 1. Remove from DOM
-            elementToDelete.remove();
-            if (aiMsgElement) aiMsgElement.remove();
-
-            // 2. Rebuild history from remaining elements (ensures consistency)
-            const remainingMessages = Array.from(chatWindow.querySelectorAll('.user-message-wrapper, .ai-message-wrapper')).map(el => {
-                const isUser = el.classList.contains('user-message-wrapper');
-                const text = el.querySelector('.chat-bubble-user, .chat-bubble-ai').textContent.trim();
-                const timeEl = el.querySelector('.timestamp');
-                const time = timeEl ? timeEl.textContent : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                return { role: isUser ? 'user' : 'model', text: text, time: time, parts: [{text: text}] };
-            });
-            
-            chatHistory = remainingMessages;
-            saveChatHistory(); 
-
-            // If the window is now empty, re-show the welcome message
-            if (chatWindow.childElementCount === 0) {
-                startNewChat();
-            }
-        };
-
-        /** Copies text to the clipboard. */
-        window.copyToClipboard = (text) => {
-            // Use the reliable document.execCommand('copy') method for cross-browser support in iframes
-            const tempInput = document.createElement('textarea');
-            tempInput.value = text;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            
-            try {
-                document.execCommand('copy');
-                addMessage('system', 'Text copied to clipboard.');
-            } catch (err) {
-                console.error('Could not copy text: ', err);
-                addMessage('system', 'Failed to copy text. Please try manually.');
-            } finally {
-                document.body.removeChild(tempInput);
-            }
-        };
-
-
-        // --- TTS UTILITY FUNCTIONS ---
-        function base64ToArrayBuffer(base64) {
-            const binaryString = window.atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        }
-
-        function pcmToWav(pcm16, sampleRate) {
-            const numChannels = 1;
-            const numSamples = pcm16.length;
-            const buffer = new ArrayBuffer(44 + numSamples * 2);
-            const view = new DataView(buffer);
-            let offset = 0;
-
-            // RIFF identifier
-            writeString(view, offset, 'RIFF'); offset += 4;
-            // file length (byte length of data + 36)
-            view.setUint32(offset, 36 + numSamples * 2, true); offset += 4;
-            // RIFF type
-            writeString(view, offset, 'WAVE'); offset += 4;
-            // format chunk identifier
-            writeString(view, offset, 'fmt '); offset += 4;
-            // format chunk length
-            view.setUint32(offset, 16, true); offset += 4;
-            // sample format (1 = PCM)
-            view.setUint16(offset, 1, true); offset += 2;
-            // number of channels
-            view.setUint16(offset, numChannels, true); offset += 2;
-            // sample rate
-            view.setUint32(offset, sampleRate, true); offset += 4;
-            // byte rate (SampleRate * NumChannels * BitsPerSample/8)
-            view.setUint32(offset, sampleRate * numChannels * 2, true); offset += 4;
-            // block align (NumChannels * BitsPerSample/8)
-            view.setUint16(offset, numChannels * 2, true); offset += 2;
-            // bits per sample
-            view.setUint16(offset, 16, true); offset += 2;
-            // data chunk identifier
-            writeString(view, offset, 'data'); offset += 4;
-            // data chunk length
-            view.setUint32(offset, numSamples * 2, true); offset += 4;
-
-            // Write PCM data
-            for (let i = 0; i < numSamples; i++) {
-                view.setInt16(offset, pcm16[i], true);
-                offset += 2;
-            }
-
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-
-        window.listenToMessage = async (text) => {
-            // Show temporary listening message
-            const tempMsgId = `tts-msg-${Date.now()}`;
-            addMessage('system', 'Generating audio...', false, tempMsgId);
-            
-            // WARNING: Exposed API Key is used here. For production, this must be proxied.
-            const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
-            
-            const payload = {
-                contents: [{ parts: [{ text: text }] }],
-                generationConfig: {
-                    responseModalities: ["AUDIO"],
-                    speechConfig: {
-                        voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } // Using Kore voice for clear tone
-                    }
-                },
-            };
-
-            try {
-                const result = await fetchWithRetry(ttsUrl, payload);
-                const part = result?.candidates?.[0]?.content?.parts?.[0];
-                
-                const audioData = part?.inlineData?.data;
-                const mimeType = part?.inlineData?.mimeType; // Expected: audio/L16;rate=24000
-
-                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                    const match = mimeType.match(/rate=(\d+)/);
-                    const sampleRate = match ? parseInt(match[1], 10) : 24000;
-                    
-                    const pcmData = base64ToArrayBuffer(audioData);
-                    const pcm16 = new Int16Array(pcmData);
-                    
-                    const wavBlob = pcmToWav(pcm16, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    
-                    const audio = new Audio(audioUrl);
-                    audio.play();
-
-                    // Replace temporary message
-                    const tempMsg = document.getElementById(tempMsgId);
-                    if(tempMsg) tempMsg.remove();
-                    
-                    audio.onplay = () => addMessage('system', 'Playing audio...');
-                    audio.onended = () => { /* Clean up after playback */ };
-
-                } else {
-                    throw new Error("Invalid audio response format.");
-                }
-
-            } catch (error) {
-                console.error("TTS API call failed:", error);
-                const tempMsg = document.getElementById(tempMsgId);
-                if(tempMsg) tempMsg.remove();
-                addMessage('system', `Audio playback failed. Please try again.`);
-            }
-        };
-
-
-        // --- MAIN CHAT LOGIC (Includes Streaming Simulation) ---
-
-        window.sendMessage = async function(overrideText, isRegenerate = false) {
-            const userText = overrideText || userInput.value.trim();
-            
-            if (!userText) return;
-
-            // 1. Update UI and history for user message
-            
-            if (!isRegenerate) {
-                const userMessageParts = [{ text: userText }];
-                addMessage('user', userText);
-                
-                // NOTE: Chat history is CLEARED before sending to simulate short, memory-less interaction.
-                chatHistory = [{ role: 'user', parts: userMessageParts, text: userText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]; 
-            }
-            
-            // Immediate UI update for acknowledgement
-            userInput.value = '';
-            userInput.style.height = 'auto'; 
-            sendButton.disabled = true;
-
-            // --- UX: Start "Just a sec" sequence (FIXED VISIBILITY) ---
-            loadingIndicator.classList.remove('hidden');
-            loadingMessage.textContent = "Just a sec..."; // Acknowledgment message
-
-            playSendSound();
-
-            // Increased visibility delay slightly
-            await new Promise(resolve => setTimeout(resolve, 800)); // 800ms delay for "Just a sec"
-            
-            // Transition to main thinking message before API call
-            loadingMessage.textContent = "Knowsta is thinking..."; 
-            // --- End "Just a sec" sequence ---
-
-            // WARNING: Exposed API Key is used here. For production, this must be proxied.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${FLASH_MODEL}:generateContent?key=${API_KEY}`;
-            
-            // 2. Prepare payload (use ONLY the current message and selected language/tone)
-            const responseLanguage = localStorage.getItem(LANG_KEY) || 'English';
-            
-            // IMPROVED SYSTEM INSTRUCTION FOR FASTER, RELEVANT ANSWERS AND AUTO LANGUAGE DETECTION
-            const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${responseTone}** tone and personality. Keep your responses short and well-structured using Markdown. Do not include unnecessary conversational filler or preamble.
-If the user asks about the creator, developer, or founder of Knowsta, you may provide the following information: ${CREATOR_BIO}`; // **UPDATED** to include bio for context
-
-            // FIX: Clean the chatHistory array to only include 'role' and 'parts' for the API call.
-            const cleanHistory = chatHistory.map(msg => ({
-                role: msg.role,
-                parts: msg.parts,
-            }));
-
-            const payload = {
-                contents: cleanHistory, // Use the cleaned history array
-                systemInstruction: { parts: [{ text: systemInstruction }] }
-            };
-
-            let aiResponseText = "";
-            
-            // Add a temporary AI bubble to receive the streamed text
-            let tempBubble = null;
-            
-            // Create a temporary placeholder message bubble for the AI response
-            const aiId = `ai-temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-            tempBubble = document.createElement('div');
-            tempBubble.className = `flex justify-start ai-message-wrapper`;
-            tempBubble.id = aiId;
-            
-            const contentBlock = document.createElement('div');
-            contentBlock.className = 'flex flex-col items-start';
-            
-            const bubble = document.createElement('div');
-            bubble.className = 'max-w-[85%] px-4 py-2 rounded-xl text-sm transition duration-300 chat-bubble-ai mr-auto';
-            bubble.innerHTML = `<span class="italic text-gray-400">...</span>`; // Initial loading text
-
-            contentBlock.appendChild(bubble);
-            tempBubble.appendChild(contentBlock);
-            chatWindow.appendChild(tempBubble);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-
-
-            try {
-                const result = await fetchWithRetry(apiUrl, payload);
-                const candidate = result.candidates?.[0];
-
-                if (candidate && candidate.content?.parts?.[0]?.text) {
-                    aiResponseText = candidate.content.parts[0].text;
-                    
-                    // --- TYPING SIMULATION (Streaming UX) ---
-                    const speed = 10; // FASTER ms per character (was 15)
-                    let i = 0;
-                    
-                    const streamFn = () => {
-                        if (i < aiResponseText.length) {
-                            const chunk = aiResponseText.substring(0, i + 1);
-                            // Update the innerHTML of the temporary bubble
-                            const targetBubble = document.getElementById(aiId)?.querySelector('.chat-bubble-ai');
-                            if (targetBubble) {
-                                targetBubble.innerHTML = chunk.replace(/\n/g, '<br>');
-                                chatWindow.scrollTop = chatWindow.scrollHeight;
-                            }
-                            i++;
-                            setTimeout(streamFn, speed);
-                        } else {
-                            // --- FINISHED STREAMING ---
-                            loadingIndicator.classList.add('hidden');
-                            sendButton.disabled = false;
-                            userInput.focus();
-                            
-                            // 3. Finalize and save the AI response 
-                            
-                            // Add final AI response to history state
-                            chatHistory.push({ role: 'model', text: aiResponseText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), parts: [{text: aiResponseText}] });
-
-                            saveChatHistory();
-
-                            // Remove the temporary streaming bubble
-                            tempBubble.remove();
-                            // Add the final, fully formatted message
-                            addMessage('model', aiResponseText);
-                            
-                            playReceiveSound();
-                            validateInput();
+            },
+
+            // --- SPEECH RECOGNITION ---
+            setupSpeechRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    this.state.speechRecognition = new SpeechRecognition();
+                    this.state.speechRecognition.continuous = false;
+                    this.state.speechRecognition.interimResults = true;
+                    this.state.speechRecognition.lang = 'en-US';
+
+                    this.state.speechRecognition.onstart = () => {
+                        this.state.isListening = true;
+                        this.ui.micButton.title = "Listening...";
+                        this.ui.micButton.classList.replace('text-gray-500', 'text-red-500');
+                        this.ui.micButton.classList.add('animate-pulse');
+                        this.ui.userInput.focus();
+                    };
+                    this.state.speechRecognition.onresult = (event) => {
+                        const transcript = Array.from(event.results).map(result => result[0]).map(result => result.transcript).join('');
+                        this.ui.userInput.value = transcript;
+                        this.methods.autoExpand(this.ui.userInput);
+                        this.methods.validateInput();
+                    };
+                    this.state.speechRecognition.onend = () => {
+                        this.state.isListening = false;
+                        this.ui.micButton.title = "Start Voice Input";
+                        this.ui.micButton.classList.replace('text-red-500', 'text-gray-500');
+                        this.ui.micButton.classList.remove('animate-pulse');
+                        if (this.ui.userInput.value.trim() !== '') {
+                            this.methods.sendMessage();
                         }
                     };
-                    streamFn(); // Start the typing simulation
-
-                } else if (result.error && result.error.message) {
-                    aiResponseText = `AI Error: ${result.error.message}. Please try again.`;
-                    addMessage('system', aiResponseText);
+                    this.state.speechRecognition.onerror = (event) => {
+                        console.error('Speech recognition error', event);
+                        this.methods.addMessage('system', `Voice input failed: ${event.error}. Ensure microphone access is allowed.`);
+                        this.state.isListening = false;
+                        this.ui.micButton.title = "Start Voice Input";
+                        this.ui.micButton.classList.replace('text-red-500', 'text-gray-500');
+                        this.ui.micButton.classList.remove('animate-pulse');
+                    };
                 } else {
-                     aiResponseText = "Sorry, I received a blank response.";
-                     addMessage('system', aiResponseText);
+                    this.ui.micButton.disabled = true;
+                    this.ui.micButton.title = "Voice Input not supported by your browser.";
+                }
+            },
+            toggleVoiceInput() {
+                if (!this.state.speechRecognition) return;
+                if (this.state.isListening) {
+                    this.state.speechRecognition.stop();
+                } else {
+                    this.state.speechRecognition.start();
+                }
+            },
+
+            // --- UI UTILITIES ---
+            autoExpand(element) {
+                element.style.height = 'auto';
+                element.style.height = element.scrollHeight + 'px';
+            },
+            validateInput() {
+                const hasInput = this.ui.userInput.value.trim() !== '';
+                this.ui.sendButton.disabled = !hasInput;
+            },
+            
+            // --- MESSAGE RENDERING ---
+            addMessage(role, text, isImageHtml = false, timestamp = null) {
+                const promptBlock = document.getElementById('initial-message');
+                if (promptBlock) promptBlock.remove();
+
+                const isUser = role === 'user';
+                const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+                const currentTime = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                const escapedTextForHtmlAttr = text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
+
+                const messageContainer = document.createElement('div');
+                messageContainer.className = `flex ${isUser ? 'justify-end user-message-wrapper' : 'justify-start ai-message-wrapper'}`;
+                messageContainer.id = messageId;
+
+                const contentBlock = document.createElement('div');
+                contentBlock.className = 'flex flex-col';
+
+                const bubble = document.createElement('div');
+                const textContentDiv = document.createElement('div'); // Div for text
+                textContentDiv.className = 'message-text-content';
+
+                const isSystem = role === 'system';
+                
+                let bubbleClass = 'max-w-[85%] px-4 py-2 rounded-xl text-sm transition duration-300';
+                if (isUser) {
+                    bubbleClass += ' chat-bubble-user ml-auto';
+                } else if (role === 'model') {
+                    bubbleClass += ' chat-bubble-ai mr-auto';
+                } else if (isSystem) {
+                    bubbleClass = 'max-w-full text-center px-4 py-1 text-xs text-gray-500 transition duration-300';
+                }
+                bubble.className = bubbleClass;
+
+                if (text) {
+                    let formattedText = text;
+                    if (!isImageHtml) {
+                        formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        formattedText = formattedText.replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>');
+                        formattedText = formattedText.replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>');
+                        formattedText = formattedText.replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
+                        if (formattedText.includes('<li>')) {
+                            formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
+                        }
+                    }
+                    textContentDiv.innerHTML = formattedText.replace(/\n/g, '<br>');
+                }
+                
+                bubble.appendChild(textContentDiv);
+                
+                if (!isSystem) {
+                    contentBlock.appendChild(bubble);
+                    const controls = document.createElement('div');
+                    controls.className = 'message-controls flex gap-1 mt-1 text-gray-400 dark:text-gray-500 text-xs opacity-0 transition duration-200';
+                    controls.innerHTML += `<button onclick="knowstaApp.methods.copyToClipboard('${escapedTextForHtmlAttr}')" class="hover:text-[#004aad] px-1 rounded-md" title="Copy Text"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5h2M12 7v8m-4-4h8"/></svg></button>`;
+
+                    if (isUser) {
+                        controls.innerHTML += `<button onclick="knowstaApp.methods.editMessage('${messageId}', '${escapedTextForHtmlAttr}')" class="hover:text-[#004aad] px-1 rounded-md" title="Edit Message"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.836a4 4 0 015.656 5.656l-14 14H5v-4L18.732 6.732z" /></svg></button>`;
+                        controls.innerHTML += `<button onclick="knowstaApp.methods.deleteMessage('${messageId}')" class="hover:text-red-500 px-1 rounded-md" title="Delete Message"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>`;
+                        contentBlock.appendChild(controls);
+                        contentBlock.classList.add('items-end');
+                        contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-end">${currentTime}</p>`;
+                    } else if (role === 'model') {
+                        controls.innerHTML += `<button onclick="knowstaApp.methods.listenToMessage('${escapedTextForHtmlAttr}')" class="hover:text-[#004aad] px-1 rounded-md" title="Listen to Answer"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V5l9 7-9 7z" /></svg></button>`;
+                        controls.innerHTML += `<button onclick="knowstaApp.methods.regenerateResponse('${messageId}')" class="hover:text-[#004aad] px-1 rounded-md" title="Regenerate Response"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.93 8.93 0 0120 12c0 4.97-4.03 9-9 9a9 9 0 01-7.743-4.52M20 12h3M4 12H1m7.643-7.52L10 2m9.778 3.52L22 7m-11.778 13.52L14 22M4 12a8.93 8.93 0 01-1.356-4.52M12 2v3m-7 4l-.582-1.42" /></svg></button>`;
+                        controls.innerHTML += `<button onclick="knowstaApp.methods.deleteMessage('${messageId}')" class="hover:text-red-500 px-1 rounded-md" title="Delete Message"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>`;
+                        contentBlock.appendChild(controls);
+                        contentBlock.classList.add('items-start');
+                        contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-start">${currentTime}</p>`;
+                    }
+                    messageContainer.appendChild(contentBlock);
+                } else {
+                    messageContainer.appendChild(bubble);
+                }
+                this.ui.chatWindow.appendChild(messageContainer);
+                this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight;
+                return messageContainer;
+            },
+            
+            async fetchWithRetry(url, payload, maxRetries = 3) {
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                        if (response.ok) return await response.json();
+                        if (response.status >= 500 || response.status === 429) throw new Error(`Server error or rate limited: Status ${response.status}`);
+                        const errorBody = await response.json();
+                        throw new Error(`API call failed: ${response.status} - ${JSON.stringify(errorBody)}`);
+                    } catch (error) {
+                        console.error(`Attempt ${i + 1} failed:`, error.message);
+                        if (i === maxRetries - 1) throw error;
+                        const delay = Math.pow(2, i) * 1000 + Math.random() * 500;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            },
+            
+            // --- MESSAGE ACTIONS ---
+            editMessage(messageId, oldText) {
+                this.ui.userInput.value = oldText;
+                this.methods.autoExpand(this.ui.userInput);
+                this.methods.validateInput();
+                this.ui.userInput.focus();
+                const userMsgElement = document.getElementById(messageId);
+                if (userMsgElement) {
+                    const aiMsgElement = userMsgElement.nextElementSibling;
+                    userMsgElement.remove();
+                    if (aiMsgElement) aiMsgElement.remove();
+                }
+                this.state.chatHistory = [];
+                this.methods.saveAllChats();
+            },
+            regenerateResponse(modelMessageId) {
+                const modelMsgElement = document.getElementById(modelMessageId);
+                if (!modelMsgElement) return;
+                const userMsgElement = modelMsgElement.previousElementSibling;
+                if (!userMsgElement || !userMsgElement.querySelector('.chat-bubble-user')) {
+                    this.methods.addMessage('system', 'Cannot regenerate. The original user query is missing.');
+                    return;
+                }
+                const userText = userMsgElement.querySelector('.chat-bubble-user').textContent.trim();
+                modelMsgElement.remove();
+                this.state.chatHistory = [];
+                this.methods.addMessage('system', 'Regenerating response...');
+                this.methods.sendMessage(userText, true);
+            },
+            deleteMessage(messageId) {
+                const elementToDelete = document.getElementById(messageId);
+                if (!elementToDelete) return;
+                const isUserMessage = elementToDelete.classList.contains('user-message-wrapper');
+                const aiMsgElement = isUserMessage ? elementToDelete.nextElementSibling : null;
+                elementToDelete.remove();
+                if (aiMsgElement) aiMsgElement.remove();
+                
+                const remainingMessages = Array.from(this.ui.chatWindow.querySelectorAll('.user-message-wrapper, .ai-message-wrapper')).map(el => {
+                    const isUser = el.classList.contains('user-message-wrapper');
+                    const text = el.querySelector('.chat-bubble-user, .chat-bubble-ai .message-text-content').textContent.trim();
+                    const timeEl = el.querySelector('.timestamp');
+                    const time = timeEl ? timeEl.textContent : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    return { role: isUser ? 'user' : 'model', text: text, time: time, parts: [{text: text}] };
+                });
+                
+                this.state.chatHistory = remainingMessages;
+                this.methods.saveAllChats();
+                
+                if (this.ui.chatWindow.childElementCount === 0) {
+                    this.methods.startNewChat();
+                }
+            },
+            copyToClipboard(text) {
+                const tempInput = document.createElement('textarea');
+                tempInput.value = text;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                try {
+                    document.execCommand('copy');
+                    this.methods.addMessage('system', 'Text copied to clipboard.');
+                } catch (err) {
+                    console.error('Could not copy text: ', err);
+                    this.methods.addMessage('system', 'Failed to copy text. Please try manually.');
+                } finally {
+                    document.body.removeChild(tempInput);
+                }
+            },
+
+            // --- TTS UTILITY ---
+            async listenToMessage(text) { 
+                this.methods.addMessage('system', 'Generating audio...');
+                const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${this.config.API_KEY}`;
+                const payload = { contents: [{ parts: [{ text: text }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } } };
+                try {
+                    const result = await this.methods.fetchWithRetry(ttsUrl, payload);
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+                    if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                        const match = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = match ? parseInt(match[1], 10) : 24000;
+                        const pcmData = (base64 => { const bin = atob(base64); const len = bin.length; const bytes = new Uint8Array(len); for (let i = 0; i < len; i++) { bytes[i] = bin.charCodeAt(i); } return bytes.buffer; })(audioData);
+                        const pcm16 = new Int16Array(pcmData);
+                        const wavBlob = (pcm, rate) => { const channels = 1, samples = pcm.length, buffer = new ArrayBuffer(44 + samples * 2), view = new DataView(buffer); let offset = 0; const write = (s) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); }; write('RIFF'); offset += 4; view.setUint32(offset, 36 + samples * 2, true); offset += 4; write('WAVE'); offset += 4; write('fmt '); offset += 4; view.setUint32(offset, 16, true); offset += 4; view.setUint16(offset, 1, true); offset += 2; view.setUint16(offset, channels, true); offset += 2; view.setUint32(offset, rate, true); offset += 4; view.setUint32(offset, rate * channels * 2, true); offset += 4; view.setUint16(offset, channels * 2, true); offset += 2; view.setUint16(offset, 16, true); offset += 2; write('data'); offset += 4; view.setUint32(offset, samples * 2, true); offset += 4; for (let i = 0; i < samples; i++, offset += 2) view.setInt16(offset, pcm[i], true); return new Blob([view], { type: 'audio/wav' }); };
+                        const audio = new Audio(URL.createObjectURL(wavBlob(pcm16, sampleRate)));
+                        audio.play();
+                    } else throw new Error("Invalid audio response format.");
+                } catch (error) { console.error("TTS API call failed:", error); this.methods.addMessage('system', 'Audio playback failed.'); }
+            },
+
+            // --- AI RESPONSE STREAMING (NEW & IMPROVED) ---
+            async streamResponse(text) {
+                return new Promise(resolve => {
+                    const aiMessageElement = this.methods.addMessage('model', '');
+                    const textContentDiv = aiMessageElement.querySelector('.message-text-content');
+                    if (!textContentDiv) { resolve(); return; }
+
+                    textContentDiv.innerHTML = '<span class="typing-cursor"></span>';
+                    this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight;
+
+                    let i = 0;
+                    const baseSpeed = 25; 
+                    const speedVariation = 20;
+
+                    const typeWriter = () => {
+                        if (this.state.stopGenerationRequested || i >= text.length) {
+                             const finalText = text.substring(0, i);
+                            let formattedText = finalText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>').replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>').replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
+                            if (formattedText.includes('<li>')) formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
+                            textContentDiv.innerHTML = formattedText.replace(/\n/g, '<br>');
+                            
+                            if (this.state.chatHistory[this.state.chatHistory.length - 1].role !== 'model') {
+                                this.state.chatHistory.push({ role: 'model', text: finalText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), parts: [{ text: finalText }] });
+                            } else {
+                                this.state.chatHistory[this.state.chatHistory.length - 1].text = finalText;
+                            }
+                            this.methods.saveAllChats();
+                            
+                            resolve();
+                            return;
+                        }
+
+                        const char = text.charAt(i);
+                        textContentDiv.innerHTML = text.substring(0, i + 1).replace(/\n/g, '<br>') + '<span class="typing-cursor"></span>';
+                        this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight;
+                        i++;
+
+                        let delay = baseSpeed + (Math.random() * speedVariation) - (speedVariation / 2);
+                        if (char === ',' || char === '\n') delay += 200;
+                        if (char === '.' || char === '?' || char === '!') delay += 350;
+                        
+                        setTimeout(typeWriter, delay);
+                    };
+                    
+                    setTimeout(typeWriter, 400); 
+                });
+            },
+
+            // --- CORE SEND LOGIC ---
+            async sendMessage(overrideText, isRegenerate = false) {
+                if (this.state.isGenerating) return; // Prevent multiple submissions
+                const userText = overrideText || this.ui.userInput.value.trim();
+                if (!userText) return;
+                
+                this.state.isGenerating = true;
+                this.state.stopGenerationRequested = false;
+
+                if (!isRegenerate) {
+                    this.methods.addMessage('user', userText);
+                    this.state.chatHistory.push({ role: 'user', parts: [{ text: userText }], text: userText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+                    if (this.state.chatHistory.length === 1) {
+                        this.methods.saveAllChats(); 
+                    }
                 }
 
-            } catch (error) {
-                console.error("Gemini API call failed:", error);
-                addMessage('system', `Network Error: I'm having trouble connecting to the AI. Details: ${error.message}. Please check your internet connection and try again.`);
-            } finally {
-                // If an error occurred before or during streaming setup, ensure final state is set
-                if (loadingIndicator.classList.contains('hidden') === false) {
-                    loadingIndicator.classList.add('hidden');
-                    sendButton.disabled = false;
-                    userInput.focus();
-                    validateInput();
-                    
-                    // If streaming didn't start/complete successfully, remove the temporary bubble
-                    if (tempBubble) tempBubble.remove();
-                    saveChatHistory();
+                this.ui.userInput.value = '';
+                this.ui.userInput.style.height = 'auto';
+                this.ui.sendButton.disabled = true;
+
+                this.ui.loadingIndicator.style.display = 'flex';
+                this.ui.loadingIndicator.classList.remove('hidden');
+                this.ui.loadingMessage.textContent = "Knowsta is thinking...";
+                this.ui.stopGeneratingBtn.classList.remove('hidden');
+                this.methods.playSendSound();
+                
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.config.FLASH_MODEL}:generateContent?key=${this.config.API_KEY}`;
+                
+                const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${this.state.responseTone}** tone and personality. Keep your responses short and well-structured using Markdown. Do not include unnecessary conversational filler or preamble.
+If the user asks about the creator, developer, or founder of Knowsta, you may provide the following information: ${this.config.CREATOR_BIO}`;
+                const cleanHistory = this.state.chatHistory.map(msg => ({ role: msg.role === 'model' ? 'model' : 'user', parts: msg.parts }));
+                const payload = { contents: cleanHistory, systemInstruction: { parts: [{ text: systemInstruction }] } };
+
+                try {
+                    const result = await this.methods.fetchWithRetry(apiUrl, payload);
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        const aiResponseText = candidate.content.parts[0].text;
+                        this.ui.loadingIndicator.classList.add('hidden');
+                        this.ui.stopGeneratingBtn.classList.add('hidden');
+                        await this.methods.streamResponse(aiResponseText);
+                        this.methods.playReceiveSound();
+                    } else {
+                        throw new Error(result.error ? result.error.message : "Received a blank response.");
+                    }
+                } catch (error) {
+                    console.error("Gemini API call failed:", error);
+                    this.methods.addMessage('system', `Network Error: I'm having trouble connecting. Details: ${error.message}. Please try again.`);
+                } finally {
+                    this.state.isGenerating = false;
+                    this.state.stopGenerationRequested = false;
+                    this.ui.loadingIndicator.classList.add('hidden');
+                    this.ui.stopGeneratingBtn.classList.add('hidden');
+                    this.methods.validateInput();
+                    this.ui.userInput.focus();
+                    this.methods.saveAllChats();
+                }
+            },
+            
+            // --- NEW ADVANCED METHODS ---
+            renderChatHistoryList() {
+                this.ui.chatHistoryList.innerHTML = '';
+                const chatIds = Object.keys(this.state.allChats).reverse();
+                if (chatIds.length === 0) {
+                    this.ui.chatHistoryList.innerHTML = '<p class="text-xs text-gray-400 px-1">No recent chats.</p>';
+                    return;
+                }
+
+                chatIds.forEach(chatId => {
+                    const chat = this.state.allChats[chatId];
+                    if (chat.length > 0) {
+                        const firstUserMessage = chat.find(m => m.role === 'user');
+                        const title = firstUserMessage ? firstUserMessage.text.substring(0, 25) + (firstUserMessage.text.length > 25 ? '...' : '') : 'New Chat';
+                        
+                        const item = document.createElement('div');
+                        item.className = `chat-history-item text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50`;
+                        if (chatId === this.state.currentChatId) {
+                            item.classList.add('active');
+                        }
+
+                        const titleSpan = document.createElement('span');
+                        titleSpan.className = 'chat-title';
+                        titleSpan.textContent = title;
+                        titleSpan.onclick = () => this.methods.loadChat(chatId);
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-chat-btn text-gray-400 hover:text-red-500';
+                        deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+                        deleteBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            this.methods.deleteChat(chatId);
+                        };
+
+                        item.appendChild(titleSpan);
+                        item.appendChild(deleteBtn);
+                        this.ui.chatHistoryList.appendChild(item);
+                    }
+                });
+            },
+            clearAllData() {
+                if (confirm("Are you sure you want to delete all your data? This action cannot be undone.")) {
+                    localStorage.removeItem(this.methods.getChatsKey(this.state.userId));
+                    localStorage.removeItem(this.methods.getProfileBioKey(this.state.userId));
+                    this.state.allChats = {};
+                    this.state.currentChatId = null;
+                    this.methods.startNewChat();
+                    this.methods.hideSettingsModal();
+                    this.methods.addMessage('system', 'All your local data has been cleared.');
+                }
+            },
+            deleteChat(chatId) {
+                if (confirm("Are you sure you want to delete this chat?")) {
+                    delete this.state.allChats[chatId];
+                    if (this.state.currentChatId === chatId) {
+                        const remainingChats = Object.keys(this.state.allChats);
+                        if(remainingChats.length > 0) {
+                            this.methods.loadChat(remainingChats[remainingChats.length - 1]);
+                        } else {
+                            this.methods.startNewChat();
+                        }
+                    }
+                    this.methods.saveAllChats();
+                }
+            },
+            stopGeneration() {
+                if (this.state.isGenerating) {
+                    this.state.stopGenerationRequested = true;
                 }
             }
         };
 
+        // --- GLOBAL INITIALIZATION ---
+        window.knowstaApp = knowstaApp; // Expose the app object to the window
+        document.addEventListener('DOMContentLoaded', () => knowstaApp.init());
 
-        // Enable buttons when text is present
-        userInput.addEventListener('input', () => {
-            const hasInput = userInput.value.trim() !== '';
-            sendButton.disabled = !hasInput;
-        });
-
-        // --- APP INITIALIZATION ---
-
-        function initApp() {
-            // Load essential configurations first
-            loadTheme();
-            loadLanguage(); 
-            loadTone();
-            // loadProfileCustomization() called inside updateAuthUI (after userId is set)
-
-            // Load history or start new chat (History check is now inside loadChatHistory)
-            const minimumLoadTime = new Promise(resolve => setTimeout(resolve, MINIMUM_LOAD_MS)); // FIX: Uses 3000ms
-            const authReadyCheck = supabase.auth.getSession(); 
-
-            Promise.all([minimumLoadTime, authReadyCheck]).then(() => {
-                // Initial auth state check will trigger updateAuthUI which loads initial history/profile
-                
-                // If no history was loaded by the auth listener (i.e., guest without prior history), start fresh.
-                if (!loadChatHistory()) {
-                     startNewChat(); 
-                }
-                loadProfileCustomization(); // Ensure profile custom fields are loaded/synced once auth is known
-                validateInput();
-
-                // Hide Preloader and show app container after 3s minimum AND auth check is done
-                preloader.classList.add('opacity-0');
-                preloader.addEventListener('transitionend', () => {
-                    preloader.classList.add('hidden');
-                    appContainer.classList.remove('opacity-0');
-                }, { once: true });
-            });
-        }
-        
-        // This is called once all external module scripts have loaded.
-        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
+
+

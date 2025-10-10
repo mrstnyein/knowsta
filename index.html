@@ -66,8 +66,17 @@
                 border-radius: 0;
             }
             .sidebar {
-                /* Hide sidebar on small screens, will be toggleable if needed */
-                display: none; 
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 40;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            }
+            .sidebar.open {
+                transform: translateX(0);
             }
             /* Adjust main chat panel to take full width */
             .main-chat-panel {
@@ -377,9 +386,12 @@
             
             <!-- Header (Mobile/Web) -->
             <header class="p-2 sm:p-4 border-b border-gray-100 shadow-sm sticky top-0 z-10 flex items-center justify-between transition duration-300">
-                <!-- Brand Title (Visible on Mobile/Web) -->
-                <div class="flex items-center">
-                    <!-- FIX: Header text color uses primary color -->
+                <div class="flex items-center gap-2">
+                    <button id="hamburger-btn" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 md:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
                     <h1 class="text-xl font-bold transition duration-300 text-[#004aad] dark:text-white">Knowsta</h1>
                 </div>
                 <!-- Mobile/Web Auth/Profile button -->
@@ -459,6 +471,8 @@
         </div>
         
     </div>
+
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
 
     <!-- Settings Modal (NEW) -->
     <div id="settings-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
@@ -651,6 +665,9 @@
                     labelAbout: document.getElementById('label-about'),
                     chatHistoryList: document.getElementById('chat-history-list'),
                     stopGeneratingBtn: document.getElementById('stop-generating-btn'),
+                    hamburgerBtn: document.getElementById('hamburger-btn'),
+                    mobileMenuOverlay: document.getElementById('mobile-menu-overlay'),
+                    sidebar: document.querySelector('.sidebar'),
                 };
                 
                 // 3. Bind methods to the app context
@@ -658,9 +675,12 @@
                     this.methods[key] = this.methods[key].bind(this);
                 }
                 
-                // 4. Set up core services
+                // 4. Set up core services and event listeners
                 this.methods.setupSound();
                 this.methods.setupSpeechRecognition();
+                this.ui.hamburgerBtn.addEventListener('click', this.methods.toggleMobileMenu);
+                this.ui.mobileMenuOverlay.addEventListener('click', this.methods.toggleMobileMenu);
+
 
                 // 5. Load settings and data
                 this.methods.loadTheme();
@@ -844,6 +864,10 @@
                 this.methods.updateTone(savedTone);
                 if (this.ui.modalToneSelector) this.ui.modalToneSelector.value = savedTone;
             },
+            toggleMobileMenu() {
+                this.ui.sidebar.classList.toggle('open');
+                this.ui.mobileMenuOverlay.classList.toggle('hidden');
+            },
             
             // --- PROFILE & HISTORY ---
             saveProfileCustomization() {
@@ -922,6 +946,9 @@
 
             // --- CHAT LOGIC ---
             startNewChat() {
+                if (window.innerWidth <= 768 && this.ui.sidebar.classList.contains('open')) {
+                    this.methods.toggleMobileMenu();
+                }
                 if (this.state.isGenerating) this.methods.stopGeneration();
                 this.methods.saveAllChats();
                 
@@ -956,6 +983,9 @@
                     this.state.chatHistory.forEach(msg => this.methods.addMessage(msg.role, msg.text, false, msg.time));
                     setTimeout(() => { this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight; }, 100);
                     this.methods.renderChatHistoryList();
+                }
+                if (window.innerWidth <= 768 && this.ui.sidebar.classList.contains('open')) {
+                    this.methods.toggleMobileMenu();
                 }
             },
             sendTopic(topicText) {

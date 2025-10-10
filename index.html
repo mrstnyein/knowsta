@@ -15,8 +15,6 @@
     <meta property="og:image" content="https://placehold.co/1200x630/004aad/ffffff?text=Knowsta+AI"/>
     <meta property="og:url" content="[Your App URL]"/> 
 
-    <!-- Tone.js for synthesized sound effects (no external files needed) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/tone.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         /* Primary Brand Color: #004aad (Deep Blue) */
@@ -351,7 +349,7 @@
             <div id="chat-history-container" class="flex-grow overflow-y-auto mb-4 border-t border-b border-gray-200 dark:border-gray-700 py-4">
                  <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 px-1">Recent Chats</div>
                  <div id="chat-history-list" class="space-y-1">
-                      <!-- History items will be injected here -->
+                     <!-- History items will be injected here -->
                  </div>
             </div>
 
@@ -520,6 +518,24 @@
                     <option value="Neutral">Neutral (Objective, Direct)</option>
                 </select>
             </div>
+
+            <!-- NEW: Audio & Speech Settings -->
+            <div class="mb-6 pb-4 border-b dark:border-gray-700">
+                <p class="text-lg font-semibold mb-2">Audio & Speech</p>
+                <label for="modal-voice-selector" class="block text-sm text-gray-700 dark:text-gray-300 mb-2">Text-to-Speech Voice</label>
+                <select id="modal-voice-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateVoiceFromModal()">
+                    <option value="Iapetus">Iapetus (Clear)</option>
+                    <option value="Erinome">Erinome (Clear)</option>
+                    <option value="Charon">Charon (Informative)</option>
+                    <option value="Kore">Kore (Firm)</option>
+                    <option value="Puck">Puck (Upbeat)</option>
+                    <option value="Zephyr">Zephyr (Bright)</option>
+                    <option value="Algenib">Algenib (Gravelly)</option>
+                    <option value="Sulafat">Sulafat (Warm)</option>
+                    <option value="Achird">Achird (Friendly)</option>
+                    <option value="Leda">Leda (Youthful)</option>
+                </select>
+            </div>
             
             <div class="mb-6">
                  <p class="text-lg font-semibold mb-2">Data Management</p>
@@ -567,6 +583,26 @@
                     <label for="profile-bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio / About Me (Local Storage)</label>
                     <textarea id="profile-bio" oninput="knowstaApp.methods.saveProfileCustomization()" placeholder="Tell people about yourself..." rows="3" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600"></textarea>
                 </div>
+
+                <!-- NEW: Account Settings Section -->
+                <div id="account-settings-container" class="w-full space-y-4 pt-4 border-t dark:border-gray-700">
+                    <p class="text-xs font-semibold text-gray-600 dark:text-gray-300">Account Management</p>
+                    
+                    <!-- Update Name -->
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="profile-name-input" placeholder="New display name" class="flex-grow p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600">
+                        <button onclick="knowstaApp.methods.updateUsername()" class="py-2 px-3 bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-white text-sm rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 animated-button">Save</button>
+                    </div>
+
+                    <!-- Update Password (for email auth users only) -->
+                    <div id="password-update-container" class="hidden space-y-2">
+                        <input type="password" id="profile-new-password" placeholder="New password (min 6 chars)" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600">
+                        <button onclick="knowstaApp.methods.updatePassword()" class="w-full py-2 px-4 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-800 animated-button dark:bg-gray-600 dark:hover:bg-gray-700">Update Password</button>
+                    </div>
+                    
+                    <p id="account-settings-message" class="text-sm text-center text-green-600 dark:text-green-400 hidden"></p>
+                </div>
+
                 <button 
                     id="profile-auth-button"
                     onclick="knowstaApp.methods.handleAuthClick(); knowstaApp.methods.hideProfileModal();" 
@@ -602,6 +638,7 @@
                 THEME_KEY: 'knowsta_theme',
                 LANG_KEY: 'knowsta_lang',
                 TONE_KEY: 'knowsta_tone',
+                VOICE_KEY: 'knowsta_voice', // NEW
                 CREATOR_BIO: "Sithu Nyein (born 2003) is a 22-year-old Myanmar-based digital marketer and entrepreneur, currently enhancing his skills through Coursera’s professional programs. He is the founder of Knowsta, an upcoming AI-powered chat application designed to deliver smarter, more creative, and user-friendly conversations for global users. Sithu aims to make AI assistance more personalized, accessible, and efficient, bridging the gap between human communication and artificial intelligence.",
                 MINIMUM_LOAD_MS: 2500,
             },
@@ -615,10 +652,10 @@
                 supabase: null,
                 speechRecognition: null,
                 responseTone: 'Friendly',
+                ttsVoice: 'Iapetus', // NEW: Default clear voice
                 profileBio: '',
                 isListening: false,
-                sendSynth: null,
-                receiveSynth: null,
+                audioContext: null, // NEW: For Web Audio API
                 isGenerating: false, // NEW
                 stopGenerationRequested: false, // NEW
             },
@@ -651,6 +688,7 @@
                     currentThemeLabel: document.getElementById('current-theme-label'),
                     modalLangSelector: document.getElementById('modal-lang-selector'),
                     modalToneSelector: document.getElementById('modal-tone-selector'),
+                    modalVoiceSelector: document.getElementById('modal-voice-selector'), // NEW
                     micButton: document.getElementById('mic-button'),
                     profileModal: document.getElementById('profile-modal'),
                     profileAvatarImg: document.getElementById('profile-avatar-img'),
@@ -668,6 +706,12 @@
                     hamburgerBtn: document.getElementById('hamburger-btn'),
                     mobileMenuOverlay: document.getElementById('mobile-menu-overlay'),
                     sidebar: document.querySelector('.sidebar'),
+                    // NEW UI elements for account settings
+                    accountSettingsContainer: document.getElementById('account-settings-container'),
+                    profileNameInput: document.getElementById('profile-name-input'),
+                    passwordUpdateContainer: document.getElementById('password-update-container'),
+                    profileNewPasswordInput: document.getElementById('profile-new-password'),
+                    accountSettingsMessage: document.getElementById('account-settings-message'),
                 };
                 
                 // 3. Bind methods to the app context
@@ -686,6 +730,7 @@
                 this.methods.loadTheme();
                 this.methods.loadLanguage();
                 this.methods.loadTone();
+                this.methods.loadVoice(); // NEW
                 
                 // 6. Set up Auth listeners
                 this.state.supabase.auth.onAuthStateChange((event, session) => {
@@ -735,32 +780,51 @@
                 return `knowsta_bio_${id}`;
             },
 
-            // --- SOUND MANAGER ---
+            // --- SOUND MANAGER (Using Web Audio API for speed) ---
             setupSound() {
-                if (window.Tone) {
-                    this.state.sendSynth = new Tone.Synth({
-                        oscillator: { type: "square" },
-                        envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 }
-                    }).toDestination();
-                    this.state.receiveSynth = new Tone.PolySynth(Tone.Synth, {
-                        oscillator: { type: "sine" },
-                        envelope: { attack: 0.05, decay: 0.2, sustain: 0.1, release: 0.5 }
-                    }).toDestination();
-
-                    document.addEventListener('click', () => {
-                        if (Tone.context.state !== 'running') {
-                            Tone.start().then(() => console.log("AudioContext started."));
+                try {
+                    this.state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    // Resume the context on the first user interaction for browser compatibility.
+                    const resumeContext = () => {
+                        if (this.state.audioContext.state === 'suspended') {
+                            this.state.audioContext.resume();
                         }
-                    }, { once: true });
-                } else {
-                    console.warn("Tone.js not loaded. Sound effects disabled.");
+                        document.body.removeEventListener('click', resumeContext);
+                        document.body.removeEventListener('touchend', resumeContext);
+                    };
+                    document.body.addEventListener('click', resumeContext, { once: true });
+                    document.body.addEventListener('touchend', resumeContext, { once: true });
+                } catch (e) {
+                    console.warn("Web Audio API is not supported in this browser.");
+                    this.state.audioContext = null;
                 }
             },
             playSendSound() {
-                if (this.state.sendSynth) this.state.sendSynth.triggerAttackRelease("C5", "16n");
+                if (!this.state.audioContext) return;
+                const oscillator = this.state.audioContext.createOscillator();
+                const gainNode = this.state.audioContext.createGain();
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(880, this.state.audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.2, this.state.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, this.state.audioContext.currentTime + 0.1);
+                oscillator.connect(gainNode);
+                gainNode.connect(this.state.audioContext.destination);
+                oscillator.start(this.state.audioContext.currentTime);
+                oscillator.stop(this.state.audioContext.currentTime + 0.1);
             },
             playReceiveSound() {
-                if (this.state.receiveSynth) this.state.receiveSynth.triggerAttackRelease(["C4", "E4", "G4"], "8n");
+                if (!this.state.audioContext) return;
+                const oscillator = this.state.audioContext.createOscillator();
+                const gainNode = this.state.audioContext.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(523.25, this.state.audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(659.25, this.state.audioContext.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.15, this.state.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, this.state.audioContext.currentTime + 0.3);
+                oscillator.connect(gainNode);
+                gainNode.connect(this.state.audioContext.destination);
+                oscillator.start(this.state.audioContext.currentTime);
+                oscillator.stop(this.state.audioContext.currentTime + 0.3);
             },
 
             // --- LOCALIZATION ---
@@ -864,6 +928,20 @@
                 this.methods.updateTone(savedTone);
                 if (this.ui.modalToneSelector) this.ui.modalToneSelector.value = savedTone;
             },
+            // NEW: Voice settings methods
+            updateVoice(selectedVoice) {
+                this.state.ttsVoice = selectedVoice;
+                localStorage.setItem(this.config.VOICE_KEY, this.state.ttsVoice);
+            },
+            updateVoiceFromModal() {
+                const selectedVoice = this.ui.modalVoiceSelector.value;
+                this.methods.updateVoice(selectedVoice);
+            },
+            loadVoice() {
+                const savedVoice = localStorage.getItem(this.config.VOICE_KEY) || 'Iapetus'; // New default clear voice
+                this.methods.updateVoice(savedVoice);
+                if (this.ui.modalVoiceSelector) this.ui.modalVoiceSelector.value = savedVoice;
+            },
             toggleMobileMenu() {
                 this.ui.sidebar.classList.toggle('open');
                 this.ui.mobileMenuOverlay.classList.toggle('hidden');
@@ -909,12 +987,13 @@
             showSettingsModal() {
                 this.ui.modalLangSelector.value = localStorage.getItem(this.config.LANG_KEY) || 'English';
                 this.ui.modalToneSelector.value = localStorage.getItem(this.config.TONE_KEY) || 'Friendly';
+                this.ui.modalVoiceSelector.value = localStorage.getItem(this.config.VOICE_KEY) || 'Iapetus'; // NEW
                 this.ui.settingsModal.classList.remove('hidden');
                 this.ui.settingsModal.classList.add('flex');
             },
             hideSettingsModal() { this.ui.settingsModal.classList.add('hidden'); this.ui.settingsModal.classList.remove('flex'); },
             handleAuthClickOrProfile() {
-                const user = this.state.supabase?.auth.currentUser;
+                const user = this.state.supabase.auth.getSession()?.user;
                 if (user) {
                     this.methods.showProfileModal();
                 } else {
@@ -922,11 +1001,19 @@
                 }
             },
             showProfileModal() {
-                const user = this.state.supabase?.auth.currentUser;
+                 const { data: { session } } = this.state.supabase.auth.getSession();
+                 const user = session?.user;
+
                 if (!user) {
-                    this.methods.handleAuthClick();
+                    this.methods.handleAuthClick(); // Fallback to auth flow if no user
                     return;
                 }
+                
+                // Reset form state
+                this.ui.accountSettingsMessage.classList.add('hidden');
+                this.ui.profileNameInput.value = '';
+                this.ui.profileNewPasswordInput.value = '';
+                
                 const displayName = user?.user_metadata.full_name || user?.email || 'User';
                 const avatarUrl = user?.user_metadata.avatar_url;
                 const uid = user?.id || 'N/A';
@@ -939,6 +1026,14 @@
                 profileAuthButton.textContent = this.methods.getLocalizedText('btn_signout');
                 profileAuthButton.classList.replace('bg-indigo-600', 'bg-red-600');
                 authFormContainer.classList.add('hidden');
+                
+                // Show/hide password update form based on provider
+                if (user.app_metadata.provider === 'email') {
+                    this.ui.passwordUpdateContainer.classList.remove('hidden');
+                } else {
+                    this.ui.passwordUpdateContainer.classList.add('hidden');
+                }
+
                 this.ui.profileModal.classList.remove('hidden');
                 this.ui.profileModal.classList.add('flex');
             },
@@ -1023,7 +1118,52 @@
                 this.methods.addMessage('system', `Chat exported as "${filename}".`);
             },
             
-            // --- AUTHENTICATION ---
+            // --- AUTHENTICATION & ACCOUNT SETTINGS ---
+            async updateUsername() {
+                const newName = this.ui.profileNameInput.value.trim();
+                if (!newName) {
+                    this.ui.accountSettingsMessage.textContent = 'Name cannot be empty.';
+                    this.ui.accountSettingsMessage.className = 'text-sm text-center text-red-500 dark:text-red-400';
+                    this.ui.accountSettingsMessage.classList.remove('hidden');
+                    return;
+                }
+                const { data, error } = await this.state.supabase.auth.updateUser({
+                    data: { full_name: newName }
+                });
+                if (error) {
+                    this.ui.accountSettingsMessage.textContent = `Error: ${error.message}`;
+                    this.ui.accountSettingsMessage.className = 'text-sm text-center text-red-500 dark:text-red-400';
+                    this.ui.accountSettingsMessage.classList.remove('hidden');
+                } else {
+                    this.ui.accountSettingsMessage.textContent = 'Name updated successfully!';
+                    this.ui.accountSettingsMessage.className = 'text-sm text-center text-green-600 dark:text-green-400';
+                    this.ui.accountSettingsMessage.classList.remove('hidden');
+                    await this.state.supabase.auth.refreshSession();
+                    this.methods.updateAuthUI(data.user);
+                    this.ui.profileNameText.textContent = newName;
+                    this.ui.profileNameInput.value = '';
+                }
+            },
+            async updatePassword() {
+                const newPassword = this.ui.profileNewPasswordInput.value;
+                if (newPassword.length < 6) {
+                    this.ui.accountSettingsMessage.textContent = 'Password must be at least 6 characters.';
+                    this.ui.accountSettingsMessage.className = 'text-sm text-center text-red-500 dark:text-red-400';
+                    this.ui.accountSettingsMessage.classList.remove('hidden');
+                    return;
+                }
+                const { error } = await this.state.supabase.auth.updateUser({ password: newPassword });
+                if (error) {
+                    this.ui.accountSettingsMessage.textContent = `Error: ${error.message}`;
+                    this.ui.accountSettingsMessage.className = 'text-sm text-center text-red-500 dark:text-red-400';
+                    this.ui.accountSettingsMessage.classList.remove('hidden');
+                } else {
+                    this.ui.accountSettingsMessage.textContent = 'Password updated successfully!';
+                    this.ui.accountSettingsMessage.className = 'text-sm text-center text-green-600 dark:text-green-400';
+                    this.ui.accountSettingsMessage.classList.remove('hidden');
+                    this.ui.profileNewPasswordInput.value = '';
+                }
+            },
             updateAuthUI(user) {
                 const oldUserId = this.state.userId;
                 if (user) {
@@ -1031,7 +1171,7 @@
                     const avatarUrl = user.user_metadata.avatar_url;
                     this.ui.authButton.textContent = this.methods.getLocalizedText('btn_signout');
                     this.ui.authButton.className = 'py-1 px-3 border border-gray-300 text-gray-700 text-sm rounded-full transition duration-150 hover:bg-gray-100 dark:border-gray-500 dark:text-gray-300 dark:hover:bg-gray-700 animated-button';
-                    this.ui.userAvatar.src = avatarUrl || `https://placehold.co/32x32/4f46e5/ffffff?text=${displayName[0]}`;
+                    this.ui.userAvatar.src = avatarUrl || `https://placehold.co/32x32/004aad/ffffff?text=${displayName[0].toUpperCase()}`;
                     this.ui.userAvatar.classList.remove('hidden');
                     this.ui.sidebarUsername.textContent = displayName;
                     this.ui.userAvatarSidebar.src = this.ui.userAvatar.src;
@@ -1049,7 +1189,7 @@
                     this.methods.saveAllChats();
                     this.methods.loadProfileCustomization();
                     this.methods.loadAllChats();
-                    if (!this.state.currentChatId) {
+                    if (!this.state.currentChatId || Object.keys(this.state.allChats).length === 0) {
                         this.methods.startNewChat();
                     }
                 }
@@ -1418,7 +1558,7 @@
             async listenToMessage(text) { 
                 this.methods.addMessage('system', 'Generating audio...');
                 const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${this.config.API_KEY}`;
-                const payload = { contents: [{ parts: [{ text: text }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } } };
+                const payload = { contents: [{ parts: [{ text: text }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: this.state.ttsVoice } } } } };
                 try {
                     const result = await this.methods.fetchWithRetry(ttsUrl, payload);
                     const part = result?.candidates?.[0]?.content?.parts?.[0];
@@ -1458,7 +1598,7 @@
 
                     const typeWriter = () => {
                         if (this.state.stopGenerationRequested || i >= text.length) {
-                             const finalText = text.substring(0, i);
+                            const finalText = text.substring(0, i);
                             let formattedText = finalText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>').replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>').replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
                             if (formattedText.includes('<li>')) formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
                             textContentDiv.innerHTML = formattedText.replace(/\n/g, '<br>');
@@ -1599,6 +1739,7 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                 // Removed confirm() dialog for a smoother experience
                 localStorage.removeItem(this.methods.getChatsKey(this.state.userId));
                 localStorage.removeItem(this.methods.getProfileBioKey(this.state.userId));
+                localStorage.removeItem(this.config.VOICE_KEY); // NEW
                 this.state.allChats = {};
                 this.state.currentChatId = null;
                 this.methods.startNewChat();
@@ -1632,4 +1773,3 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
     </script>
 </body>
 </html>
-

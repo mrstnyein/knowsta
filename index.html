@@ -1182,6 +1182,17 @@
             
             // --- MESSAGE RENDERING ---
             addMessage(role, text, isImageHtml = false, timestamp = null) {
+                const suppressedMessages = [
+                    'Generating audio...',
+                    'Audio playback failed. Please check the console for details.',
+                    'Regenerating response...'
+                ];
+
+                if (role === 'system' && suppressedMessages.includes(text)) {
+                    console.log(`Suppressed system message: "${text}"`);
+                    return null; 
+                }
+
                 const promptBlock = document.getElementById('initial-message');
                 if (promptBlock) promptBlock.remove();
 
@@ -1288,22 +1299,30 @@
                     userMsgElement.remove();
                     if (aiMsgElement) aiMsgElement.remove();
                 }
-                this.state.chatHistory = [];
+                this.state.chatHistory = []; // Clears history to restart this thread
                 this.methods.saveAllChats();
             },
             regenerateResponse(modelMessageId) {
                 const modelMsgElement = document.getElementById(modelMessageId);
                 if (!modelMsgElement) return;
+
                 const userMsgElement = modelMsgElement.previousElementSibling;
                 if (!userMsgElement || !userMsgElement.querySelector('.chat-bubble-user')) {
                     this.methods.addMessage('system', 'Cannot regenerate. The original user query is missing.');
                     return;
                 }
-                const userText = userMsgElement.querySelector('.chat-bubble-user').textContent.trim();
+                const userText = userMsgElement.querySelector('.message-text-content').textContent.trim();
+                
+                // Remove the old AI response from the UI
                 modelMsgElement.remove();
-                this.state.chatHistory = [];
+
+                // FIX: Remove the last AI response from the state history before regenerating
+                if (this.state.chatHistory.length > 0 && this.state.chatHistory[this.state.chatHistory.length - 1].role === 'model') {
+                    this.state.chatHistory.pop();
+                }
+                
                 this.methods.addMessage('system', 'Regenerating response...');
-                this.methods.sendMessage(userText, true);
+                this.methods.sendMessage(userText, true); // True flag prevents re-adding user message to history
             },
             deleteMessage(messageId) {
                 const elementToDelete = document.getElementById(messageId);
@@ -1311,14 +1330,21 @@
                 const isUserMessage = elementToDelete.classList.contains('user-message-wrapper');
                 const aiMsgElement = isUserMessage ? elementToDelete.nextElementSibling : null;
                 elementToDelete.remove();
-                if (aiMsgElement) aiMsgElement.remove();
+                if (aiMsgElement && aiMsgElement.classList.contains('ai-message-wrapper')) {
+                    aiMsgElement.remove();
+                }
                 
                 const remainingMessages = Array.from(this.ui.chatWindow.querySelectorAll('.user-message-wrapper, .ai-message-wrapper')).map(el => {
                     const isUser = el.classList.contains('user-message-wrapper');
-                    const text = el.querySelector('.chat-bubble-user, .chat-bubble-ai .message-text-content').textContent.trim();
+                    const textContent = el.querySelector('.message-text-content').textContent.trim();
                     const timeEl = el.querySelector('.timestamp');
                     const time = timeEl ? timeEl.textContent : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    return { role: isUser ? 'user' : 'model', text: text, time: time, parts: [{text: text}] };
+                    return { 
+                        role: isUser ? 'user' : 'model', 
+                        text: textContent, 
+                        time: time, 
+                        parts: [{ text: textContent }] 
+                    };
                 });
                 
                 this.state.chatHistory = remainingMessages;
@@ -1344,7 +1370,51 @@
                 }
             },
 
-            // --- TTS UTILITY ---
+            // --- TTS UTILITY (FIXED) ---
+            base64ToArrayBuffer(base64) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes.buffer;
+            },
+            pcmToWav(pcmData, sampleRate) {
+                const numChannels = 1;
+                const bitsPerSample = 16;
+                const numSamples = pcmData.length;
+                const buffer = new ArrayBuffer(44 + numSamples * 2);
+                const view = new DataView(buffer);
+
+                let offset = 0;
+                const writeString = (str) => {
+                    for (let i = 0; i < str.length; i++) {
+                        view.setUint8(offset + i, str.charCodeAt(i));
+                    }
+                };
+
+                writeString('RIFF'); offset += 4;
+                view.setUint32(offset, 36 + numSamples * 2, true); offset += 4;
+                writeString('WAVE'); offset += 4;
+                writeString('fmt '); offset += 4;
+                view.setUint32(offset, 16, true); offset += 4; // Sub-chunk size
+                view.setUint16(offset, 1, true); offset += 2;  // Audio format (1 for PCM)
+                view.setUint16(offset, numChannels, true); offset += 2;
+                view.setUint32(offset, sampleRate, true); offset += 4;
+                view.setUint32(offset, sampleRate * numChannels * (bitsPerSample / 8), true); offset += 4; // Byte rate
+                view.setUint16(offset, numChannels * (bitsPerSample / 8), true); offset += 2; // Block align
+                view.setUint16(offset, bitsPerSample, true); offset += 2;
+                writeString('data'); offset += 4;
+                view.setUint32(offset, numSamples * 2, true); offset += 4;
+                
+                // Write the PCM data
+                for (let i = 0; i < numSamples; i++, offset += 2) {
+                    view.setInt16(offset, pcmData[i], true);
+                }
+                
+                return new Blob([view], { type: 'audio/wav' });
+            },
             async listenToMessage(text) { 
                 this.methods.addMessage('system', 'Generating audio...');
                 const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${this.config.API_KEY}`;
@@ -1354,19 +1424,25 @@
                     const part = result?.candidates?.[0]?.content?.parts?.[0];
                     const audioData = part?.inlineData?.data;
                     const mimeType = part?.inlineData?.mimeType;
+
                     if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
                         const match = mimeType.match(/rate=(\d+)/);
                         const sampleRate = match ? parseInt(match[1], 10) : 24000;
-                        const pcmData = (base64 => { const bin = atob(base64); const len = bin.length; const bytes = new Uint8Array(len); for (let i = 0; i < len; i++) { bytes[i] = bin.charCodeAt(i); } return bytes.buffer; })(audioData);
-                        const pcm16 = new Int16Array(pcmData);
-                        const wavBlob = (pcm, rate) => { const channels = 1, samples = pcm.length, buffer = new ArrayBuffer(44 + samples * 2), view = new DataView(buffer); let offset = 0; const write = (s) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); }; write('RIFF'); offset += 4; view.setUint32(offset, 36 + samples * 2, true); offset += 4; write('WAVE'); offset += 4; write('fmt '); offset += 4; view.setUint32(offset, 16, true); offset += 4; view.setUint16(offset, 1, true); offset += 2; view.setUint16(offset, channels, true); offset += 2; view.setUint32(offset, rate, true); offset += 4; view.setUint32(offset, rate * channels * 2, true); offset += 4; view.setUint16(offset, channels * 2, true); offset += 2; view.setUint16(offset, 16, true); offset += 2; write('data'); offset += 4; view.setUint32(offset, samples * 2, true); offset += 4; for (let i = 0; i < samples; i++, offset += 2) view.setInt16(offset, pcm[i], true); return new Blob([view], { type: 'audio/wav' }); };
-                        const audio = new Audio(URL.createObjectURL(wavBlob(pcm16, sampleRate)));
+                        const pcmBuffer = this.methods.base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmBuffer);
+                        const wavBlob = this.methods.pcmToWav(pcm16, sampleRate);
+                        const audio = new Audio(URL.createObjectURL(wavBlob));
                         audio.play();
-                    } else throw new Error("Invalid audio response format.");
-                } catch (error) { console.error("TTS API call failed:", error); this.methods.addMessage('system', 'Audio playback failed.'); }
+                    } else {
+                        throw new Error("Invalid audio response format from API.");
+                    }
+                } catch (error) { 
+                    console.error("TTS API call failed:", error); 
+                    this.methods.addMessage('system', 'Audio playback failed. Please check the console for details.'); 
+                }
             },
 
-            // --- AI RESPONSE STREAMING (NEW & IMPROVED) ---
+            // --- AI RESPONSE STREAMING ---
             async streamResponse(text) {
                 return new Promise(resolve => {
                     const aiMessageElement = this.methods.addMessage('model', '');
@@ -1414,7 +1490,7 @@
                 });
             },
 
-            // --- CORE SEND LOGIC ---
+            // --- CORE SEND LOGIC (FIXED) ---
             async sendMessage(overrideText, isRegenerate = false) {
                 if (this.state.isGenerating) return; // Prevent multiple submissions
                 const userText = overrideText || this.ui.userInput.value.trim();
@@ -1434,8 +1510,8 @@
                 this.ui.userInput.value = '';
                 this.ui.userInput.style.height = 'auto';
                 this.ui.sendButton.disabled = true;
-
-                this.ui.loadingIndicator.style.display = 'flex';
+                
+                // FIX: Show loading indicator using classList
                 this.ui.loadingIndicator.classList.remove('hidden');
                 this.ui.loadingMessage.textContent = "Knowsta is thinking...";
                 this.ui.stopGeneratingBtn.classList.remove('hidden');
@@ -1453,7 +1529,7 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                     const candidate = result.candidates?.[0];
                     if (candidate && candidate.content?.parts?.[0]?.text) {
                         const aiResponseText = candidate.content.parts[0].text;
-                        // FIX: Hide "thinking" indicator BEFORE starting the stream
+                        // Hide "thinking" indicator BEFORE starting the stream for better UX
                         this.ui.loadingIndicator.classList.add('hidden');
                         this.ui.stopGeneratingBtn.classList.add('hidden');
                         await this.methods.streamResponse(aiResponseText);
@@ -1463,9 +1539,12 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                     }
                 } catch (error) {
                     console.error("Gemini API call failed:", error);
+                    // FIX: Hide indicator on error
+                    this.ui.loadingIndicator.classList.add('hidden');
+                    this.ui.stopGeneratingBtn.classList.add('hidden');
                     this.methods.addMessage('system', `Network Error: I'm having trouble connecting. Details: ${error.message}. Please try again.`);
                 } finally {
-                    // FIX: This block now correctly runs after all outcomes
+                    // This block ensures everything is cleaned up regardless of success or failure
                     this.state.isGenerating = false;
                     this.state.stopGenerationRequested = false;
                     this.ui.loadingIndicator.classList.add('hidden');
@@ -1517,7 +1596,7 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                 });
             },
             clearAllData() {
-                // FIX: Removed confirm() dialog
+                // Removed confirm() dialog for a smoother experience
                 localStorage.removeItem(this.methods.getChatsKey(this.state.userId));
                 localStorage.removeItem(this.methods.getProfileBioKey(this.state.userId));
                 this.state.allChats = {};
@@ -1527,7 +1606,7 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                 this.methods.addMessage('system', 'All your local data has been cleared.');
             },
             deleteChat(chatId) {
-                // FIX: Removed confirm() dialog
+                // Removed confirm() dialog
                 delete this.state.allChats[chatId];
                 if (this.state.currentChatId === chatId) {
                     const remainingChats = Object.keys(this.state.allChats);

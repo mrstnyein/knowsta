@@ -472,77 +472,82 @@
 
     <div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
 
-    <!-- Settings Modal (NEW) -->
+    <!-- Settings Modal (RESTRUCTURED FOR SCROLLING) -->
     <div id="settings-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-        <div class="modal-content bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-md dark:text-white relative">
-            <button onclick="knowstaApp.methods.hideSettingsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <h2 class="text-2xl font-bold mb-6 text-center text-[#004aad]">App Settings</h2>
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md dark:text-white flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex-shrink-0 p-6 pb-4 flex justify-between items-center border-b dark:border-gray-700">
+                <h2 class="text-2xl font-bold text-[#004aad] dark:text-white">App Settings</h2>
+                <button onclick="knowstaApp.methods.hideSettingsModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
             
-            <div class="mb-6 pb-4 border-b dark:border-gray-700">
-                <p class="text-lg font-semibold mb-2">Appearance</p>
-                <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-700 dark:text-gray-300">Current Theme: <span id="current-theme-label" class="font-medium">Light</span></span>
-                    <button onclick="knowstaApp.methods.toggleTheme()" class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 animated-button">
-                        Toggle Light/Dark
-                    </button>
+            <!-- Scrollable Settings Content -->
+            <div class="p-6 overflow-y-auto" style="max-height: 75vh;">
+                <div class="mb-6 pb-4 border-b dark:border-gray-700">
+                    <p class="text-lg font-semibold mb-2">Appearance</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Current Theme: <span id="current-theme-label" class="font-medium">Light</span></span>
+                        <button onclick="knowstaApp.methods.toggleTheme()" class="py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-white rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 animated-button">
+                            Toggle Light/Dark
+                        </button>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="mb-6 pb-4 border-b dark:border-gray-700">
-                <p class="text-lg font-semibold mb-2">Response Language</p>
-                <select id="modal-lang-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateLanguageFromModal()">
-                    <option value="English">English</option>
-                    <option value="Spanish">Español (ES)</option>
-                    <option value="French">Français (FR)</option>
-                    <option value="German">Deutsch (DE)</option>
-                    <option value="Japanese">日本語 (JP)</option>
-                    <option value="Chinese">中文 (ZH)</option>
-                    <option value="Korean">한국어 (KO)</option>
-                    <option value="Russian">Русский (RU)</option>
-                    <option value="Arabic">العربية (AR)</option>
-                    <option value="Vietnamese">Tiếng Việt (VI)</option>
-                    <option value="Italian">Italiano (IT)</option>
-                    <option value="Portuguese">Português (PT)</option>
-                    <option value="Hindi">हिन्दी (HI)</option>
-                </select>
-            </div>
-            
-            <div class="mb-6 pb-4 border-b dark:border-gray-700">
-                <p class="text-lg font-semibold mb-2">AI Personality Tone</p>
-                <select id="modal-tone-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateToneFromModal()">
-                    <option value="Friendly">Friendly (Default)</option>
-                    <option value="Professional">Professional (Formal, Concise)</option>
-                    <option value="Creative">Creative (Imaginative, Vivid)</option>
-                    <option value="Neutral">Neutral (Objective, Direct)</option>
-                </select>
-            </div>
+                
+                <div class="mb-6 pb-4 border-b dark:border-gray-700">
+                    <p class="text-lg font-semibold mb-2">Response Language</p>
+                    <select id="modal-lang-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateLanguageFromModal()">
+                        <option value="English">English</option>
+                        <option value="Spanish">Español (ES)</option>
+                        <option value="French">Français (FR)</option>
+                        <option value="German">Deutsch (DE)</option>
+                        <option value="Japanese">日本語 (JP)</option>
+                        <option value="Chinese">中文 (ZH)</option>
+                        <option value="Korean">한국어 (KO)</option>
+                        <option value="Russian">Русский (RU)</option>
+                        <option value="Arabic">العربية (AR)</option>
+                        <option value="Vietnamese">Tiếng Việt (VI)</option>
+                        <option value="Italian">Italiano (IT)</option>
+                        <option value="Portuguese">Português (PT)</option>
+                        <option value="Hindi">हिन्दी (HI)</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6 pb-4 border-b dark:border-gray-700">
+                    <p class="text-lg font-semibold mb-2">AI Personality Tone</p>
+                    <select id="modal-tone-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateToneFromModal()">
+                        <option value="Friendly">Friendly (Default)</option>
+                        <option value="Professional">Professional (Formal, Concise)</option>
+                        <option value="Creative">Creative (Imaginative, Vivid)</option>
+                        <option value="Neutral">Neutral (Objective, Direct)</option>
+                    </select>
+                </div>
 
-            <!-- NEW: Audio & Speech Settings -->
-            <div class="mb-6 pb-4 border-b dark:border-gray-700">
-                <p class="text-lg font-semibold mb-2">Audio & Speech</p>
-                <label for="modal-voice-selector" class="block text-sm text-gray-700 dark:text-gray-300 mb-2">Text-to-Speech Voice</label>
-                <select id="modal-voice-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateVoiceFromModal()">
-                    <option value="Iapetus">Iapetus (Clear)</option>
-                    <option value="Erinome">Erinome (Clear)</option>
-                    <option value="Charon">Charon (Informative)</option>
-                    <option value="Kore">Kore (Firm)</option>
-                    <option value="Puck">Puck (Upbeat)</option>
-                    <option value="Zephyr">Zephyr (Bright)</option>
-                    <option value="Algenib">Algenib (Gravelly)</option>
-                    <option value="Sulafat">Sulafat (Warm)</option>
-                    <option value="Achird">Achird (Friendly)</option>
-                    <option value="Leda">Leda (Youthful)</option>
-                </select>
-            </div>
-            
-            <div class="mb-6">
-                 <p class="text-lg font-semibold mb-2">Data Management</p>
-                 <button onclick="knowstaApp.methods.clearAllData()" class="w-full py-2 px-4 bg-red-600 text-white rounded-xl hover:bg-red-700 animated-button">
-                      Clear My Data
-                 </button>
-                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">This will permanently delete all your chat history and profile bio stored in this browser.</p>
+                <div class="mb-6 pb-4 border-b dark:border-gray-700">
+                    <p class="text-lg font-semibold mb-2">Audio & Speech</p>
+                    <label for="modal-voice-selector" class="block text-sm text-gray-700 dark:text-gray-300 mb-2">Text-to-Speech Voice</label>
+                    <select id="modal-voice-selector" class="w-full p-3 border border-gray-300 rounded-xl dark:bg-gray-700 dark:border-gray-600 dark:text-white" onchange="knowstaApp.methods.updateVoiceFromModal()">
+                        <option value="Iapetus">Iapetus (Clear)</option>
+                        <option value="Erinome">Erinome (Clear)</option>
+                        <option value="Charon">Charon (Informative)</option>
+                        <option value="Kore">Kore (Firm)</option>
+                        <option value="Puck">Puck (Upbeat)</option>
+                        <option value="Zephyr">Zephyr (Bright)</option>
+                        <option value="Algenib">Algenib (Gravelly)</option>
+                        <option value="Sulafat">Sulafat (Warm)</option>
+                        <option value="Achird">Achird (Friendly)</option>
+                        <option value="Leda">Leda (Youthful)</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                     <p class="text-lg font-semibold mb-2">Data Management</p>
+                     <button onclick="knowstaApp.methods.clearAllData()" class="w-full py-2 px-4 bg-red-600 text-white rounded-xl hover:bg-red-700 animated-button">
+                          Clear My Data
+                     </button>
+                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">This will permanently delete all your chat history and profile bio stored in this browser.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -1510,7 +1515,7 @@
                 }
             },
 
-            // --- TTS UTILITY (FIXED) ---
+            // --- TTS UTILITY (REFACTORED FOR RELIABILITY) ---
             base64ToArrayBuffer(base64) {
                 const binaryString = window.atob(base64);
                 const len = binaryString.length;
@@ -1520,45 +1525,31 @@
                 }
                 return bytes.buffer;
             },
-            pcmToWav(pcmData, sampleRate) {
-                const numChannels = 1;
-                const bitsPerSample = 16;
-                const numSamples = pcmData.length;
-                const buffer = new ArrayBuffer(44 + numSamples * 2);
-                const view = new DataView(buffer);
-
-                let offset = 0;
-                const writeString = (str) => {
-                    for (let i = 0; i < str.length; i++) {
-                        view.setUint8(offset + i, str.charCodeAt(i));
-                    }
-                };
-
-                writeString('RIFF'); offset += 4;
-                view.setUint32(offset, 36 + numSamples * 2, true); offset += 4;
-                writeString('WAVE'); offset += 4;
-                writeString('fmt '); offset += 4;
-                view.setUint32(offset, 16, true); offset += 4; // Sub-chunk size
-                view.setUint16(offset, 1, true); offset += 2;  // Audio format (1 for PCM)
-                view.setUint16(offset, numChannels, true); offset += 2;
-                view.setUint32(offset, sampleRate, true); offset += 4;
-                view.setUint32(offset, sampleRate * numChannels * (bitsPerSample / 8), true); offset += 4; // Byte rate
-                view.setUint16(offset, numChannels * (bitsPerSample / 8), true); offset += 2; // Block align
-                view.setUint16(offset, bitsPerSample, true); offset += 2;
-                writeString('data'); offset += 4;
-                view.setUint32(offset, numSamples * 2, true); offset += 4;
-                
-                // Write the PCM data
-                for (let i = 0; i < numSamples; i++, offset += 2) {
-                    view.setInt16(offset, pcmData[i], true);
-                }
-                
-                return new Blob([view], { type: 'audio/wav' });
-            },
             async listenToMessage(text) { 
+                if (!this.state.audioContext) {
+                    this.methods.addMessage('system', 'Audio playback is not supported on this browser.');
+                    return;
+                }
+
+                // Resume context if it's suspended (important for browser autoplay policies)
+                if (this.state.audioContext.state === 'suspended') {
+                    await this.state.audioContext.resume();
+                }
+
                 this.methods.addMessage('system', 'Generating audio...');
                 const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${this.config.API_KEY}`;
-                const payload = { contents: [{ parts: [{ text: text }] }], generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: this.state.ttsVoice } } } } };
+                const payload = { 
+                    contents: [{ parts: [{ text: `Say with a clear voice: ${text}` }] }], 
+                    generationConfig: { 
+                        responseModalities: ["AUDIO"], 
+                        speechConfig: { 
+                            voiceConfig: { 
+                                prebuiltVoiceConfig: { voiceName: this.state.ttsVoice } 
+                            } 
+                        } 
+                    } 
+                };
+
                 try {
                     const result = await this.methods.fetchWithRetry(ttsUrl, payload);
                     const part = result?.candidates?.[0]?.content?.parts?.[0];
@@ -1568,16 +1559,30 @@
                     if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
                         const match = mimeType.match(/rate=(\d+)/);
                         const sampleRate = match ? parseInt(match[1], 10) : 24000;
+                        
                         const pcmBuffer = this.methods.base64ToArrayBuffer(audioData);
                         const pcm16 = new Int16Array(pcmBuffer);
-                        const wavBlob = this.methods.pcmToWav(pcm16, sampleRate);
-                        const audio = new Audio(URL.createObjectURL(wavBlob));
-                        audio.play();
+
+                        // Convert Int16 PCM to Float32 PCM [-1, 1] for Web Audio API
+                        const pcm32 = new Float32Array(pcm16.length);
+                        for (let i = 0; i < pcm16.length; i++) {
+                            pcm32[i] = pcm16[i] / 32767;
+                        }
+
+                        // Use Web Audio API for robust playback
+                        const audioBuffer = this.state.audioContext.createBuffer(1, pcm32.length, sampleRate);
+                        audioBuffer.copyToChannel(pcm32, 0);
+
+                        const source = this.state.audioContext.createBufferSource();
+                        source.buffer = audioBuffer;
+                        source.connect(this.state.audioContext.destination);
+                        source.start(0);
+
                     } else {
                         throw new Error("Invalid audio response format from API.");
                     }
                 } catch (error) { 
-                    console.error("TTS API call failed:", error); 
+                    console.error("TTS or playback failed:", error); 
                     this.methods.addMessage('system', 'Audio playback failed. Please check the console for details.'); 
                 }
             },
@@ -1773,3 +1778,4 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
     </script>
 </body>
 </html>
+

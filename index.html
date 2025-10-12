@@ -349,7 +349,7 @@
             <div id="chat-history-container" class="flex-grow overflow-y-auto mb-4 border-t border-b border-gray-200 dark:border-gray-700 py-4">
                  <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 px-1">Recent Chats</div>
                  <div id="chat-history-list" class="space-y-1">
-                     <!-- History items will be injected here -->
+                       <!-- History items will be injected here -->
                  </div>
             </div>
 
@@ -429,9 +429,27 @@
                     </button>
                 </div>
                 
+                <!-- NEW: Attachment Preview Area -->
+                <div id="attachment-preview" class="hidden mb-2 p-2 border border-gray-200 dark:border-gray-700 rounded-lg relative">
+                    <!-- Preview content will be injected here -->
+                </div>
+
+
                 <!-- COHESIVE INPUT BAR -->
                 <div class="flex items-end gap-1 p-1 border border-gray-300 rounded-2xl input-bar-wrapper">
                     
+                    <!-- NEW: Attachment Button -->
+                    <button
+                        id="attachment-button"
+                        onclick="document.getElementById('file-input').click()"
+                        class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-[#004aad] transition duration-150 dark:text-gray-300 dark:hover:text-white animated-button"
+                        title="Attach File or Image">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                           <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a3 3 0 10-6 0v4a1 1 0 102 0V7a1 1 0 112 0v4a3 3 0 11-6 0V7a5 5 0 0110 0v4a5 5 0 01-10 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+
+
                     <!-- Voice Input Button (Smaller, contained) -->
                     <button
                         id="mic-button"
@@ -471,6 +489,10 @@
     </div>
 
     <div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
+    
+    <!-- Hidden file input -->
+    <input type="file" id="file-input" class="hidden" onchange="knowstaApp.methods.handleFileUpload(event)" accept="image/*,application/pdf,text/plain">
+
 
     <!-- Settings Modal (RESTRUCTURED FOR SCROLLING) -->
     <div id="settings-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
@@ -565,7 +587,12 @@
             
             <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
                 <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Developed by:</strong> Sithu Nyein</p>
-                <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Connect:</strong> <a href="https://github.com/MrSTNyein" target="_blank" class="text-[#004aad] hover:text-[#003a89] underline">GitHub Profile</a></p>
+                <!-- UPDATED CONNECT SECTION -->
+                <div class="text-sm text-gray-700 dark:text-gray-300">
+                    <strong>Connect:</strong> 
+                    <a href="https://www.linkedin.com/in/sithunyein/" target="_blank" class="text-[#004aad] hover:text-[#003a89] underline">LinkedIn</a> |
+                    <a href="https://github.com/MrSTNyein" target="_blank" class="text-[#004aad] hover:text-[#003a89] underline">GitHub</a>
+                </div>
                 <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Authentication provided by:</strong> Supabase</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 pt-2">Core AI is powered by Gemini 2.5 Flash.</p>
             </div>
@@ -663,6 +690,7 @@
                 audioContext: null, // NEW: For Web Audio API
                 isGenerating: false, // NEW
                 stopGenerationRequested: false, // NEW
+                attachedFile: null, // NEW: For file/image uploads
             },
             
             // --- UI ELEMENT REFERENCES ---
@@ -717,6 +745,9 @@
                     passwordUpdateContainer: document.getElementById('password-update-container'),
                     profileNewPasswordInput: document.getElementById('profile-new-password'),
                     accountSettingsMessage: document.getElementById('account-settings-message'),
+                    // NEW UI elements for attachments
+                    attachmentPreview: document.getElementById('attachment-preview'),
+                    fileInput: document.getElementById('file-input'),
                 };
                 
                 // 3. Bind methods to the app context
@@ -1080,7 +1111,7 @@
                     this.state.currentChatId = chatId;
                     this.state.chatHistory = this.state.allChats[chatId];
                     this.ui.chatWindow.innerHTML = '';
-                    this.state.chatHistory.forEach(msg => this.methods.addMessage(msg.role, msg.text, false, msg.time));
+                    this.state.chatHistory.forEach(msg => this.methods.addMessage(msg.role, msg.parts, false, msg.time));
                     setTimeout(() => { this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight; }, 100);
                     this.methods.renderChatHistoryList();
                 }
@@ -1321,20 +1352,20 @@
                 element.style.height = element.scrollHeight + 'px';
             },
             validateInput() {
-                const hasInput = this.ui.userInput.value.trim() !== '';
+                const hasInput = this.ui.userInput.value.trim() !== '' || this.state.attachedFile;
                 this.ui.sendButton.disabled = !hasInput;
             },
             
             // --- MESSAGE RENDERING ---
-            addMessage(role, text, isImageHtml = false, timestamp = null) {
+            addMessage(role, content, isImageHtml = false, timestamp = null) {
                 const suppressedMessages = [
                     'Generating audio...',
                     'Audio playback failed. Please check the console for details.',
                     'Regenerating response...'
                 ];
 
-                if (role === 'system' && suppressedMessages.includes(text)) {
-                    console.log(`Suppressed system message: "${text}"`);
+                if (role === 'system' && suppressedMessages.includes(content)) {
+                    console.log(`Suppressed system message: "${content}"`);
                     return null; 
                 }
 
@@ -1345,7 +1376,15 @@
                 const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
                 const currentTime = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 
-                const escapedTextForHtmlAttr = text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
+                // Determine text content for escaping and controls
+                let textForControls = '';
+                if (Array.isArray(content)) {
+                    const textPart = content.find(part => part.text);
+                    if (textPart) textForControls = textPart.text;
+                } else {
+                     textForControls = content;
+                }
+                const escapedTextForHtmlAttr = textForControls.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
 
                 const messageContainer = document.createElement('div');
                 messageContainer.className = `flex ${isUser ? 'justify-end user-message-wrapper' : 'justify-start ai-message-wrapper'}`;
@@ -1367,25 +1406,36 @@
                     bubbleClass += ' chat-bubble-ai mr-auto';
                 } else if (isSystem) {
                     bubbleClass = 'max-w-full text-center px-4 py-1 text-xs text-gray-500 transition duration-300';
+                    textContentDiv.innerHTML = textForControls; // System messages are simple text
+                    bubble.appendChild(textContentDiv);
                 }
                 bubble.className = bubbleClass;
-
-                if (text) {
-                    let formattedText = text;
-                    if (!isImageHtml) {
-                        formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                        formattedText = formattedText.replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>');
-                        formattedText = formattedText.replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>');
-                        formattedText = formattedText.replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
-                        if (formattedText.includes('<li>')) {
-                            formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
-                        }
+                
+                // Handle complex content (text, images, files)
+                if (!isSystem) {
+                     if (Array.isArray(content)) {
+                        content.forEach(part => {
+                            if(part.text) {
+                                let formattedText = part.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                                        .replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>')
+                                                        .replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>')
+                                                        .replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
+                                if (formattedText.includes('<li>')) {
+                                    formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
+                                }
+                                textContentDiv.innerHTML += formattedText.replace(/\n/g, '<br>');
+                            }
+                            if (part.inlineData) {
+                                const img = document.createElement('img');
+                                img.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                                img.className = 'mt-2 rounded-lg max-w-full h-auto';
+                                bubble.appendChild(img);
+                            }
+                        });
                     }
-                    textContentDiv.innerHTML = formattedText.replace(/\n/g, '<br>');
+                    bubble.appendChild(textContentDiv);
                 }
-                
-                bubble.appendChild(textContentDiv);
-                
+
                 if (!isSystem) {
                     contentBlock.appendChild(bubble);
                     const controls = document.createElement('div');
@@ -1590,7 +1640,7 @@
             // --- AI RESPONSE STREAMING ---
             async streamResponse(text) {
                 return new Promise(resolve => {
-                    const aiMessageElement = this.methods.addMessage('model', '');
+                    const aiMessageElement = this.methods.addMessage('model', [{text: ''}]);
                     const textContentDiv = aiMessageElement.querySelector('.message-text-content');
                     if (!textContentDiv) { resolve(); return; }
 
@@ -1608,10 +1658,9 @@
                             if (formattedText.includes('<li>')) formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
                             textContentDiv.innerHTML = formattedText.replace(/\n/g, '<br>');
                             
-                            if (this.state.chatHistory.length === 0 || this.state.chatHistory[this.state.chatHistory.length - 1].role !== 'model') {
-                                this.state.chatHistory.push({ role: 'model', text: finalText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), parts: [{ text: finalText }] });
-                            } else {
-                                this.state.chatHistory[this.state.chatHistory.length - 1].text = finalText;
+                            // Update the history with the final streamed text
+                            if (this.state.chatHistory.length > 0 && this.state.chatHistory[this.state.chatHistory.length - 1].role === 'model') {
+                                this.state.chatHistory[this.state.chatHistory.length - 1].parts = [{ text: finalText }];
                             }
                             this.methods.saveAllChats();
                             
@@ -1635,28 +1684,46 @@
                 });
             },
 
-            // --- CORE SEND LOGIC (FIXED) ---
+            // --- CORE SEND LOGIC (Updated for files) ---
             async sendMessage(overrideText, isRegenerate = false) {
                 if (this.state.isGenerating) return; // Prevent multiple submissions
+                
                 const userText = overrideText || this.ui.userInput.value.trim();
-                if (!userText) return;
+                if (!userText && !this.state.attachedFile) return; // Must have text or file
                 
                 this.state.isGenerating = true;
                 this.state.stopGenerationRequested = false;
 
+                const messageParts = [];
+                if (userText) {
+                    messageParts.push({ text: userText });
+                }
+                
+                // Add attached file to message parts
+                if (this.state.attachedFile) {
+                    messageParts.push({
+                        inlineData: {
+                            mimeType: this.state.attachedFile.type,
+                            data: this.state.attachedFile.data
+                        }
+                    });
+                }
+                
                 if (!isRegenerate) {
-                    this.methods.addMessage('user', userText);
-                    this.state.chatHistory.push({ role: 'user', parts: [{ text: userText }], text: userText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+                    this.methods.addMessage('user', messageParts);
+                    this.state.chatHistory.push({ role: 'user', parts: messageParts, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
                     if (this.state.chatHistory.length === 1) {
-                        this.methods.saveAllChats(); 
+                         this.methods.saveAllChats(); 
                     }
                 }
-
+                
+                // Clear inputs after sending
                 this.ui.userInput.value = '';
                 this.ui.userInput.style.height = 'auto';
+                this.methods.removeAttachment();
                 this.ui.sendButton.disabled = true;
                 
-                // FIX: Show loading indicator using classList
+                // Show loading indicator
                 this.ui.loadingIndicator.classList.remove('hidden');
                 this.ui.loadingMessage.textContent = "Knowsta is thinking...";
                 this.ui.stopGeneratingBtn.classList.remove('hidden');
@@ -1666,17 +1733,25 @@
                 
                 const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${this.state.responseTone}** tone and personality. Keep your responses short and well-structured using Markdown. Do not include unnecessary conversational filler or preamble.
 If the user asks about the creator, developer, or founder of Knowsta, you may provide the following information: ${this.config.CREATOR_BIO}`;
-                const cleanHistory = this.state.chatHistory.map(msg => ({ role: msg.role === 'model' ? 'model' : 'user', parts: msg.parts }));
-                const payload = { contents: cleanHistory, systemInstruction: { parts: [{ text: systemInstruction }] } };
+
+                // Create history for API call, ensuring 'parts' is always an array
+                const apiHistory = this.state.chatHistory.map(msg => ({ 
+                    role: msg.role === 'model' ? 'model' : 'user', 
+                    parts: msg.parts 
+                }));
+                const payload = { contents: apiHistory, systemInstruction: { parts: [{ text: systemInstruction }] } };
 
                 try {
                     const result = await this.methods.fetchWithRetry(apiUrl, payload);
                     const candidate = result.candidates?.[0];
                     if (candidate && candidate.content?.parts?.[0]?.text) {
                         const aiResponseText = candidate.content.parts[0].text;
-                        // Hide "thinking" indicator BEFORE starting the stream for better UX
                         this.ui.loadingIndicator.classList.add('hidden');
                         this.ui.stopGeneratingBtn.classList.add('hidden');
+                        
+                        // Add the model's response to the history before streaming
+                        this.state.chatHistory.push({ role: 'model', parts: [{ text: aiResponseText }], time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+                        
                         await this.methods.streamResponse(aiResponseText);
                         this.methods.playReceiveSound();
                     } else {
@@ -1684,12 +1759,10 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                     }
                 } catch (error) {
                     console.error("Gemini API call failed:", error);
-                    // FIX: Hide indicator on error
                     this.ui.loadingIndicator.classList.add('hidden');
                     this.ui.stopGeneratingBtn.classList.add('hidden');
                     this.methods.addMessage('system', `Network Error: I'm having trouble connecting. Details: ${error.message}. Please try again.`);
                 } finally {
-                    // This block ensures everything is cleaned up regardless of success or failure
                     this.state.isGenerating = false;
                     this.state.stopGenerationRequested = false;
                     this.ui.loadingIndicator.classList.add('hidden');
@@ -1700,6 +1773,56 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                 }
             },
             
+            // --- NEW FILE/IMAGE METHODS ---
+            handleFileUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64Data = e.target.result.split(',')[1];
+                    this.state.attachedFile = {
+                        name: file.name,
+                        type: file.type,
+                        data: base64Data,
+                        previewUrl: e.target.result
+                    };
+                    this.methods.renderAttachmentPreview();
+                    this.methods.validateInput();
+                };
+                reader.readAsDataURL(file);
+                this.ui.fileInput.value = ''; // Reset input to allow re-uploading the same file
+            },
+            renderAttachmentPreview() {
+                if (!this.state.attachedFile) return;
+
+                let previewHtml = '';
+                if (this.state.attachedFile.type.startsWith('image/')) {
+                    previewHtml = `<img src="${this.state.attachedFile.previewUrl}" class="max-h-20 w-auto rounded-md object-cover">`;
+                } else {
+                    previewHtml = `<div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                        <span>${this.state.attachedFile.name}</span>
+                    </div>`;
+                }
+
+                this.ui.attachmentPreview.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        ${previewHtml}
+                        <button onclick="knowstaApp.methods.removeAttachment()" class="p-1 rounded-full text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>`;
+                this.ui.attachmentPreview.classList.remove('hidden');
+            },
+            removeAttachment() {
+                this.state.attachedFile = null;
+                this.ui.attachmentPreview.classList.add('hidden');
+                this.ui.attachmentPreview.innerHTML = '';
+                this.methods.validateInput();
+            },
+
+
             // --- NEW ADVANCED METHODS ---
             renderChatHistoryList() {
                 this.ui.chatHistoryList.innerHTML = '';
@@ -1713,7 +1836,8 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                     const chat = this.state.allChats[chatId];
                     if (chat.length > 0) {
                         const firstUserMessage = chat.find(m => m.role === 'user');
-                        const title = firstUserMessage ? firstUserMessage.text.substring(0, 25) + (firstUserMessage.text.length > 25 ? '...' : '') : 'New Chat';
+                        const textPart = firstUserMessage?.parts?.find(p => p.text);
+                        const title = textPart ? textPart.text.substring(0, 25) + (textPart.text.length > 25 ? '...' : '') : 'Chat with media';
                         
                         const item = document.createElement('div');
                         item.className = `chat-history-item text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50`;
@@ -1778,4 +1902,3 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
     </script>
 </body>
 </html>
-

@@ -160,23 +160,45 @@
             50% { opacity: 0; }
         }
 
-        /* --- CODE BLOCK STYLES (NEW FIX) --- */
+        /* --- CODE BLOCK STYLES (UPGRADED FOR VISIBILITY) --- */
+        .code-block-container {
+            position: relative;
+            margin: 1em 0;
+        }
+        .code-block-header {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.75rem;
+            background-color: rgba(0,0,0,0.1);
+            color: #4b5563;
+            padding: 0.1rem 0.4rem;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            font-family: monospace;
+            text-transform: uppercase;
+            z-index: 1;
+        }
+        .dark .code-block-header {
+            background-color: rgba(255,255,255,0.1);
+            color: #d1d5db;
+        }
         pre {
-            background-color: #f3f4f6; /* Light gray background */
+            background-color: #f3f4f6;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             padding: 1rem;
-            overflow-x: auto; /* Allow horizontal scrolling for long lines */
+            padding-top: 2rem; /* Make space for header */
+            overflow-x: auto;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 0.875rem; /* 14px */
+            font-size: 0.875rem;
             position: relative;
-            margin: 1em 0;
+            margin: 0; /* Handled by container */
             white-space: pre-wrap;
             word-wrap: break-word;
         }
 
         .dark pre {
-            background-color: #1f2937; /* Darker gray for dark mode */
+            background-color: #1f2937;
             border-color: #374151;
             color: #d1d5db;
         }
@@ -194,9 +216,10 @@
             cursor: pointer;
             opacity: 0;
             transition: opacity 0.2s, background-color 0.2s;
+            z-index: 1;
         }
 
-        pre:hover .copy-code-btn {
+        .code-block-container:hover .copy-code-btn {
             opacity: 1;
         }
 
@@ -219,79 +242,59 @@
         /* --- DARK MODE STYLES --- */
         .dark body { background-color: #1c1c1e; }
         .dark .app-container { background-color: #2c2c2e; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
-        /* Refined dark sidebar color for better contrast */
         .dark .sidebar { background-color: #1f1f1f; border-right: 1px solid #3a3a3c; color: white; }
         .dark .chat-bubble-ai { background-color: #48484a; color: white; }
-        /* FIX: Ensure user input text is clearly visible */
         .dark #user-input { color: white; }
-        /* FIX: Dark mode input border visibility - increased contrast */
         .dark .input-bar-wrapper { 
             background-color: #3a3a3c; 
-            border-color: #555555; /* Adjusted for better visibility */
+            border-color: #555555;
         }
         .dark .input-bar-wrapper:focus-within {
             box-shadow: 0 0 0 1px #004aad, 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(0, 74, 173, 0.3);
         }
         .dark header { background-color: rgba(44, 44, 46, 0.9); border-color: #3a3a3c; }
         .dark .topic-item { background-color: #3a3a3c; color: #e5e5ea; }
-        /* Sidebar text readability fix */
         .dark .sidebar .text-gray-700 { color: #f0f2f5; }
         .dark .sidebar .text-gray-300 { color: #a2a2a7; }
-        .dark .sidebar .animated-button { color: #f0f2f5; } /* Ensures buttons are visible */
+        .dark .sidebar .animated-button { color: #f0f2f5; }
         .dark .sidebar .hover\:bg-gray-200:hover { background-color: #3a3a3c; }
-        /* Sidebar utility buttons dark mode base state */
         .dark .sidebar .utility-button {
             background-color: #3a3a3c;
             color: white;
             box-shadow: none;
         }
 
-        /* --- LIGHT MODE SIDEBAR BUTTON STYLING (The requested color fix) --- */
+        /* --- LIGHT MODE SIDEBAR BUTTON STYLING --- */
         .sidebar .utility-button {
-            /* Background changed from old gray/transparent to a subtle blue tone */
             background-color: #E6F0FF; 
             transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
-            /* Ensure primary color is visible and sharp */
             color: #004aad; 
-            box-shadow: 0 1px 3px 0 rgba(0, 74, 173, 0.1); /* Subtle blue shadow for lift */
+            box-shadow: 0 1px 3px 0 rgba(0, 74, 173, 0.1);
         }
         .sidebar .utility-button:hover {
-            background-color: #d8e5ff; /* Slightly darker blue on hover */
+            background-color: #d8e5ff;
             color: #004aad;
             box-shadow: 0 2px 5px 0 rgba(0, 74, 173, 0.2); 
         }
 
-        /* Scrollbar and Animations remain the same */
         #chat-window::-webkit-scrollbar, #chat-history-list::-webkit-scrollbar { width: 6px; }
         #chat-window::-webkit-scrollbar-thumb, #chat-history-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         .animated-button:active { transform: scale(0.95); }
 
-        /* FIX: Ensure typed text is visible in light mode input */
         #user-input { color: #1c1c1e; }
         
-        /* Timestamps (Small and subtle) */
         .timestamp {
             font-size: 0.6rem;
             opacity: 0.6;
             margin-top: 2px;
             user-select: none;
         }
-        .user-message-wrapper .timestamp {
-            margin-right: 16px;
-        }
-        .ai-message-wrapper .timestamp {
-            margin-left: 16px;
-        }
+        .user-message-wrapper .timestamp { margin-right: 16px; }
+        .ai-message-wrapper .timestamp { margin-left: 16px; }
         
-        /* FIX: Logo color in light mode header */
-        .main-chat-panel header h1 {
-            color: #004aad; /* New primary color */
-        }
-        .dark .main-chat-panel header h1 {
-            color: white; 
-        }
+        .main-chat-panel header h1 { color: #004aad; }
+        .dark .main-chat-panel header h1 { color: white; }
         
-        /* Button primary color update */
         #new-chat-button, #send-button, #auth-button.bg-indigo-600, 
         #settings-modal .bg-indigo-600, #about-modal .bg-indigo-600, #profile-modal .bg-indigo-600 {
             background-color: #004aad;
@@ -301,26 +304,24 @@
             background-color: #003a89;
         }
         
-        /* Message Controls (Edit/Regenerate/Delete/Copy/Listen) */
         .message-controls { opacity: 0; transition: opacity 0.2s; }
         .user-message-wrapper:hover .message-controls,
         .ai-message-wrapper:hover .message-controls { opacity: 1; }
 
-        /* Chat History List Styles */
         #chat-history-list .chat-history-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
             transition: background-color 0.2s;
-            border-radius: 8px; /* Rounded corners for history items */
+            border-radius: 8px;
         }
         #chat-history-list .chat-history-item .chat-title {
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
             flex-grow: 1;
-            padding: 8px; /* Add padding to the clickable area */
+            padding: 8px;
         }
 
         #chat-history-list .chat-history-item.active {
@@ -339,35 +340,15 @@
             padding: 6px;
             border-radius: 50%;
         }
-        #chat-history-list .chat-history-item:hover .delete-chat-btn {
-            opacity: 1;
-        }
-        #chat-history-list .chat-history-item .delete-chat-btn:hover {
-            background-color: #fee2e2;
-            color: #ef4444;
-        }
-        .dark #chat-history-list .chat-history-item .delete-chat-btn:hover {
-            background-color: #4b1f20;
-            color: #f87171;
-        }
+        #chat-history-list .chat-history-item:hover .delete-chat-btn { opacity: 1; }
+        #chat-history-list .chat-history-item .delete-chat-btn:hover { background-color: #fee2e2; color: #ef4444; }
+        .dark #chat-history-list .chat-history-item .delete-chat-btn:hover { background-color: #4b1f20; color: #f87171; }
 
-        /* Modal Transitions */
-        .modal {
-            transition: opacity 0.3s ease-in-out;
-        }
-        .modal-content {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        .modal.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .modal.hidden .modal-content {
-            transform: scale(0.95);
-            opacity: 0;
-        }
+        .modal { transition: opacity 0.3s ease-in-out; }
+        .modal-content { transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; }
+        .modal.hidden { opacity: 0; pointer-events: none; }
+        .modal.hidden .modal-content { transform: scale(0.95); opacity: 0; }
 
-        /* NEW: Active Persona Button Style */
         .sidebar .utility-button.active-persona {
             background-color: #cce0ff;
             color: #004aad;
@@ -400,7 +381,6 @@
         <!-- --- SIDEBAR (Desktop Navigation) --- -->
         <div class="sidebar p-4 pt-6 flex flex-col">
             
-            <!-- Logo & New Chat -->
             <div class="flex-shrink-0">
                 <div class="flex items-center justify-center mb-6">
                     <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-8 h-8 rounded-full">
@@ -413,15 +393,11 @@
                 </button>
             </div>
 
-            <!-- Chat History (NEW) -->
             <div id="chat-history-container" class="flex-grow overflow-y-auto mb-4 border-t border-b border-gray-200 dark:border-gray-700 py-4">
                  <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 px-1">Recent Chats</div>
-                 <div id="chat-history-list" class="space-y-1">
-                      <!-- History items will be injected here -->
-                 </div>
+                 <div id="chat-history-list" class="space-y-1"></div>
             </div>
 
-            <!-- Utility Buttons -->
             <div class="space-y-3 flex-shrink-0">
                 <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Settings & Tools</div>
                 <button id="settings-button" onclick="knowstaApp.methods.showSettingsModal()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
@@ -429,7 +405,6 @@
                     <span id="label-settings">Settings</span>
                 </button>
                 
-                <!-- Personas Section -->
                 <div id="personas-section" class="pt-2">
                     <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Personas</div>
                     <div id="persona-buttons" class="space-y-1">
@@ -464,7 +439,6 @@
                 </button>
             </div>
 
-            <!-- Profile and About Footer -->
             <div class="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 flex-shrink-0">
                 <button id="sidebar-auth-btn" onclick="knowstaApp.methods.handleAuthClickOrProfile()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
                     <img id="user-avatar-sidebar" src="https://placehold.co/32x32/cccccc/ffffff?text=U" alt="User" class="w-8 h-8 rounded-full mr-3">
@@ -477,10 +451,8 @@
             </div>
         </div>
 
-        <!-- --- MAIN CHAT PANEL --- -->
         <div class="main-chat-panel">
             
-            <!-- Header (Mobile/Web) -->
             <header class="p-2 sm:p-4 border-b border-gray-100 shadow-sm sticky top-0 z-10 flex items-center justify-between transition duration-300">
                 <div class="flex items-center gap-2">
                     <button id="hamburger-btn" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 md:hidden">
@@ -490,7 +462,6 @@
                     </button>
                     <h1 class="text-xl font-bold transition duration-300 text-[#004aad] dark:text-white">Knowsta</h1>
                 </div>
-                <!-- Mobile/Web Auth/Profile button -->
                 <div class="flex items-center space-x-3">
                     <button id="auth-button" onclick="knowstaApp.methods.handleAuthClick()" class="py-1 px-3 text-sm rounded-full transition duration-150 animated-button">
                         Initializing...
@@ -504,14 +475,9 @@
                 </div>
             </header>
 
-            <!-- Chat Window -->
-            <div id="chat-window" class="flex-grow p-2 sm:p-4 space-y-4 overflow-y-auto">
-                <!-- Content will be injected here -->
-            </div>
+            <div id="chat-window" class="flex-grow p-2 sm:p-4 space-y-4 overflow-y-auto"></div>
 
-            <!-- Input Area -->
             <div class="p-2 sm:p-4 border-t border-gray-100 bg-white transition duration-300">
-                <!-- Loading Indicator (Typing Dots UX) -->
                 <div id="loading-indicator" class="hidden flex-col items-center text-sm text-[#004aad] mb-2">
                     <div class="flex items-center">
                         <p id="loading-message" class="mt-1 font-semibold text-gray-700 dark:text-gray-300"></p>
@@ -521,22 +487,14 @@
                             <span class="w-2 h-2 rounded-full"></span>
                         </div>
                     </div>
-                     <!-- NEW: Stop Generation Button -->
                     <button id="stop-generating-btn" onclick="knowstaApp.methods.stopGeneration()" class="hidden mt-2 mx-auto py-1 px-3 text-xs bg-red-100 text-red-700 rounded-full hover:bg-red-200 animated-button">
                         Stop Generating
                     </button>
                 </div>
                 
-                <!-- NEW: Attachment Preview Area -->
-                <div id="attachment-preview" class="hidden mb-2 p-2 border border-gray-200 dark:border-gray-700 rounded-lg relative">
-                    <!-- Preview content will be injected here -->
-                </div>
+                <div id="attachment-preview" class="hidden mb-2 p-2 border border-gray-200 dark:border-gray-700 rounded-lg relative"></div>
 
-
-                <!-- COHESIVE INPUT BAR -->
                 <div class="flex items-end gap-1 p-1 border border-gray-300 rounded-2xl input-bar-wrapper">
-                    
-                    <!-- NEW: Attachment Button -->
                     <button
                         id="attachment-button"
                         onclick="document.getElementById('file-input').click()"
@@ -547,8 +505,6 @@
                         </svg>
                     </button>
 
-
-                    <!-- Voice Input Button (Smaller, contained) -->
                     <button
                         id="mic-button"
                         onclick="knowstaApp.methods.toggleVoiceInput()"
@@ -569,7 +525,6 @@
                         onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); knowstaApp.methods.sendMessage(); }"
                     ></textarea>
                     
-                    <!-- Send Button (Smaller, rounded, contained) -->
                     <button
                         id="send-button"
                         onclick="knowstaApp.methods.sendMessage()"
@@ -588,14 +543,10 @@
 
     <div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden md:hidden"></div>
     
-    <!-- Hidden file input -->
     <input type="file" id="file-input" class="hidden" onchange="knowstaApp.methods.handleFileUpload(event)" accept="image/*,application/pdf,text/plain">
 
-
-    <!-- Settings Modal (RESTRUCTURED FOR SCROLLING) -->
     <div id="settings-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="modal-content bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md dark:text-white flex flex-col">
-            <!-- Modal Header -->
             <div class="flex-shrink-0 p-6 pb-4 flex justify-between items-center border-b dark:border-gray-700">
                 <h2 class="text-2xl font-bold text-[#004aad] dark:text-white">App Settings</h2>
                 <button onclick="knowstaApp.methods.hideSettingsModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -603,7 +554,6 @@
                 </button>
             </div>
             
-            <!-- Scrollable Settings Content -->
             <div class="p-6 overflow-y-auto" style="max-height: 75vh;">
                 <div class="mb-6 pb-4 border-b dark:border-gray-700">
                     <p class="text-lg font-semibold mb-2">Appearance</p>
@@ -672,7 +622,6 @@
         </div>
     </div>
     
-    <!-- About Modal -->
     <div id="about-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="modal-content bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm dark:text-white relative">
             <button onclick="knowstaApp.methods.hideAboutModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -685,7 +634,6 @@
             
             <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
                 <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Developed by:</strong> Sithu Nyein</p>
-                <!-- UPDATED CONNECT SECTION -->
                 <div class="text-sm text-gray-700 dark:text-gray-300">
                     <strong>Connect:</strong> 
                     <a href="https://www.linkedin.com/in/sithunyein/" target="_blank" class="text-[#004aad] hover:text-[#003a89] underline">LinkedIn</a> |
@@ -697,7 +645,6 @@
         </div>
     </div>
 
-    <!-- User Profile Modal (Used as Auth/Profile View) -->
     <div id="profile-modal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
         <div class="modal-content bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm dark:text-white relative">
              <button onclick="knowstaApp.methods.hideProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -714,17 +661,14 @@
                     <textarea id="profile-bio" oninput="knowstaApp.methods.saveProfileCustomization()" placeholder="Tell people about yourself..." rows="3" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600"></textarea>
                 </div>
 
-                <!-- NEW: Account Settings Section -->
                 <div id="account-settings-container" class="w-full space-y-4 pt-4 border-t dark:border-gray-700">
                     <p class="text-xs font-semibold text-gray-600 dark:text-gray-300">Account Management</p>
                     
-                    <!-- Update Name -->
                     <div class="flex items-center gap-2">
                         <input type="text" id="profile-name-input" placeholder="New display name" class="flex-grow p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600">
                         <button onclick="knowstaApp.methods.updateUsername()" class="py-2 px-3 bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-white text-sm rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 animated-button">Save</button>
                     </div>
 
-                    <!-- Update Password (for email auth users only) -->
                     <div id="password-update-container" class="hidden space-y-2">
                         <input type="password" id="profile-new-password" placeholder="New password (min 6 chars)" class="w-full p-2 border border-gray-300 rounded-xl focus:ring-[#004aad] focus:border-[#004aad] dark:bg-gray-700 dark:border-gray-600">
                         <button onclick="knowstaApp.methods.updatePassword()" class="w-full py-2 px-4 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-800 animated-button dark:bg-gray-600 dark:hover:bg-gray-700">Update Password</button>
@@ -752,19 +696,18 @@
         </div>
     </div>
 
-    <!-- Supabase & App Script -->
     <script type="module">
-        // Import Supabase Client
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        // --- GLOBAL APP OBJECT ---
         const knowstaApp = {
-            // --- CONFIGURATION ---
             config: {
                 SUPABASE_URL: 'https://nreviyisnhwckepaiglq.supabase.co',
                 SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZXZpeWlzbmh3Y2tlcGFpZ2xxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk3NjU0OTAsImV4cCI6MjA3NTM0MTQ5MH0.g3GRHAXq-_TcTqKubarOSO-pKyXj4VHko6x84ImC2kg',
                 FLASH_MODEL: 'gemini-2.5-flash-preview-05-20',
-                API_KEY: "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4", // WARNING: Exposed API Key. For production, proxy this.
+                // NOTE: For production use or in regions with API restrictions (e.g., Myanmar, parts of EU),
+                // these client-side API calls should be routed through a server-side proxy.
+                // This avoids exposing the API key and bypasses regional blocks.
+                API_KEY: "AIzaSyDSu08MpDaX18VVU4-A-XuOBwlaEOY8eF4", // WARNING: Exposed API Key.
                 THEME_KEY: 'knowsta_theme',
                 LANG_KEY: 'knowsta_lang',
                 TONE_KEY: 'knowsta_tone',
@@ -773,7 +716,6 @@
                 MINIMUM_LOAD_MS: 2500,
             },
 
-            // --- APPLICATION STATE ---
             state: {
                 chatHistory: [],
                 allChats: {},
@@ -789,21 +731,15 @@
                 isGenerating: false,
                 stopGenerationRequested: false,
                 attachedFile: null,
-                activePersona: 'general', // NEW: To track the current AI persona
+                activePersona: 'general',
             },
             
-            // --- UI ELEMENT REFERENCES ---
             ui: {},
-
-            // --- METHODS / FUNCTIONS ---
             methods: {},
 
-            // --- INITIALIZATION ---
             init() {
-                // 1. Initialize Supabase
                 this.state.supabase = createClient(this.config.SUPABASE_URL, this.config.SUPABASE_ANON_KEY);
                 
-                // 2. Cache UI elements
                 this.ui = {
                     appContainer: document.getElementById('app'),
                     preloader: document.getElementById('preloader'),
@@ -847,25 +783,20 @@
                     fileInput: document.getElementById('file-input'),
                 };
                 
-                // 3. Bind methods to the app context
                 for (const key in this.methods) {
                     this.methods[key] = this.methods[key].bind(this);
                 }
                 
-                // 4. Set up core services and event listeners
                 this.methods.setupSound();
                 this.methods.setupSpeechRecognition();
                 this.ui.hamburgerBtn.addEventListener('click', this.methods.toggleMobileMenu);
                 this.ui.mobileMenuOverlay.addEventListener('click', this.methods.toggleMobileMenu);
 
-
-                // 5. Load settings and data
                 this.methods.loadTheme();
                 this.methods.loadLanguage();
                 this.methods.loadTone();
                 this.methods.loadVoice();
                 
-                // 6. Set up Auth listeners
                 this.state.supabase.auth.onAuthStateChange((event, session) => {
                     const user = session?.user;
                     this.methods.updateAuthUI(user);
@@ -876,19 +807,15 @@
                     }
                 });
 
-                // 7. Start the app loading sequence
                 const minimumLoadTime = new Promise(resolve => setTimeout(resolve, this.config.MINIMUM_LOAD_MS));
                 const authReadyCheck = this.state.supabase.auth.getSession();
 
                 Promise.all([minimumLoadTime, authReadyCheck]).then(([, { data: { session } }]) => {
                     this.methods.updateAuthUI(session?.user);
-                    
                     this.methods.loadAllChats();
-                    
                     if (!this.state.currentChatId) {
                        this.methods.startNewChat();
                     }
-
                     this.methods.loadProfileCustomization();
                     this.methods.validateInput();
 
@@ -901,33 +828,22 @@
             }
         };
         
-        // --- DEFINE ALL METHODS ---
-
         knowstaApp.methods = {
+            getChatsKey(id) { return `knowsta_all_chats_${id}`; },
+            getProfileBioKey(id) { return `knowsta_bio_${id}`; },
 
-            // --- PERSISTENCE HELPERS ---
-            getChatsKey(id) {
-                return `knowsta_all_chats_${id}`;
-            },
-            getProfileBioKey(id) {
-                return `knowsta_bio_${id}`;
-            },
-
-            // --- SOUND MANAGER (Using Web Audio API for speed) ---
             setupSound() {
                 try {
                     this.state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     const resumeContext = () => {
-                        if (this.state.audioContext.state === 'suspended') {
-                            this.state.audioContext.resume();
-                        }
+                        if (this.state.audioContext.state === 'suspended') { this.state.audioContext.resume(); }
                         document.body.removeEventListener('click', resumeContext);
                         document.body.removeEventListener('touchend', resumeContext);
                     };
                     document.body.addEventListener('click', resumeContext, { once: true });
                     document.body.addEventListener('touchend', resumeContext, { once: true });
                 } catch (e) {
-                    console.warn("Web Audio API is not supported in this browser.");
+                    console.warn("Web Audio API is not supported.");
                     this.state.audioContext = null;
                 }
             },
@@ -959,7 +875,6 @@
                 oscillator.stop(this.state.audioContext.currentTime + 0.3);
             },
 
-            // --- LOCALIZATION ---
             getLocalizedText(key) {
                 const localizationData = {
                     'English': { 'sidebar_username': 'Sign In / Profile', 'btn_new_chat': 'New Chat', 'btn_settings': 'Settings', 'btn_export': 'Export Conversation (.txt)', 'btn_about': 'About Knowsta', 'btn_signin': 'Sign In', 'btn_signout': 'Sign Out', 'head_conversation': 'Knowsta', 'head_settings': 'App Settings', 'theme_label': 'Current Theme:', 'theme_toggle': 'Toggle Light/Dark', 'lang_label': 'Response Language', 'tone_label': 'AI Personality Tone', 'close': 'Close', 'submit': 'Submit', 'user_name_default': 'User Name', 'profile_signin': 'User Profile / Sign In', 'welcome_head': 'How can I help you?', 'welcome_sub': 'I\'m ready to assist you.', 'welcome_text': 'Start by asking a factual question, requesting code, or a creative prompt.', 'placeholder': 'Ask anything...' },
@@ -972,43 +887,34 @@
             translateUI(lang) {
                 const conversationHeader = this.ui.appContainer.querySelector('.main-chat-panel header h1');
                 if (conversationHeader) conversationHeader.textContent = this.methods.getLocalizedText('head_conversation');
-                
                 const authBtnText = this.state.supabase?.auth.currentUser ? this.methods.getLocalizedText('btn_signout') : this.methods.getLocalizedText('btn_signin');
                 this.ui.authButton.textContent = authBtnText;
-                
                 this.ui.sidebarUsername.textContent = this.methods.getLocalizedText('sidebar_username');
                 if (this.ui.labelNewChat) this.ui.labelNewChat.textContent = this.methods.getLocalizedText('btn_new_chat');
                 if (this.ui.labelSettings) this.ui.labelSettings.textContent = this.methods.getLocalizedText('btn_settings');
                 if (this.ui.labelExport) this.ui.labelExport.textContent = this.methods.getLocalizedText('btn_export');
                 if (this.ui.labelAbout) this.ui.labelAbout.textContent = this.methods.getLocalizedText('btn_about');
-                
                 if (this.ui.settingsModal) {
                     const h2 = this.ui.settingsModal.querySelector('h2');
                     if (h2) h2.textContent = this.methods.getLocalizedText('head_settings');
-                    
                     const pElements = this.ui.settingsModal.querySelectorAll('.mb-6 p');
                     if (pElements[0]) pElements[0].textContent = 'Appearance';
                     if (pElements[1]) pElements[1].textContent = this.methods.getLocalizedText('lang_label');
                     if (pElements[2]) pElements[2].textContent = this.methods.getLocalizedText('tone_label');
-
                     const toggleBtn = this.ui.settingsModal.querySelector('[onclick*="toggleTheme"]');
                     if (toggleBtn) toggleBtn.textContent = this.methods.getLocalizedText('theme_toggle');
                 }
-                
                 if (this.ui.profileModal) {
                     const h2 = this.ui.profileModal.querySelector('h2');
                     if (h2) h2.textContent = this.methods.getLocalizedText('profile_signin');
-                    
                     const profileAuthButton = document.getElementById('profile-auth-button');
                     if (profileAuthButton) profileAuthButton.textContent = this.state.supabase?.auth.currentUser ? this.methods.getLocalizedText('btn_signout') : this.methods.getLocalizedText('btn_signin');
                 }
-                
                 if (this.ui.userInput) {
                     this.ui.userInput.placeholder = this.methods.getLocalizedText('placeholder');
                 }
             },
             
-            // --- THEME & APPEARANCE ---
             applyTheme(theme) {
                 if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
@@ -1033,26 +939,20 @@
                 this.methods.applyTheme(savedTheme);
             },
             
-            // --- SETTINGS & PERSONAS ---
             setPersona(persona) {
                 this.state.activePersona = persona;
-                
                 const personaButtons = document.querySelectorAll('#persona-buttons .persona-button');
                 personaButtons.forEach(btn => btn.classList.remove('active-persona'));
                 const activeButton = document.getElementById(`persona-${persona}`);
                 if (activeButton) {
                     activeButton.classList.add('active-persona');
                 }
-                
                 this.methods.startNewChat();
-                
                 if (window.innerWidth <= 768 && this.ui.sidebar.classList.contains('open')) {
                     this.methods.toggleMobileMenu();
                 }
             },
-            resetToGeneralChat() {
-                this.methods.setPersona('general');
-            },
+            resetToGeneralChat() { this.methods.setPersona('general'); },
             updateLanguage(selectedLang) {
                 localStorage.setItem(this.config.LANG_KEY, selectedLang);
                 this.methods.translateUI(selectedLang);
@@ -1097,7 +997,6 @@
                 this.ui.mobileMenuOverlay.classList.toggle('hidden');
             },
             
-            // --- PROFILE & HISTORY ---
             saveProfileCustomization() {
                 this.state.profileBio = this.ui.profileBioInput.value;
                 localStorage.setItem(this.methods.getProfileBioKey(this.state.userId), this.state.profileBio);
@@ -1119,19 +1018,12 @@
                     try {
                         this.state.allChats = JSON.parse(savedChats);
                         const chatIds = Object.keys(this.state.allChats);
-                         if (chatIds.length > 0) {
-                             this.methods.loadChat(chatIds[chatIds.length - 1]);
-                        }
-                    } catch(e) {
-                         this.state.allChats = {};
-                    }
-                } else {
-                    this.state.allChats = {};
-                }
+                         if (chatIds.length > 0) { this.methods.loadChat(chatIds[chatIds.length - 1]); }
+                    } catch(e) { this.state.allChats = {}; }
+                } else { this.state.allChats = {}; }
                 this.methods.renderChatHistoryList();
             },
             
-            // --- MODAL HANDLERS ---
             showAboutModal() { this.ui.aboutModal.classList.remove('hidden'); this.ui.aboutModal.classList.add('flex'); },
             hideAboutModal() { this.ui.aboutModal.classList.add('hidden'); this.ui.aboutModal.classList.remove('flex'); },
             showSettingsModal() {
@@ -1144,25 +1036,16 @@
             hideSettingsModal() { this.ui.settingsModal.classList.add('hidden'); this.ui.settingsModal.classList.remove('flex'); },
             handleAuthClickOrProfile() {
                 const { data: { user } } = this.state.supabase.auth.getUser();
-                if (user) {
-                    this.methods.showProfileModal();
-                } else {
-                    this.methods.handleAuthClick();
-                }
+                if (user) { this.methods.showProfileModal(); } 
+                else { this.methods.handleAuthClick(); }
             },
             showProfileModal() {
                  const { data: { session } } = this.state.supabase.auth.getSession();
                  const user = session?.user;
-
-                if (!user) {
-                    this.methods.handleAuthClick(); // Fallback to auth flow if no user
-                    return;
-                }
-                
+                if (!user) { this.methods.handleAuthClick(); return; }
                 this.ui.accountSettingsMessage.classList.add('hidden');
                 this.ui.profileNameInput.value = '';
                 this.ui.profileNewPasswordInput.value = '';
-                
                 const displayName = user?.user_metadata.full_name || user?.email || 'User';
                 const avatarUrl = user?.user_metadata.avatar_url;
                 const uid = user?.id || 'N/A';
@@ -1175,19 +1058,13 @@
                 profileAuthButton.textContent = this.methods.getLocalizedText('btn_signout');
                 profileAuthButton.classList.replace('bg-indigo-600', 'bg-red-600');
                 authFormContainer.classList.add('hidden');
-                
-                if (user.app_metadata.provider === 'email') {
-                    this.ui.passwordUpdateContainer.classList.remove('hidden');
-                } else {
-                    this.ui.passwordUpdateContainer.classList.add('hidden');
-                }
-
+                if (user.app_metadata.provider === 'email') { this.ui.passwordUpdateContainer.classList.remove('hidden'); }
+                else { this.ui.passwordUpdateContainer.classList.add('hidden'); }
                 this.ui.profileModal.classList.remove('hidden');
                 this.ui.profileModal.classList.add('flex');
             },
             hideProfileModal() { this.ui.profileModal.classList.add('hidden'); this.ui.profileModal.classList.remove('flex'); },
 
-            // --- CHAT LOGIC ---
             startNewChat() {
                 if (this.state.isGenerating) this.methods.stopGeneration();
                 this.methods.saveAllChats();
@@ -1198,26 +1075,10 @@
                 
                 const persona = this.state.activePersona;
                 const personaWelcomes = {
-                    general: {
-                        head: 'How can I help you?',
-                        sub: 'I\'m ready to assist with any topic.',
-                        text: 'Select a persona on the left or ask me anything.'
-                    },
-                    marketing: {
-                        head: 'Marketing Maestro',
-                        sub: 'Ready to craft your next campaign.',
-                        text: 'Ask for strategies, ad copy, or market analysis.'
-                    },
-                    learn: {
-                        head: 'Learning Companion',
-                        sub: 'Here to help you understand new concepts.',
-                        text: 'Ask me to explain topics, summarize articles, or test your knowledge.'
-                    },
-                    coding: {
-                        head: 'Coding Co-pilot',
-                        sub: 'Your partner in programming.',
-                        text: 'Ask for code snippets, debugging help, or algorithm explanations.'
-                    }
+                    general: { head: 'How can I help you?', sub: 'I\'m ready to assist with any topic.', text: 'Select a persona on the left or ask me anything.' },
+                    marketing: { head: 'Marketing Maestro', sub: 'Ready to craft your next campaign.', text: 'Ask for strategies, ad copy, or market analysis.' },
+                    learn: { head: 'Learning Companion', sub: 'Here to help you understand new concepts.', text: 'Ask me to explain topics, summarize articles, or test your knowledge.' },
+                    coding: { head: 'Coding Co-pilot', sub: 'Your partner in programming.', text: 'Ask for code snippets, debugging help, or algorithm explanations.' }
                 };
                 const welcome = personaWelcomes[persona] || personaWelcomes['general'];
 
@@ -1229,7 +1090,6 @@
                     <p class="text-lg font-semibold mb-2">${welcome.sub}</p>
                     <p class="text-sm">${welcome.text}</p>
                 </div>`;
-
                 this.ui.chatWindow.appendChild(messageDiv);
                 this.methods.saveAllChats();
             },
@@ -1283,7 +1143,6 @@
                 this.methods.addMessage('system', `Chat exported as "${filename}".`);
             },
             
-            // --- AUTHENTICATION & ACCOUNT SETTINGS ---
             async updateUsername() {
                 const newName = this.ui.profileNameInput.value.trim();
                 if (!newName) {
@@ -1292,42 +1151,37 @@
                     this.ui.accountSettingsMessage.classList.remove('hidden');
                     return;
                 }
-                const { data, error } = await this.state.supabase.auth.updateUser({
-                    data: { full_name: newName }
-                });
+                const { data, error } = await this.state.supabase.auth.updateUser({ data: { full_name: newName } });
                 if (error) {
                     this.ui.accountSettingsMessage.textContent = `Error: ${error.message}`;
                     this.ui.accountSettingsMessage.className = 'text-sm text-center text-red-500 dark:text-red-400';
-                    this.ui.accountSettingsMessage.classList.remove('hidden');
                 } else {
                     this.ui.accountSettingsMessage.textContent = 'Name updated successfully!';
                     this.ui.accountSettingsMessage.className = 'text-sm text-center text-green-600 dark:text-green-400';
-                    this.ui.accountSettingsMessage.classList.remove('hidden');
                     await this.state.supabase.auth.refreshSession();
                     this.methods.updateAuthUI(data.user);
                     this.ui.profileNameText.textContent = newName;
                     this.ui.profileNameInput.value = '';
                 }
+                this.ui.accountSettingsMessage.classList.remove('hidden');
             },
             async updatePassword() {
                 const newPassword = this.ui.profileNewPasswordInput.value;
                 if (newPassword.length < 6) {
                     this.ui.accountSettingsMessage.textContent = 'Password must be at least 6 characters.';
                     this.ui.accountSettingsMessage.className = 'text-sm text-center text-red-500 dark:text-red-400';
-                    this.ui.accountSettingsMessage.classList.remove('hidden');
-                    return;
-                }
-                const { error } = await this.state.supabase.auth.updateUser({ password: newPassword });
-                if (error) {
-                    this.ui.accountSettingsMessage.textContent = `Error: ${error.message}`;
-                    this.ui.accountSettingsMessage.className = 'text-sm text-center text-red-500 dark:text-red-400';
-                    this.ui.accountSettingsMessage.classList.remove('hidden');
                 } else {
-                    this.ui.accountSettingsMessage.textContent = 'Password updated successfully!';
-                    this.ui.accountSettingsMessage.className = 'text-sm text-center text-green-600 dark:text-green-400';
-                    this.ui.accountSettingsMessage.classList.remove('hidden');
-                    this.ui.profileNewPasswordInput.value = '';
+                    const { error } = await this.state.supabase.auth.updateUser({ password: newPassword });
+                    if (error) {
+                        this.ui.accountSettingsMessage.textContent = `Error: ${error.message}`;
+                        this.ui.accountSettingsMessage.className = 'text-sm text-center text-red-500 dark:text-red-400';
+                    } else {
+                        this.ui.accountSettingsMessage.textContent = 'Password updated successfully!';
+                        this.ui.accountSettingsMessage.className = 'text-sm text-center text-green-600 dark:text-green-400';
+                        this.ui.profileNewPasswordInput.value = '';
+                    }
                 }
+                this.ui.accountSettingsMessage.classList.remove('hidden');
             },
             updateAuthUI(user) {
                 const oldUserId = this.state.userId;
@@ -1388,11 +1242,9 @@
                 const password = document.getElementById('modal-password-input').value;
                 const modalAuthMessage = document.getElementById('modal-auth-message');
                 const emailAuthButton = document.getElementById('modal-email-auth-button');
-
                 modalAuthMessage.classList.add('hidden');
                 emailAuthButton.disabled = true;
                 emailAuthButton.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Authenticating...`;
-
                 if (!email || password.length < 6) {
                     modalAuthMessage.textContent = "Please enter a valid email and password (min 6 chars).";
                     modalAuthMessage.classList.remove('hidden');
@@ -1400,7 +1252,6 @@
                     emailAuthButton.innerHTML = 'Submit';
                     return;
                 }
-
                 let { data, error } = await this.state.supabase.auth.signInWithPassword({ email, password });
                 if (error && error.message.includes('Invalid login credentials')) {
                     ({ data, error } = await this.state.supabase.auth.signUp({ email, password }));
@@ -1422,7 +1273,6 @@
                 emailAuthButton.innerHTML = 'Submit';
             },
 
-            // --- SPEECH RECOGNITION ---
             setupSpeechRecognition() {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 if (SpeechRecognition) {
@@ -1430,7 +1280,6 @@
                     this.state.speechRecognition.continuous = false;
                     this.state.speechRecognition.interimResults = true;
                     this.state.speechRecognition.lang = 'en-US';
-
                     this.state.speechRecognition.onstart = () => {
                         this.state.isListening = true;
                         this.ui.micButton.title = "Listening...";
@@ -1475,7 +1324,6 @@
                 }
             },
 
-            // --- UI UTILITIES ---
             autoExpand(element) {
                 element.style.height = 'auto';
                 element.style.height = element.scrollHeight + 'px';
@@ -1485,7 +1333,6 @@
                 this.ui.sendButton.disabled = !hasInput;
             },
             
-            // --- MESSAGE RENDERING ---
             formatGeminiResponse(text) {
                 const codeBlocks = [];
                 let processedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
@@ -1502,8 +1349,7 @@
                     .replace(/^\s*\*\s+(.*)/gm, '__LIST_ITEM__$1');
 
                 processedText = processedText.replace(/(__LIST_ITEM__.*(?:\n__LIST_ITEM__.*)*)/g, (match) => {
-                    const items = match.replace(/__LIST_ITEM__/g, '<li class="ml-4 list-disc">')
-                                       .replace(/\n/g, '</li>');
+                    const items = match.replace(/__LIST_ITEM__/g, '<li class="ml-4 list-disc">').replace(/\n/g, '</li>');
                     return `<ul class="list-disc space-y-1 my-2">${items}</li></ul>`;
                 });
 
@@ -1513,8 +1359,11 @@
                     const placeholder = `__CODEBLOCK_${index}__`;
                     const escapedCode = block.code.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     const codeForButton = block.code.trim().replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
-
-                    const codeHtml = `<pre><button class="copy-code-btn" onclick="knowstaApp.methods.copyToClipboard('${codeForButton}')">Copy</button><code class="language-${block.lang || ''}">${escapedCode}</code></pre>`;
+                    const langDisplay = block.lang || '';
+                    const codeHtml = `<div class="code-block-container">
+                        <div class="code-block-header">${langDisplay}</div>
+                        <pre><button class="copy-code-btn" onclick="knowstaApp.methods.copyToClipboard('${codeForButton}')">Copy</button><code class="language-${langDisplay}">${escapedCode}</code></pre>
+                    </div>`;
                     processedText = processedText.replace(placeholder, codeHtml);
                 });
 
@@ -1522,63 +1371,45 @@
             },
             addMessage(role, content, isImageHtml = false, timestamp = null) {
                 const suppressedMessages = [
-                    'Generating audio...',
-                    'Audio playback failed. Please check the console for details.',
-                    'Regenerating response...'
+                    'Generating audio...','Audio playback failed. Please check the console for details.','Regenerating response...'
                 ];
-
                 if (role === 'system' && suppressedMessages.includes(content)) {
                     console.log(`Suppressed system message: "${content}"`);
                     return null; 
                 }
-
                 const promptBlock = document.getElementById('initial-message');
                 if (promptBlock) promptBlock.remove();
-
                 const isUser = role === 'user';
                 const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
                 const currentTime = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
                 let textForControls = '';
                 if (Array.isArray(content)) {
                     const textPart = content.find(part => part.text);
                     if (textPart) textForControls = textPart.text;
-                } else {
-                     textForControls = content;
-                }
+                } else { textForControls = content; }
                 const escapedTextForHtmlAttr = textForControls.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
-
                 const messageContainer = document.createElement('div');
                 messageContainer.className = `flex ${isUser ? 'justify-end user-message-wrapper' : 'justify-start ai-message-wrapper'}`;
                 messageContainer.id = messageId;
-
                 const contentBlock = document.createElement('div');
                 contentBlock.className = 'flex flex-col';
-
                 const bubble = document.createElement('div');
                 const textContentDiv = document.createElement('div');
                 textContentDiv.className = 'message-text-content';
-
                 const isSystem = role === 'system';
-                
                 let bubbleClass = 'max-w-[85%] px-4 py-2 rounded-xl text-sm transition duration-300';
-                if (isUser) {
-                    bubbleClass += ' chat-bubble-user ml-auto';
-                } else if (role === 'model') {
-                    bubbleClass += ' chat-bubble-ai mr-auto';
-                } else if (isSystem) {
+                if (isUser) { bubbleClass += ' chat-bubble-user ml-auto'; } 
+                else if (role === 'model') { bubbleClass += ' chat-bubble-ai mr-auto'; } 
+                else if (isSystem) {
                     bubbleClass = 'max-w-full text-center px-4 py-1 text-xs text-gray-500 transition duration-300';
                     textContentDiv.innerHTML = textForControls;
                     bubble.appendChild(textContentDiv);
                 }
                 bubble.className = bubbleClass;
-                
                 if (!isSystem) {
                      if (Array.isArray(content)) {
                          content.forEach(part => {
-                             if(part.text) {
-                                 textContentDiv.innerHTML += this.methods.formatGeminiResponse(part.text);
-                             }
+                             if(part.text) { textContentDiv.innerHTML += this.methods.formatGeminiResponse(part.text); }
                              if (part.inlineData) {
                                  const img = document.createElement('img');
                                  img.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
@@ -1586,18 +1417,14 @@
                                  bubble.appendChild(img);
                              }
                          });
-                     } else {
-                         textContentDiv.innerHTML = this.methods.formatGeminiResponse(content);
-                     }
+                     } else { textContentDiv.innerHTML = this.methods.formatGeminiResponse(content); }
                      bubble.appendChild(textContentDiv);
                 }
-
                 if (!isSystem) {
                     contentBlock.appendChild(bubble);
                     const controls = document.createElement('div');
                     controls.className = 'message-controls flex gap-1 mt-1 text-gray-400 dark:text-gray-500 text-xs opacity-0 transition duration-200';
                     controls.innerHTML += `<button onclick="knowstaApp.methods.copyToClipboard('${escapedTextForHtmlAttr}')" class="hover:text-[#004aad] px-1 rounded-md" title="Copy Text"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></button>`;
-
                     if (isUser) {
                         controls.innerHTML += `<button onclick="knowstaApp.methods.editMessage('${messageId}', '${escapedTextForHtmlAttr}')" class="hover:text-[#004aad] px-1 rounded-md" title="Edit Message"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.836a2.121 2.121 0 013 3L7 19H4v-3L16.732 3.268a2.121 2.121 0 013 0z" /></svg></button>`;
                         controls.innerHTML += `<button onclick="knowstaApp.methods.deleteMessage('${messageId}')" class="hover:text-red-500 px-1 rounded-md" title="Delete Message"><svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>`;
@@ -1613,9 +1440,7 @@
                         contentBlock.innerHTML += `<p class="timestamp text-gray-500 dark:text-gray-400 self-start">${currentTime}</p>`;
                     }
                     messageContainer.appendChild(contentBlock);
-                } else {
-                    messageContainer.appendChild(bubble);
-                }
+                } else { messageContainer.appendChild(bubble); }
                 this.ui.chatWindow.appendChild(messageContainer);
                 this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight;
                 return messageContainer;
@@ -1638,7 +1463,6 @@
                 }
             },
             
-            // --- MESSAGE ACTIONS ---
             editMessage(messageId, oldText) {
                 this.ui.userInput.value = oldText;
                 this.methods.autoExpand(this.ui.userInput);
@@ -1650,26 +1474,22 @@
                     userMsgElement.remove();
                     if (aiMsgElement) aiMsgElement.remove();
                 }
-                this.state.chatHistory = []; // Clears history to restart this thread
+                this.state.chatHistory = [];
                 this.methods.saveAllChats();
             },
             regenerateResponse(modelMessageId) {
                 const modelMsgElement = document.getElementById(modelMessageId);
                 if (!modelMsgElement) return;
-
                 const userMsgElement = modelMsgElement.previousElementSibling;
                 if (!userMsgElement || !userMsgElement.querySelector('.chat-bubble-user')) {
                     this.methods.addMessage('system', 'Cannot regenerate. The original user query is missing.');
                     return;
                 }
                 const userText = userMsgElement.querySelector('.message-text-content').textContent.trim();
-                
                 modelMsgElement.remove();
-
                 if (this.state.chatHistory.length > 0 && this.state.chatHistory[this.state.chatHistory.length - 1].role === 'model') {
                     this.state.chatHistory.pop();
                 }
-                
                 this.methods.addMessage('system', 'Regenerating response...');
                 this.methods.sendMessage(userText, true);
             },
@@ -1682,26 +1502,16 @@
                 if (aiMsgElement && aiMsgElement.classList.contains('ai-message-wrapper')) {
                     aiMsgElement.remove();
                 }
-                
                 const remainingMessages = Array.from(this.ui.chatWindow.querySelectorAll('.user-message-wrapper, .ai-message-wrapper')).map(el => {
                     const isUser = el.classList.contains('user-message-wrapper');
                     const textContent = el.querySelector('.message-text-content').textContent.trim();
                     const timeEl = el.querySelector('.timestamp');
                     const time = timeEl ? timeEl.textContent : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    return { 
-                        role: isUser ? 'user' : 'model', 
-                        text: textContent, 
-                        time: time, 
-                        parts: [{ text: textContent }] 
-                    };
+                    return { role: isUser ? 'user' : 'model', text: textContent, time: time, parts: [{ text: textContent }] };
                 });
-                
                 this.state.chatHistory = remainingMessages;
                 this.methods.saveAllChats();
-                
-                if (this.ui.chatWindow.childElementCount === 0) {
-                    this.methods.startNewChat();
-                }
+                if (this.ui.chatWindow.childElementCount === 0) { this.methods.startNewChat(); }
             },
             copyToClipboard(text) {
                 const tempInput = document.createElement('textarea');
@@ -1714,19 +1524,14 @@
                 } catch (err) {
                     console.error('Could not copy text: ', err);
                     this.methods.addMessage('system', 'Failed to copy text. Please try manually.');
-                } finally {
-                    document.body.removeChild(tempInput);
-                }
+                } finally { document.body.removeChild(tempInput); }
             },
 
-            // --- TTS UTILITY (REFACTORED FOR RELIABILITY) ---
             base64ToArrayBuffer(base64) {
                 const binaryString = window.atob(base64);
                 const len = binaryString.length;
                 const bytes = new Uint8Array(len);
-                for (let i = 0; i < len; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
+                for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
                 return bytes.buffer;
             },
             async listenToMessage(text) { 
@@ -1734,164 +1539,110 @@
                     this.methods.addMessage('system', 'Audio playback is not supported on this browser.');
                     return;
                 }
-
-                if (this.state.audioContext.state === 'suspended') {
-                    await this.state.audioContext.resume();
-                }
-
+                if (this.state.audioContext.state === 'suspended') { await this.state.audioContext.resume(); }
                 this.methods.addMessage('system', 'Generating audio...');
                 const ttsUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${this.config.API_KEY}`;
                 const payload = { 
                     contents: [{ parts: [{ text: `Say with a clear voice: ${text}` }] }], 
                     generationConfig: { 
                         responseModalities: ["AUDIO"], 
-                        speechConfig: { 
-                            voiceConfig: { 
-                                prebuiltVoiceConfig: { voiceName: this.state.ttsVoice } 
-                            } 
-                        } 
+                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: this.state.ttsVoice } } } 
                     } 
                 };
-
                 try {
                     const result = await this.methods.fetchWithRetry(ttsUrl, payload);
                     const part = result?.candidates?.[0]?.content?.parts?.[0];
                     const audioData = part?.inlineData?.data;
                     const mimeType = part?.inlineData?.mimeType;
-
                     if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
                         const match = mimeType.match(/rate=(\d+)/);
                         const sampleRate = match ? parseInt(match[1], 10) : 24000;
-                        
                         const pcmBuffer = this.methods.base64ToArrayBuffer(audioData);
                         const pcm16 = new Int16Array(pcmBuffer);
-
                         const pcm32 = new Float32Array(pcm16.length);
-                        for (let i = 0; i < pcm16.length; i++) {
-                            pcm32[i] = pcm16[i] / 32767;
-                        }
-
+                        for (let i = 0; i < pcm16.length; i++) { pcm32[i] = pcm16[i] / 32767; }
                         const audioBuffer = this.state.audioContext.createBuffer(1, pcm32.length, sampleRate);
                         audioBuffer.copyToChannel(pcm32, 0);
-
                         const source = this.state.audioContext.createBufferSource();
                         source.buffer = audioBuffer;
                         source.connect(this.state.audioContext.destination);
                         source.start(0);
-
-                    } else {
-                        throw new Error("Invalid audio response format from API.");
-                    }
+                    } else { throw new Error("Invalid audio response format from API."); }
                 } catch (error) { 
                     console.error("TTS or playback failed:", error); 
                     this.methods.addMessage('system', 'Audio playback failed. Please check the console for details.'); 
                 }
             },
 
-            // --- AI RESPONSE STREAMING ---
             async streamResponse(text) {
                 return new Promise(resolve => {
                     const aiMessageElement = this.methods.addMessage('model', [{text: ''}]);
                     const textContentDiv = aiMessageElement.querySelector('.message-text-content');
                     if (!textContentDiv) { resolve(); return; }
-
                     textContentDiv.innerHTML = '<span class="typing-cursor"></span>';
                     this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight;
-
                     let i = 0;
                     const baseSpeed = 25; 
                     const speedVariation = 20;
-
                     const typeWriter = () => {
                         if (this.state.stopGenerationRequested || i >= text.length) {
                             const finalText = text.substring(0, i);
                             textContentDiv.innerHTML = this.methods.formatGeminiResponse(finalText);
-                            
                             if (this.state.chatHistory.length > 0 && this.state.chatHistory[this.state.chatHistory.length - 1].role === 'model') {
                                 this.state.chatHistory[this.state.chatHistory.length - 1].parts = [{ text: finalText }];
                             }
                             this.methods.saveAllChats();
-                            
                             resolve();
                             return;
                         }
-
                         const char = text.charAt(i);
                         textContentDiv.innerHTML = text.substring(0, i + 1).replace(/\n/g, '<br>') + '<span class="typing-cursor"></span>';
                         this.ui.chatWindow.scrollTop = this.ui.chatWindow.scrollHeight;
                         i++;
-
                         let delay = baseSpeed + (Math.random() * speedVariation) - (speedVariation / 2);
                         if (char === ',' || char === '\n') delay += 200;
                         if (char === '.' || char === '?' || char === '!') delay += 350;
-                        
                         setTimeout(typeWriter, delay);
                     };
-                    
                     setTimeout(typeWriter, 400); 
                 });
             },
 
-            // --- CORE SEND LOGIC ---
             async sendMessage(overrideText, isRegenerate = false) {
                 if (this.state.isGenerating) return;
-                
                 const userText = overrideText || this.ui.userInput.value.trim();
                 if (!userText && !this.state.attachedFile) return;
-                
                 this.state.isGenerating = true;
                 this.state.stopGenerationRequested = false;
-
                 const messageParts = [];
-                if (userText) {
-                    messageParts.push({ text: userText });
-                }
-                
+                if (userText) { messageParts.push({ text: userText }); }
                 if (this.state.attachedFile) {
-                    messageParts.push({
-                        inlineData: {
-                            mimeType: this.state.attachedFile.type,
-                            data: this.state.attachedFile.data
-                        }
-                    });
+                    messageParts.push({ inlineData: { mimeType: this.state.attachedFile.type, data: this.state.attachedFile.data } });
                 }
-                
                 if (!isRegenerate) {
                     this.methods.addMessage('user', messageParts);
                     this.state.chatHistory.push({ role: 'user', parts: messageParts, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-                    if (this.state.chatHistory.length === 1) {
-                         this.methods.saveAllChats(); 
-                    }
+                    if (this.state.chatHistory.length === 1) { this.methods.saveAllChats(); }
                 }
-                
                 this.ui.userInput.value = '';
                 this.ui.userInput.style.height = 'auto';
                 this.methods.removeAttachment();
                 this.ui.sendButton.disabled = true;
-                
                 this.ui.loadingIndicator.classList.remove('hidden');
                 this.ui.loadingMessage.textContent = "Knowsta is thinking...";
                 this.ui.stopGeneratingBtn.classList.remove('hidden');
                 this.methods.playSendSound();
-                
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.config.FLASH_MODEL}:generateContent?key=${this.config.API_KEY}`;
-                
                 const personaPrompts = {
                     general: `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${this.state.responseTone}** tone and personality. Keep your responses short and well-structured using Markdown, including code blocks with language identifiers. Do not include unnecessary conversational filler or preamble.`,
                     marketing: `You are Knowsta, a world-class Marketing Strategist AI. Your expertise is in digital marketing, branding, copywriting, and market analysis. Provide actionable, creative, and data-driven marketing advice. Adopt a **${this.state.responseTone}** tone. Respond in the user's language. Be concise and use Markdown for clarity.`,
                     learn: `You are Knowsta, an expert educator and learning assistant AI. Your goal is to explain complex topics simply and clearly. Break down concepts, provide analogies, and use structured formats like lists and summaries to aid understanding. Adopt a **${this.state.responseTone}** and patient tone. Respond in the user's language.`,
                     coding: `You are Knowsta, an expert programmer AI and coding assistant. Your strengths are in writing clean, efficient code, debugging, explaining algorithms, and software architecture. Always provide code in formatted Markdown blocks with language identifiers. Explain the code clearly and concisely. Adopt a **${this.state.responseTone}** and technical tone. Respond in the user's language.`
                 };
-
                 const baseInstruction = `If the user asks about the creator, developer, or founder of Knowsta, you may provide the following information: ${this.config.CREATOR_BIO}`;
                 const systemInstruction = (personaPrompts[this.state.activePersona] || personaPrompts['general']) + '\n' + baseInstruction;
-
-                const apiHistory = this.state.chatHistory.map(msg => ({ 
-                    role: msg.role === 'model' ? 'model' : 'user', 
-                    parts: msg.parts 
-                }));
+                const apiHistory = this.state.chatHistory.map(msg => ({ role: msg.role === 'model' ? 'model' : 'user', parts: msg.parts }));
                 const payload = { contents: apiHistory, systemInstruction: { parts: [{ text: systemInstruction }] } };
-
                 try {
                     const result = await this.methods.fetchWithRetry(apiUrl, payload);
                     const candidate = result.candidates?.[0];
@@ -1899,9 +1650,7 @@
                         const aiResponseText = candidate.content.parts[0].text;
                         this.ui.loadingIndicator.classList.add('hidden');
                         this.ui.stopGeneratingBtn.classList.add('hidden');
-                        
                         this.state.chatHistory.push({ role: 'model', parts: [{ text: aiResponseText }], time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-                        
                         await this.methods.streamResponse(aiResponseText);
                         this.methods.playReceiveSound();
                     } else {
@@ -1911,7 +1660,7 @@
                     console.error("Gemini API call failed:", error);
                     this.ui.loadingIndicator.classList.add('hidden');
                     this.ui.stopGeneratingBtn.classList.add('hidden');
-                    this.methods.addMessage('system', `Network Error: I'm having trouble connecting. Details: ${error.message}. Please try again.`);
+                    this.methods.addMessage('system', `Network Error: I'm having trouble connecting. Details: ${error.message}. If you are in a region with service restrictions, please try using a VPN.`);
                 } finally {
                     this.state.isGenerating = false;
                     this.state.stopGenerationRequested = false;
@@ -1923,20 +1672,13 @@
                 }
             },
             
-            // --- FILE/IMAGE METHODS ---
             handleFileUpload(event) {
                 const file = event.target.files[0];
                 if (!file) return;
-
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const base64Data = e.target.result.split(',')[1];
-                    this.state.attachedFile = {
-                        name: file.name,
-                        type: file.type,
-                        data: base64Data,
-                        previewUrl: e.target.result
-                    };
+                    this.state.attachedFile = { name: file.name, type: file.type, data: base64Data, previewUrl: e.target.result };
                     this.methods.renderAttachmentPreview();
                     this.methods.validateInput();
                 };
@@ -1945,7 +1687,6 @@
             },
             renderAttachmentPreview() {
                 if (!this.state.attachedFile) return;
-
                 let previewHtml = '';
                 if (this.state.attachedFile.type.startsWith('image/')) {
                     previewHtml = `<img src="${this.state.attachedFile.previewUrl}" class="max-h-20 w-auto rounded-md object-cover">`;
@@ -1955,7 +1696,6 @@
                         <span>${this.state.attachedFile.name}</span>
                     </div>`;
                 }
-
                 this.ui.attachmentPreview.innerHTML = `
                     <div class="flex items-center justify-between">
                         ${previewHtml}
@@ -1972,8 +1712,6 @@
                 this.methods.validateInput();
             },
 
-
-            // --- ADVANCED METHODS ---
             renderChatHistoryList() {
                 this.ui.chatHistoryList.innerHTML = '';
                 const chatIds = Object.keys(this.state.allChats).reverse();
@@ -1981,33 +1719,23 @@
                     this.ui.chatHistoryList.innerHTML = '<p class="text-xs text-gray-400 px-1">No recent chats.</p>';
                     return;
                 }
-
                 chatIds.forEach(chatId => {
                     const chat = this.state.allChats[chatId];
                     if (chat.length > 0) {
                         const firstUserMessage = chat.find(m => m.role === 'user');
                         const textPart = firstUserMessage?.parts?.find(p => p.text);
                         const title = textPart ? textPart.text.substring(0, 25) + (textPart.text.length > 25 ? '...' : '') : 'Chat with media';
-                        
                         const item = document.createElement('div');
                         item.className = `chat-history-item text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50`;
-                        if (chatId === this.state.currentChatId) {
-                            item.classList.add('active');
-                        }
-
+                        if (chatId === this.state.currentChatId) { item.classList.add('active'); }
                         const titleSpan = document.createElement('span');
                         titleSpan.className = 'chat-title';
                         titleSpan.textContent = title;
                         titleSpan.onclick = () => this.methods.loadChat(chatId);
-
                         const deleteBtn = document.createElement('button');
                         deleteBtn.className = 'delete-chat-btn text-gray-400 hover:text-red-500';
                         deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
-                        deleteBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            this.methods.deleteChat(chatId);
-                        };
-
+                        deleteBtn.onclick = (e) => { e.stopPropagation(); this.methods.deleteChat(chatId); };
                         item.appendChild(titleSpan);
                         item.appendChild(deleteBtn);
                         this.ui.chatHistoryList.appendChild(item);
@@ -2028,22 +1756,16 @@
                 delete this.state.allChats[chatId];
                 if (this.state.currentChatId === chatId) {
                     const remainingChats = Object.keys(this.state.allChats);
-                    if(remainingChats.length > 0) {
-                        this.methods.loadChat(remainingChats[remainingChats.length - 1]);
-                    } else {
-                        this.methods.startNewChat();
-                    }
+                    if(remainingChats.length > 0) { this.methods.loadChat(remainingChats[remainingChats.length - 1]); } 
+                    else { this.methods.startNewChat(); }
                 }
                 this.methods.saveAllChats();
             },
             stopGeneration() {
-                if (this.state.isGenerating) {
-                    this.state.stopGenerationRequested = true;
-                }
+                if (this.state.isGenerating) { this.state.stopGenerationRequested = true; }
             }
         };
 
-        // --- GLOBAL INITIALIZATION ---
         window.knowstaApp = knowstaApp;
         document.addEventListener('DOMContentLoaded', () => knowstaApp.init());
 

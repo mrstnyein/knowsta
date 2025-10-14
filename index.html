@@ -160,6 +160,61 @@
             50% { opacity: 0; }
         }
 
+        /* --- CODE BLOCK STYLES (NEW FIX) --- */
+        pre {
+            background-color: #f3f4f6; /* Light gray background */
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto; /* Allow horizontal scrolling for long lines */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem; /* 14px */
+            position: relative;
+            margin: 1em 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .dark pre {
+            background-color: #1f2937; /* Darker gray for dark mode */
+            border-color: #374151;
+            color: #d1d5db;
+        }
+
+        .copy-code-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #d1d5db;
+            border: none;
+            border-radius: 6px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            color: #4b5563;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s, background-color 0.2s;
+        }
+
+        pre:hover .copy-code-btn {
+            opacity: 1;
+        }
+
+        .copy-code-btn:hover {
+            background-color: #9ca3af;
+            color: #1f2937;
+        }
+
+        .dark .copy-code-btn {
+            background-color: #4b5563;
+            color: #d1d5db;
+        }
+
+        .dark .copy-code-btn:hover {
+            background-color: #6b7280;
+            color: white;
+        }
+
 
         /* --- DARK MODE STYLES --- */
         .dark body { background-color: #1c1c1e; }
@@ -349,7 +404,7 @@
             <div id="chat-history-container" class="flex-grow overflow-y-auto mb-4 border-t border-b border-gray-200 dark:border-gray-700 py-4">
                  <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 px-1">Recent Chats</div>
                  <div id="chat-history-list" class="space-y-1">
-                       <!-- History items will be injected here -->
+                         <!-- History items will be injected here -->
                  </div>
             </div>
 
@@ -1357,6 +1412,45 @@
             },
             
             // --- MESSAGE RENDERING ---
+            formatGeminiResponse(text) {
+                const codeBlocks = [];
+                // 1. Find and replace code blocks with placeholders
+                let processedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+                    const placeholder = `__CODEBLOCK_${codeBlocks.length}__`;
+                    codeBlocks.push({ lang, code });
+                    return placeholder;
+                });
+
+                // 2. Process other markdown on the non-code text
+                processedText = processedText
+                    .replace(/</g, "&lt;").replace(/>/g, "&gt;") // Sanitize remaining HTML characters
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>')
+                    .replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>')
+                    .replace(/^\s*\*\s+(.*)/gm, '__LIST_ITEM__$1'); // Use a temp marker for lists
+
+                // 3. Group list items into <ul>
+                processedText = processedText.replace(/(__LIST_ITEM__.*(?:\n__LIST_ITEM__.*)*)/g, (match) => {
+                    const items = match.replace(/__LIST_ITEM__/g, '<li class="ml-4 list-disc">')
+                                       .replace(/\n/g, '</li>');
+                    return `<ul class="list-disc space-y-1 my-2">${items}</li></ul>`;
+                });
+
+                // 4. Handle newlines outside of lists/code
+                processedText = processedText.replace(/\n/g, '<br>');
+
+                // 5. Now, replace placeholders with formatted code blocks
+                codeBlocks.forEach((block, index) => {
+                    const placeholder = `__CODEBLOCK_${index}__`;
+                    const escapedCode = block.code.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const codeForButton = block.code.trim().replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '');
+
+                    const codeHtml = `<pre><button class="copy-code-btn" onclick="knowstaApp.methods.copyToClipboard('${codeForButton}')">Copy</button><code class="language-${block.lang || ''}">${escapedCode}</code></pre>`;
+                    processedText = processedText.replace(placeholder, codeHtml);
+                });
+
+                return processedText;
+            },
             addMessage(role, content, isImageHtml = false, timestamp = null) {
                 const suppressedMessages = [
                     'Generating audio...',
@@ -1414,26 +1508,21 @@
                 // Handle complex content (text, images, files)
                 if (!isSystem) {
                      if (Array.isArray(content)) {
-                        content.forEach(part => {
-                            if(part.text) {
-                                let formattedText = part.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                                        .replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>')
-                                                        .replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>')
-                                                        .replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
-                                if (formattedText.includes('<li>')) {
-                                    formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
-                                }
-                                textContentDiv.innerHTML += formattedText.replace(/\n/g, '<br>');
-                            }
-                            if (part.inlineData) {
-                                const img = document.createElement('img');
-                                img.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                                img.className = 'mt-2 rounded-lg max-w-full h-auto';
-                                bubble.appendChild(img);
-                            }
-                        });
-                    }
-                    bubble.appendChild(textContentDiv);
+                         content.forEach(part => {
+                             if(part.text) {
+                                textContentDiv.innerHTML += this.methods.formatGeminiResponse(part.text);
+                             }
+                             if (part.inlineData) {
+                                 const img = document.createElement('img');
+                                 img.src = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                                 img.className = 'mt-2 rounded-lg max-w-full h-auto';
+                                 bubble.appendChild(img);
+                             }
+                         });
+                     } else { // Handle plain string content
+                        textContentDiv.innerHTML = this.methods.formatGeminiResponse(content);
+                     }
+                     bubble.appendChild(textContentDiv);
                 }
 
                 if (!isSystem) {
@@ -1654,9 +1743,7 @@
                     const typeWriter = () => {
                         if (this.state.stopGenerationRequested || i >= text.length) {
                             const finalText = text.substring(0, i);
-                            let formattedText = finalText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>').replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>').replace(/^\*\s*(.*)/gm, '<li class="ml-4 list-disc">$1</li>');
-                            if (formattedText.includes('<li>')) formattedText = `<ul class="list-disc space-y-1">${formattedText}</ul>`;
-                            textContentDiv.innerHTML = formattedText.replace(/\n/g, '<br>');
+                            textContentDiv.innerHTML = this.methods.formatGeminiResponse(finalText);
                             
                             // Update the history with the final streamed text
                             if (this.state.chatHistory.length > 0 && this.state.chatHistory[this.state.chatHistory.length - 1].role === 'model') {
@@ -1731,7 +1818,7 @@
                 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.config.FLASH_MODEL}:generateContent?key=${this.config.API_KEY}`;
                 
-                const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${this.state.responseTone}** tone and personality. Keep your responses short and well-structured using Markdown. Do not include unnecessary conversational filler or preamble.
+                const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${this.state.responseTone}** tone and personality. Keep your responses short and well-structured using Markdown, including code blocks with language identifiers. Do not include unnecessary conversational filler or preamble.
 If the user asks about the creator, developer, or founder of Knowsta, you may provide the following information: ${this.config.CREATOR_BIO}`;
 
                 // Create history for API call, ensuring 'parts' is always an array

@@ -366,6 +366,19 @@
             transform: scale(0.95);
             opacity: 0;
         }
+
+        /* NEW: Active Persona Button Style */
+        .sidebar .utility-button.active-persona {
+            background-color: #cce0ff;
+            color: #004aad;
+            font-weight: 600;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .dark .sidebar .utility-button.active-persona {
+            background-color: #004aad;
+            color: white;
+        }
     </style>
 </head>
 <body class="p-0 sm:p-4">
@@ -392,7 +405,7 @@
                 <div class="flex items-center justify-center mb-6">
                     <img src="https://i.ibb.co/hRdf1MRq/knowsta.png" alt="Knowsta Logo" class="w-8 h-8 rounded-full">
                 </div>
-                <button id="new-chat-button" onclick="knowstaApp.methods.startNewChat()" class="w-full py-2 px-3 text-base rounded-xl bg-indigo-600 text-white transition duration-150 hover:bg-indigo-700 animated-button shadow-md mb-6">
+                <button id="new-chat-button" onclick="knowstaApp.methods.resetToGeneralChat()" class="w-full py-2 px-3 text-base rounded-xl bg-indigo-600 text-white transition duration-150 hover:bg-indigo-700 animated-button shadow-md mb-6">
                     <div class="flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                         <span id="label-new-chat">New Chat</span>
@@ -404,7 +417,7 @@
             <div id="chat-history-container" class="flex-grow overflow-y-auto mb-4 border-t border-b border-gray-200 dark:border-gray-700 py-4">
                  <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 px-1">Recent Chats</div>
                  <div id="chat-history-list" class="space-y-1">
-                         <!-- History items will be injected here -->
+                      <!-- History items will be injected here -->
                  </div>
             </div>
 
@@ -415,6 +428,36 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.942 3.31.82 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.942 1.543-.82 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.942-3.31-.82-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.942-1.543.82-3.31 2.37-2.37h.001c.43.723 1.055 1.096 1.761 1.096z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     <span id="label-settings">Settings</span>
                 </button>
+                
+                <!-- Personas Section -->
+                <div id="personas-section" class="pt-2">
+                    <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Personas</div>
+                    <div id="persona-buttons" class="space-y-1">
+                        <button id="persona-general" onclick="knowstaApp.methods.setPersona('general')" class="utility-button persona-button w-full flex items-center p-2 rounded-xl text-sm font-medium active-persona">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                            <span>General</span>
+                        </button>
+                        <button id="persona-marketing" onclick="knowstaApp.methods.setPersona('marketing')" class="utility-button persona-button w-full flex items-center p-2 rounded-xl text-sm font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                            <span>Marketing</span>
+                        </button>
+                        <button id="persona-learn" onclick="knowstaApp.methods.setPersona('learn')" class="utility-button persona-button w-full flex items-center p-2 rounded-xl text-sm font-medium">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <span>Learn</span>
+                        </button>
+                        <button id="persona-coding" onclick="knowstaApp.methods.setPersona('coding')" class="utility-button persona-button w-full flex items-center p-2 rounded-xl text-sm font-medium">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                            </svg>
+                            <span>Coding</span>
+                        </button>
+                    </div>
+                </div>
+
                 <button id="export-button" onclick="knowstaApp.methods.exportChat()" class="utility-button w-full flex items-center p-2 rounded-xl text-sm font-medium dark:bg-gray-800/50 dark:hover:bg-gray-700 animated-button">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                     <span id="label-export">Export Conversation (.txt)</span>
@@ -725,7 +768,7 @@
                 THEME_KEY: 'knowsta_theme',
                 LANG_KEY: 'knowsta_lang',
                 TONE_KEY: 'knowsta_tone',
-                VOICE_KEY: 'knowsta_voice', // NEW
+                VOICE_KEY: 'knowsta_voice',
                 CREATOR_BIO: "Sithu Nyein (born 2003) is a 22-year-old Myanmar-based digital marketer and entrepreneur, currently enhancing his skills through Coursera’s professional programs. He is the founder of Knowsta, an upcoming AI-powered chat application designed to deliver smarter, more creative, and user-friendly conversations for global users. Sithu aims to make AI assistance more personalized, accessible, and efficient, bridging the gap between human communication and artificial intelligence.",
                 MINIMUM_LOAD_MS: 2500,
             },
@@ -733,19 +776,20 @@
             // --- APPLICATION STATE ---
             state: {
                 chatHistory: [],
-                allChats: {}, // NEW: Stores all conversations
-                currentChatId: null, // NEW: Tracks the active chat
+                allChats: {},
+                currentChatId: null,
                 userId: 'guest',
                 supabase: null,
                 speechRecognition: null,
                 responseTone: 'Friendly',
-                ttsVoice: 'Iapetus', // NEW: Default clear voice
+                ttsVoice: 'Iapetus',
                 profileBio: '',
                 isListening: false,
-                audioContext: null, // NEW: For Web Audio API
-                isGenerating: false, // NEW
-                stopGenerationRequested: false, // NEW
-                attachedFile: null, // NEW: For file/image uploads
+                audioContext: null,
+                isGenerating: false,
+                stopGenerationRequested: false,
+                attachedFile: null,
+                activePersona: 'general', // NEW: To track the current AI persona
             },
             
             // --- UI ELEMENT REFERENCES ---
@@ -776,7 +820,7 @@
                     currentThemeLabel: document.getElementById('current-theme-label'),
                     modalLangSelector: document.getElementById('modal-lang-selector'),
                     modalToneSelector: document.getElementById('modal-tone-selector'),
-                    modalVoiceSelector: document.getElementById('modal-voice-selector'), // NEW
+                    modalVoiceSelector: document.getElementById('modal-voice-selector'),
                     micButton: document.getElementById('mic-button'),
                     profileModal: document.getElementById('profile-modal'),
                     profileAvatarImg: document.getElementById('profile-avatar-img'),
@@ -794,13 +838,11 @@
                     hamburgerBtn: document.getElementById('hamburger-btn'),
                     mobileMenuOverlay: document.getElementById('mobile-menu-overlay'),
                     sidebar: document.querySelector('.sidebar'),
-                    // NEW UI elements for account settings
                     accountSettingsContainer: document.getElementById('account-settings-container'),
                     profileNameInput: document.getElementById('profile-name-input'),
                     passwordUpdateContainer: document.getElementById('password-update-container'),
                     profileNewPasswordInput: document.getElementById('profile-new-password'),
                     accountSettingsMessage: document.getElementById('account-settings-message'),
-                    // NEW UI elements for attachments
                     attachmentPreview: document.getElementById('attachment-preview'),
                     fileInput: document.getElementById('file-input'),
                 };
@@ -821,7 +863,7 @@
                 this.methods.loadTheme();
                 this.methods.loadLanguage();
                 this.methods.loadTone();
-                this.methods.loadVoice(); // NEW
+                this.methods.loadVoice();
                 
                 // 6. Set up Auth listeners
                 this.state.supabase.auth.onAuthStateChange((event, session) => {
@@ -839,9 +881,9 @@
                 const authReadyCheck = this.state.supabase.auth.getSession();
 
                 Promise.all([minimumLoadTime, authReadyCheck]).then(([, { data: { session } }]) => {
-                    this.methods.updateAuthUI(session?.user); // Initial auth state check
+                    this.methods.updateAuthUI(session?.user);
                     
-                    this.methods.loadAllChats(); // Load all chats from storage
+                    this.methods.loadAllChats();
                     
                     if (!this.state.currentChatId) {
                        this.methods.startNewChat();
@@ -875,7 +917,6 @@
             setupSound() {
                 try {
                     this.state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    // Resume the context on the first user interaction for browser compatibility.
                     const resumeContext = () => {
                         if (this.state.audioContext.state === 'suspended') {
                             this.state.audioContext.resume();
@@ -992,7 +1033,26 @@
                 this.methods.applyTheme(savedTheme);
             },
             
-            // --- SETTINGS ---
+            // --- SETTINGS & PERSONAS ---
+            setPersona(persona) {
+                this.state.activePersona = persona;
+                
+                const personaButtons = document.querySelectorAll('#persona-buttons .persona-button');
+                personaButtons.forEach(btn => btn.classList.remove('active-persona'));
+                const activeButton = document.getElementById(`persona-${persona}`);
+                if (activeButton) {
+                    activeButton.classList.add('active-persona');
+                }
+                
+                this.methods.startNewChat();
+                
+                if (window.innerWidth <= 768 && this.ui.sidebar.classList.contains('open')) {
+                    this.methods.toggleMobileMenu();
+                }
+            },
+            resetToGeneralChat() {
+                this.methods.setPersona('general');
+            },
             updateLanguage(selectedLang) {
                 localStorage.setItem(this.config.LANG_KEY, selectedLang);
                 this.methods.translateUI(selectedLang);
@@ -1019,7 +1079,6 @@
                 this.methods.updateTone(savedTone);
                 if (this.ui.modalToneSelector) this.ui.modalToneSelector.value = savedTone;
             },
-            // NEW: Voice settings methods
             updateVoice(selectedVoice) {
                 this.state.ttsVoice = selectedVoice;
                 localStorage.setItem(this.config.VOICE_KEY, this.state.ttsVoice);
@@ -1029,7 +1088,7 @@
                 this.methods.updateVoice(selectedVoice);
             },
             loadVoice() {
-                const savedVoice = localStorage.getItem(this.config.VOICE_KEY) || 'Iapetus'; // New default clear voice
+                const savedVoice = localStorage.getItem(this.config.VOICE_KEY) || 'Iapetus';
                 this.methods.updateVoice(savedVoice);
                 if (this.ui.modalVoiceSelector) this.ui.modalVoiceSelector.value = savedVoice;
             },
@@ -1078,13 +1137,13 @@
             showSettingsModal() {
                 this.ui.modalLangSelector.value = localStorage.getItem(this.config.LANG_KEY) || 'English';
                 this.ui.modalToneSelector.value = localStorage.getItem(this.config.TONE_KEY) || 'Friendly';
-                this.ui.modalVoiceSelector.value = localStorage.getItem(this.config.VOICE_KEY) || 'Iapetus'; // NEW
+                this.ui.modalVoiceSelector.value = localStorage.getItem(this.config.VOICE_KEY) || 'Iapetus';
                 this.ui.settingsModal.classList.remove('hidden');
                 this.ui.settingsModal.classList.add('flex');
             },
             hideSettingsModal() { this.ui.settingsModal.classList.add('hidden'); this.ui.settingsModal.classList.remove('flex'); },
             handleAuthClickOrProfile() {
-                const user = this.state.supabase.auth.getSession()?.user;
+                const { data: { user } } = this.state.supabase.auth.getUser();
                 if (user) {
                     this.methods.showProfileModal();
                 } else {
@@ -1100,7 +1159,6 @@
                     return;
                 }
                 
-                // Reset form state
                 this.ui.accountSettingsMessage.classList.add('hidden');
                 this.ui.profileNameInput.value = '';
                 this.ui.profileNewPasswordInput.value = '';
@@ -1118,7 +1176,6 @@
                 profileAuthButton.classList.replace('bg-indigo-600', 'bg-red-600');
                 authFormContainer.classList.add('hidden');
                 
-                // Show/hide password update form based on provider
                 if (user.app_metadata.provider === 'email') {
                     this.ui.passwordUpdateContainer.classList.remove('hidden');
                 } else {
@@ -1132,30 +1189,47 @@
 
             // --- CHAT LOGIC ---
             startNewChat() {
-                if (window.innerWidth <= 768 && this.ui.sidebar.classList.contains('open')) {
-                    this.methods.toggleMobileMenu();
-                }
                 if (this.state.isGenerating) this.methods.stopGeneration();
                 this.methods.saveAllChats();
                 
                 this.state.chatHistory = [];
                 this.state.currentChatId = `chat_${Date.now()}`;
                 this.ui.chatWindow.innerHTML = '';
+                
+                const persona = this.state.activePersona;
+                const personaWelcomes = {
+                    general: {
+                        head: 'How can I help you?',
+                        sub: 'I\'m ready to assist with any topic.',
+                        text: 'Select a persona on the left or ask me anything.'
+                    },
+                    marketing: {
+                        head: 'Marketing Maestro',
+                        sub: 'Ready to craft your next campaign.',
+                        text: 'Ask for strategies, ad copy, or market analysis.'
+                    },
+                    learn: {
+                        head: 'Learning Companion',
+                        sub: 'Here to help you understand new concepts.',
+                        text: 'Ask me to explain topics, summarize articles, or test your knowledge.'
+                    },
+                    coding: {
+                        head: 'Coding Co-pilot',
+                        sub: 'Your partner in programming.',
+                        text: 'Ask for code snippets, debugging help, or algorithm explanations.'
+                    }
+                };
+                const welcome = personaWelcomes[persona] || personaWelcomes['general'];
+
                 const messageDiv = document.createElement('div');
                 messageDiv.id = 'initial-message';
                 messageDiv.className = 'flex justify-center mt-20';
-                messageDiv.innerHTML = `<div class="text-center max-w-xs text-gray-500 transition duration-300">
-                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">${this.methods.getLocalizedText('welcome_head')}</h3>
-                    <p class="text-lg font-semibold mb-2">${this.methods.getLocalizedText('welcome_sub')}</p>
-                    <p class="text-sm">${this.methods.getLocalizedText('welcome_text')}</p>
-                    <div class="mt-6 space-y-2 px-2 sm:px-0">
-                        <div class="text-center flex flex-wrap justify-center gap-2">
-                            <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="knowstaApp.methods.sendTopic('Draft a professional email to a client requesting project feedback.')">Draft Email</button>
-                            <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="knowstaApp.methods.sendTopic('Make a recipe for spicy noodle soup with ingredients and steps.')">Make Recipe</button>
-                            <button class="topic-item text-sm py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full shadow-sm" onclick="knowstaApp.methods.sendTopic('Suggest three simple activities for a weekend to boost mental clarity.')">Suggest Activities</button>
-                        </div>
-                    </div>
+                messageDiv.innerHTML = `<div class="text-center max-w-md px-4 text-gray-500 transition duration-300">
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">${welcome.head}</h3>
+                    <p class="text-lg font-semibold mb-2">${welcome.sub}</p>
+                    <p class="text-sm">${welcome.text}</p>
                 </div>`;
+
                 this.ui.chatWindow.appendChild(messageDiv);
                 this.methods.saveAllChats();
             },
@@ -1414,32 +1488,27 @@
             // --- MESSAGE RENDERING ---
             formatGeminiResponse(text) {
                 const codeBlocks = [];
-                // 1. Find and replace code blocks with placeholders
                 let processedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
                     const placeholder = `__CODEBLOCK_${codeBlocks.length}__`;
                     codeBlocks.push({ lang, code });
                     return placeholder;
                 });
 
-                // 2. Process other markdown on the non-code text
                 processedText = processedText
-                    .replace(/</g, "&lt;").replace(/>/g, "&gt;") // Sanitize remaining HTML characters
+                    .replace(/</g, "&lt;").replace(/>/g, "&gt;")
                     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                     .replace(/###\s*(.*)/g, '<h3 class="font-bold text-md mt-2 mb-1">$1</h3>')
                     .replace(/##\s*(.*)/g, '<h2 class="font-bold text-lg mt-3 mb-1">$1</h2>')
-                    .replace(/^\s*\*\s+(.*)/gm, '__LIST_ITEM__$1'); // Use a temp marker for lists
+                    .replace(/^\s*\*\s+(.*)/gm, '__LIST_ITEM__$1');
 
-                // 3. Group list items into <ul>
                 processedText = processedText.replace(/(__LIST_ITEM__.*(?:\n__LIST_ITEM__.*)*)/g, (match) => {
                     const items = match.replace(/__LIST_ITEM__/g, '<li class="ml-4 list-disc">')
                                        .replace(/\n/g, '</li>');
                     return `<ul class="list-disc space-y-1 my-2">${items}</li></ul>`;
                 });
 
-                // 4. Handle newlines outside of lists/code
                 processedText = processedText.replace(/\n/g, '<br>');
 
-                // 5. Now, replace placeholders with formatted code blocks
                 codeBlocks.forEach((block, index) => {
                     const placeholder = `__CODEBLOCK_${index}__`;
                     const escapedCode = block.code.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -1470,7 +1539,6 @@
                 const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
                 const currentTime = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 
-                // Determine text content for escaping and controls
                 let textForControls = '';
                 if (Array.isArray(content)) {
                     const textPart = content.find(part => part.text);
@@ -1488,7 +1556,7 @@
                 contentBlock.className = 'flex flex-col';
 
                 const bubble = document.createElement('div');
-                const textContentDiv = document.createElement('div'); // Div for text
+                const textContentDiv = document.createElement('div');
                 textContentDiv.className = 'message-text-content';
 
                 const isSystem = role === 'system';
@@ -1500,17 +1568,16 @@
                     bubbleClass += ' chat-bubble-ai mr-auto';
                 } else if (isSystem) {
                     bubbleClass = 'max-w-full text-center px-4 py-1 text-xs text-gray-500 transition duration-300';
-                    textContentDiv.innerHTML = textForControls; // System messages are simple text
+                    textContentDiv.innerHTML = textForControls;
                     bubble.appendChild(textContentDiv);
                 }
                 bubble.className = bubbleClass;
                 
-                // Handle complex content (text, images, files)
                 if (!isSystem) {
                      if (Array.isArray(content)) {
                          content.forEach(part => {
                              if(part.text) {
-                                textContentDiv.innerHTML += this.methods.formatGeminiResponse(part.text);
+                                 textContentDiv.innerHTML += this.methods.formatGeminiResponse(part.text);
                              }
                              if (part.inlineData) {
                                  const img = document.createElement('img');
@@ -1519,8 +1586,8 @@
                                  bubble.appendChild(img);
                              }
                          });
-                     } else { // Handle plain string content
-                        textContentDiv.innerHTML = this.methods.formatGeminiResponse(content);
+                     } else {
+                         textContentDiv.innerHTML = this.methods.formatGeminiResponse(content);
                      }
                      bubble.appendChild(textContentDiv);
                 }
@@ -1597,16 +1664,14 @@
                 }
                 const userText = userMsgElement.querySelector('.message-text-content').textContent.trim();
                 
-                // Remove the old AI response from the UI
                 modelMsgElement.remove();
 
-                // FIX: Remove the last AI response from the state history before regenerating
                 if (this.state.chatHistory.length > 0 && this.state.chatHistory[this.state.chatHistory.length - 1].role === 'model') {
                     this.state.chatHistory.pop();
                 }
                 
                 this.methods.addMessage('system', 'Regenerating response...');
-                this.methods.sendMessage(userText, true); // True flag prevents re-adding user message to history
+                this.methods.sendMessage(userText, true);
             },
             deleteMessage(messageId) {
                 const elementToDelete = document.getElementById(messageId);
@@ -1670,7 +1735,6 @@
                     return;
                 }
 
-                // Resume context if it's suspended (important for browser autoplay policies)
                 if (this.state.audioContext.state === 'suspended') {
                     await this.state.audioContext.resume();
                 }
@@ -1702,13 +1766,11 @@
                         const pcmBuffer = this.methods.base64ToArrayBuffer(audioData);
                         const pcm16 = new Int16Array(pcmBuffer);
 
-                        // Convert Int16 PCM to Float32 PCM [-1, 1] for Web Audio API
                         const pcm32 = new Float32Array(pcm16.length);
                         for (let i = 0; i < pcm16.length; i++) {
                             pcm32[i] = pcm16[i] / 32767;
                         }
 
-                        // Use Web Audio API for robust playback
                         const audioBuffer = this.state.audioContext.createBuffer(1, pcm32.length, sampleRate);
                         audioBuffer.copyToChannel(pcm32, 0);
 
@@ -1745,7 +1807,6 @@
                             const finalText = text.substring(0, i);
                             textContentDiv.innerHTML = this.methods.formatGeminiResponse(finalText);
                             
-                            // Update the history with the final streamed text
                             if (this.state.chatHistory.length > 0 && this.state.chatHistory[this.state.chatHistory.length - 1].role === 'model') {
                                 this.state.chatHistory[this.state.chatHistory.length - 1].parts = [{ text: finalText }];
                             }
@@ -1771,12 +1832,12 @@
                 });
             },
 
-            // --- CORE SEND LOGIC (Updated for files) ---
+            // --- CORE SEND LOGIC ---
             async sendMessage(overrideText, isRegenerate = false) {
-                if (this.state.isGenerating) return; // Prevent multiple submissions
+                if (this.state.isGenerating) return;
                 
                 const userText = overrideText || this.ui.userInput.value.trim();
-                if (!userText && !this.state.attachedFile) return; // Must have text or file
+                if (!userText && !this.state.attachedFile) return;
                 
                 this.state.isGenerating = true;
                 this.state.stopGenerationRequested = false;
@@ -1786,7 +1847,6 @@
                     messageParts.push({ text: userText });
                 }
                 
-                // Add attached file to message parts
                 if (this.state.attachedFile) {
                     messageParts.push({
                         inlineData: {
@@ -1804,13 +1864,11 @@
                     }
                 }
                 
-                // Clear inputs after sending
                 this.ui.userInput.value = '';
                 this.ui.userInput.style.height = 'auto';
                 this.methods.removeAttachment();
                 this.ui.sendButton.disabled = true;
                 
-                // Show loading indicator
                 this.ui.loadingIndicator.classList.remove('hidden');
                 this.ui.loadingMessage.textContent = "Knowsta is thinking...";
                 this.ui.stopGeneratingBtn.classList.remove('hidden');
@@ -1818,10 +1876,16 @@
                 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.config.FLASH_MODEL}:generateContent?key=${this.config.API_KEY}`;
                 
-                const systemInstruction = `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${this.state.responseTone}** tone and personality. Keep your responses short and well-structured using Markdown, including code blocks with language identifiers. Do not include unnecessary conversational filler or preamble.
-If the user asks about the creator, developer, or founder of Knowsta, you may provide the following information: ${this.config.CREATOR_BIO}`;
+                const personaPrompts = {
+                    general: `You are Knowsta, an advanced and friendly conversational AI. Your primary goal is to provide **the absolute fastest, most concise, and highly relevant answer**. You MUST detect the language of the user's current query and respond in that same language. Adopt a **${this.state.responseTone}** tone and personality. Keep your responses short and well-structured using Markdown, including code blocks with language identifiers. Do not include unnecessary conversational filler or preamble.`,
+                    marketing: `You are Knowsta, a world-class Marketing Strategist AI. Your expertise is in digital marketing, branding, copywriting, and market analysis. Provide actionable, creative, and data-driven marketing advice. Adopt a **${this.state.responseTone}** tone. Respond in the user's language. Be concise and use Markdown for clarity.`,
+                    learn: `You are Knowsta, an expert educator and learning assistant AI. Your goal is to explain complex topics simply and clearly. Break down concepts, provide analogies, and use structured formats like lists and summaries to aid understanding. Adopt a **${this.state.responseTone}** and patient tone. Respond in the user's language.`,
+                    coding: `You are Knowsta, an expert programmer AI and coding assistant. Your strengths are in writing clean, efficient code, debugging, explaining algorithms, and software architecture. Always provide code in formatted Markdown blocks with language identifiers. Explain the code clearly and concisely. Adopt a **${this.state.responseTone}** and technical tone. Respond in the user's language.`
+                };
 
-                // Create history for API call, ensuring 'parts' is always an array
+                const baseInstruction = `If the user asks about the creator, developer, or founder of Knowsta, you may provide the following information: ${this.config.CREATOR_BIO}`;
+                const systemInstruction = (personaPrompts[this.state.activePersona] || personaPrompts['general']) + '\n' + baseInstruction;
+
                 const apiHistory = this.state.chatHistory.map(msg => ({ 
                     role: msg.role === 'model' ? 'model' : 'user', 
                     parts: msg.parts 
@@ -1836,7 +1900,6 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                         this.ui.loadingIndicator.classList.add('hidden');
                         this.ui.stopGeneratingBtn.classList.add('hidden');
                         
-                        // Add the model's response to the history before streaming
                         this.state.chatHistory.push({ role: 'model', parts: [{ text: aiResponseText }], time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
                         
                         await this.methods.streamResponse(aiResponseText);
@@ -1860,7 +1923,7 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                 }
             },
             
-            // --- NEW FILE/IMAGE METHODS ---
+            // --- FILE/IMAGE METHODS ---
             handleFileUpload(event) {
                 const file = event.target.files[0];
                 if (!file) return;
@@ -1878,7 +1941,7 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                     this.methods.validateInput();
                 };
                 reader.readAsDataURL(file);
-                this.ui.fileInput.value = ''; // Reset input to allow re-uploading the same file
+                this.ui.fileInput.value = '';
             },
             renderAttachmentPreview() {
                 if (!this.state.attachedFile) return;
@@ -1910,7 +1973,7 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
             },
 
 
-            // --- NEW ADVANCED METHODS ---
+            // --- ADVANCED METHODS ---
             renderChatHistoryList() {
                 this.ui.chatHistoryList.innerHTML = '';
                 const chatIds = Object.keys(this.state.allChats).reverse();
@@ -1952,10 +2015,9 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                 });
             },
             clearAllData() {
-                // Removed confirm() dialog for a smoother experience
                 localStorage.removeItem(this.methods.getChatsKey(this.state.userId));
                 localStorage.removeItem(this.methods.getProfileBioKey(this.state.userId));
-                localStorage.removeItem(this.config.VOICE_KEY); // NEW
+                localStorage.removeItem(this.config.VOICE_KEY);
                 this.state.allChats = {};
                 this.state.currentChatId = null;
                 this.methods.startNewChat();
@@ -1963,7 +2025,6 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
                 this.methods.addMessage('system', 'All your local data has been cleared.');
             },
             deleteChat(chatId) {
-                // Removed confirm() dialog
                 delete this.state.allChats[chatId];
                 if (this.state.currentChatId === chatId) {
                     const remainingChats = Object.keys(this.state.allChats);
@@ -1983,9 +2044,10 @@ If the user asks about the creator, developer, or founder of Knowsta, you may pr
         };
 
         // --- GLOBAL INITIALIZATION ---
-        window.knowstaApp = knowstaApp; // Expose the app object to the window
+        window.knowstaApp = knowstaApp;
         document.addEventListener('DOMContentLoaded', () => knowstaApp.init());
 
     </script>
 </body>
 </html>
+

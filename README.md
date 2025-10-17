@@ -58,7 +58,7 @@ You just need a modern web browser capable of opening HTML files.
 
 ```bash
 # Clone the repository
-git clone https://github.com/MrSTNyein/Knowsta-AI.git
+git clone https://github.com/MrSTNyein/Knowsta.git
 
 # Navigate into the directory
-cd Knowsta-AI
+cd Knowsta

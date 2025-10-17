@@ -252,13 +252,13 @@
         .dark .app-container { background-color: #2c2c2e; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
         .dark .sidebar { background-color: #1f1f1f; border-right: 1px solid #3a3a3c; color: white; }
         .dark .chat-bubble-ai { background-color: #48484a; color: white; }
-        .dark #user-input { color: white; }
+        .dark #user-input { color: #1c1c1e; } /* MODIFIED: Dark text for white background */
         .dark .input-bar-wrapper { 
-            background-color: #3a3a3c; 
-            border-color: #555555;
+            background-color: white; /* MODIFIED: White background */
+            border-color: #e2e8f0; /* MODIFIED: Light gray border */
         }
         .dark .input-bar-wrapper:focus-within {
-            box-shadow: 0 0 0 1px #004aad, 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(0, 74, 173, 0.3);
+            box-shadow: 0 0 0 1px #004aad, 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 0 0 4px rgba(0, 74, 173, 0.3); /* Adjusted for light bg */
         }
         .dark header { background-color: rgba(44, 44, 46, 0.9); border-color: #3a3a3c; }
         .dark .topic-item { background-color: #3a3a3c; color: #e5e5ea; }
@@ -449,7 +449,7 @@
                         </button>
                         <button id="persona-learn" onclick="knowstaApp.methods.setPersona('learn')" class="utility-button persona-button w-full flex items-center p-2 rounded-xl text-sm font-medium">
                              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
                             <span>Learn</span>
                         </button>
@@ -506,10 +506,12 @@
 
             <div id="chat-window" class="flex-grow p-2 sm:p-4 space-y-4 overflow-y-auto"></div>
 
-            <div class="p-2 sm:p-4 border-t border-gray-100 bg-white dark:bg-gray-900/50 transition duration-300">
+            <!-- MODIFIED: Changed dark mode background to white -->
+            <div class="p-2 sm:p-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-white transition duration-300">
                 <div id="loading-indicator" class="hidden flex-col items-center text-sm text-[#004aad] mb-2">
                     <div class="flex items-center">
-                        <p id="loading-message" class="mt-1 font-semibold text-gray-700 dark:text-gray-300"></p>
+                        <!-- MODIFIED: Changed dark mode text color -->
+                        <p id="loading-message" class="mt-1 font-semibold text-gray-700 dark:text-gray-700"></p>
                         <div id="typing-dots" class="flex justify-center space-x-1 mt-1 typing-dots-animation ml-2">
                             <span class="w-2 h-2 rounded-full"></span>
                             <span class="w-2 h-2 rounded-full"></span>
@@ -527,7 +529,7 @@
                     <button
                         id="attachment-button"
                         onclick="document.getElementById('file-input').click()"
-                        class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-[#004aad] transition duration-150 dark:text-gray-300 dark:hover:text-white animated-button"
+                        class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-[#004aad] transition duration-150 animated-button"
                         title="Attach File or Image">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
                            <path fill-rule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a3 3 0 10-6 0v4a1 1 0 102 0V7a1 1 0 112 0v4a3 3 0 11-6 0V7a5 5 0 0110 0v4a5 5 0 01-10 0V7a3 3 0 00-3-3z" clip-rule="evenodd" />
@@ -537,7 +539,7 @@
                     <button
                         id="mic-button"
                         onclick="knowstaApp.methods.toggleVoiceInput()"
-                        class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-[#004aad] transition duration-150 dark:text-gray-300 dark:hover:text-white animated-button"
+                        class="p-2 text-gray-500 rounded-xl flex items-center justify-center hover:text-[#004aad] transition duration-150 animated-button"
                         title="Start Voice Input"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -549,7 +551,7 @@
                         id="user-input"
                         rows="1"
                         placeholder="Ask anything..."
-                        class="flex-grow p-1 bg-transparent resize-none focus:ring-0 focus:border-transparent outline-none transition duration-150 dark:text-white"
+                        class="flex-grow p-1 bg-transparent resize-none focus:ring-0 focus:border-transparent outline-none transition duration-150"
                         oninput="knowstaApp.methods.autoExpand(this); knowstaApp.methods.validateInput()"
                         onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); knowstaApp.methods.sendMessage(); }"
                     ></textarea>
